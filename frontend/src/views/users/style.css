@@ -1,0 +1,129 @@
+/* Make all text white */
+.apexcharts-xaxis-label,
+.apexcharts-yaxis-label,
+.apexcharts-title-text,
+.apexcharts-yaxis-title-text,
+.apexcharts-xaxis-title-text {
+  fill: #fff; /* Set text color to white */
+}
+  
+
+/* Make legend text white */
+.apexcharts-legend-text {
+  color: #5D596C; /* Set legend text color to white */
+  fill:#5D596C;
+}
+
+
+.progress-bar {
+  width: 100%; /* Set the width of the bars */
+  height: 20px; /* Set the height of the bars */
+  background: #f0f0f0; /* Background color of the bars */
+  display: inline-block;
+  margin: 0 10px; /* Adjust spacing between bars */
+  margin-top:10px;
+}
+
+.fill1 {
+  width: 100%;
+  background: #4CAF50; /* Color of the filled portion of the bars */
+  text-align: center;
+  color: black;
+  font-weight: bold;
+  transition: width 2s; /* Animation duration */
+}
+
+.fill2 {
+  width: 100%;
+  background: red; /* Color of the filled portion of the bars */
+  text-align: center;
+  color: black;
+  font-weight: bold;
+  transition: width 2s; /* Animation duration */
+}
+
+.fill3 {
+  width: 100%;
+  background: #ef843c; /* Color of the filled portion of the bars */
+  text-align: center;
+  color: black;
+  font-weight: bold;
+  transition: width 2s; /* Animation duration */
+}
+
+.fill4 {
+  width: 100%;
+  background: #93A3B8; /* Color of the filled portion of the bars */
+  text-align: center;
+  color: black;
+  font-weight: bold;
+  transition: width 2s; /* Animation duration */
+}
+
+
+.primaryButton{
+  background-color: #7367f0;
+  border-color: #7367f0;
+  display: inline-flex !important;
+  align-items: center;
+  justify-content: center;
+  transition: all .135s ease-in-out;
+  transform: scale(1.001);
+  box-shadow: 0 0.125rem 0.25rem rgba(165,163,174,.3);
+  color:#fff !important
+}
+
+
+.primaryButtonText{
+  color:#fff;
+  font-size: 0.9375rem;
+}
+
+
+.primaryOutlineButton{
+
+  background-color: #fff;
+  border-color: #7367f0;
+  display: inline-flex !important;
+  align-items: center;
+  justify-content: center;
+  transition: all .135s ease-in-out;
+  transform: scale(1.001);
+  box-shadow: 0 0.125rem 0.25rem rgba(165,163,174,.3);
+  color:#fff !important
+
+}
+
+.primaryOutlineButtonText{
+  color:#7367f0;
+  font-size: 0.9375rem;
+}
+
+
+.darkButton{
+  background-color: #4b4b4b;
+  border-color: #4b4b4b;
+  display: inline-flex !important;
+  align-items: center;
+  justify-content: center;
+  transition: all .135s ease-in-out;
+  transform: scale(1.001);
+  box-shadow: 0 0.125rem 0.25rem rgba(165,163,174,.3);
+  color:#fff !important
+}
+
+
+.darkButtonText{
+  color:#fff;
+  font-size: 0.9375rem;
+}
+
+.pageHeader{
+  font-size: 1.375rem;
+  line-height: 1.37;
+  display: block;
+  color:rgb(93, 89, 108) !important;
+  font-weight: 500;
+}
+
+

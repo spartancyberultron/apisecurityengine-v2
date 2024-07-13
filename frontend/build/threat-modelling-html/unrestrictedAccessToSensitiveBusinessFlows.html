@@ -1,0 +1,44 @@
+<p>Threat modelling involves identifying and prioritising potential threats, as well as mitigating strategies to address them. 
+The STRIDE and DREAD models are two approaches used in threat modelling to classify and assess the severity of these threats.</p>
+
+<p>Given the vulnerability "API 6:2023 - Unrestricted Access to Sensitive Business Flows", let's break down 
+how it would be categorised under both models:</p>
+
+
+<h3>STRIDE Model</h3>
+
+
+<p>STRIDE is an acronym for Spoofing, Tampering, Repudiation, Information Disclosure, Denial of Service, and Elevation of Privilege. 
+Each of these represents a category of threat.</p>
+
+<p><strong>Spoofing: Not directly applicable</strong>, unless unrestricted access leads to identity spoofing.</p>
+
+<p><strong>Tampering: High</strong> risk if attackers can modify sensitive business flows due to lack of access controls.</p>
+
+<p><strong>Repudiation: Medium risk</strong>, as attackers might make unauthorised changes without the possibility of tracking, due to unrestricted access.</p>
+
+<p><strong>Information Disclosure: Critical</strong>, since unrestricted access could lead to exposure of sensitive data.</p>
+
+<p><strong>Denial of Service (DoS): Medium</strong>, as unrestricted access could allow attackers to misuse business flows, potentially leading to DoS conditions.</p>
+
+<p><strong>Elevation of Privilege: High</strong>, if unrestricted access allows an attacker to gain higher-level privileges than intended.</p>
+
+
+<hr/>
+
+<h3>DREAD Model</h3>
+
+<p>DREAD is an acronym for Damage, Reproducibility, Exploitability, 
+Affected Users, and Discoverability. This model helps in assessing the severity of a threat.</p>
+
+
+<p><strong>Damage: Critical</strong>, as unrestricted access to sensitive business flows can lead to significant damage, including data breaches, financial loss, 
+and damage to the company's reputation.</p>
+
+<p><strong>Reproducibility: High</strong>, assuming the vulnerability is easily exploitable by anyone who discovers it.</p>
+
+<p><strong>Exploitability: High</strong>, if the attack vector does not require specialised knowledge, tools, or conditions to exploit.</p>
+
+<p><strong>Affected Users: Critical</strong>, as it potentially affects all users of the API, including both internal users and external clients.</p>
+
+<p><strong>Discoverability: High</strong>, especially if the API documentation or error messages inadvertently reveal the vulnerability to potential attackers.</p>

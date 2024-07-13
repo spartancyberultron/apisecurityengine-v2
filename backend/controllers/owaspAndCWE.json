@@ -1,0 +1,238 @@
+{
+    "theArray":[
+        {
+            "vulnerabilityCode":1,
+            "name":"Broken Object Level Authorization",
+            "owasp":[
+                "API1:2023 Broken Object Level Authorization"                
+            ],
+            "cwe":[
+                "CWE-200: Exposure of Sensitive Information to an Unauthorized Actor.",
+                "CWE-201: Exposure of Sensitive Information Through Sent Data.",
+                "CWE-284: Improper Access Control",
+                "CWE-359: Exposure of Private Personal Information to an Unauthorized Actor",
+                "CWE-566: Authorization Bypass Through User-Controlled SQL Primary Key",
+                "CWE-863: Incorrect Authorization"
+            ]
+        },
+        {
+            "vulnerabilityCode":2,
+            "name":"Sensitive Data in Path Params",
+            "owasp":[
+                "API3:2023 Broken Object Property Level Authorization"                
+            ],
+            "cwe":[
+                "CWE-598: Use of GET Request Method With Sensitive Query Strings"
+            ]
+        },
+        {
+            "vulnerabilityCode":3,
+            "name":"Basic Authentication Detected",
+            "owasp":[
+                "API2:2023 Broken Authentication"               
+            ],
+            "cwe":[
+                "CWE-306: Missing Authentication for Critical Function"
+            ]
+        },
+        {
+            "vulnerabilityCode":4,
+            "name":"Endpoint Not Secured by SSL",
+            "owasp":[
+                "API8:2023 Security Misconfiguration"                
+            ],
+            "cwe":[
+                "CWE-319: Cleartext Transmission of Sensitive Information"                
+            ]
+        },
+        {
+            "vulnerabilityCode":5,
+            "name":"Unauthenticated Endpoint Returning Sensitive Data",
+            "owasp":[
+                "API2:2023 Broken Authentication"                
+            ],
+            "cwe":[
+                "CWE-200: Exposure of Sensitive Information to an Unauthorized Actor"               
+            ]
+        },
+        {
+            "vulnerabilityCode":6,
+            "name":"Sensitive Data in Query Params",
+            "owasp":[
+                "API3:2023 Broken Object Property Level Authorization"                
+            ],
+            "cwe":[
+                "CWE-598: Use of GET Request Method With Sensitive Query Strings"               
+            ]
+        },
+        {
+            "vulnerabilityCode":7,
+            "name":"PII Data Detected in Response",
+            "owasp":[
+                "API3:2023 Broken Object Property Level Authorization"                
+            ],
+            "cwe":[
+                "CWE-200: Exposure of Sensitive Information to an Unauthorized Actor"                
+            ]
+        },
+        {
+            "vulnerabilityCode":8,
+            "name":"HTTP Verb Tampering Possible",
+            "owasp":[
+                "API8:2023 Security Misconfiguration"                
+            ],
+            "cwe":[
+                "CWE-650: Trusting HTTP Permission Methods on the Server Side"                
+            ]
+        },
+        {
+            "vulnerabilityCode":9,
+            "name":"Content Type Injection Possible",
+            "owasp":[
+                "API10:2023 Unsafe Consumption of APIs"                
+            ],
+            "cwe":[
+                "CWE-116: Improper Encoding or Escaping of Output",
+                "CWE-94: Improper Control of Generation of Code (Code Injection)",
+                "CWE-74: Improper Neutralization of Special Elements in Output Used by a Downstream Component (Injection)"
+            ]
+        },
+        {
+            "vulnerabilityCode":10,
+            "name":"Security Headers not Enabled on Host",
+            "owasp":[
+                "API8:2023 Security Misconfiguration"                
+            ],
+            "cwe":[
+                "CWE-693: Protection Mechanism Failure"                
+            ]
+        },
+        {
+            "vulnerabilityCode":11,
+            "name":"Resource Deletion Possible",
+            "owasp":[
+                "API8:2023 Security Misconfiguration"               
+            ],
+            "cwe":[
+                "CWE-22: Improper Limitation of a Pathname to a Restricted Directory ('Path Traversal')"                
+            ]
+        },
+        {
+            "vulnerabilityCode":12,
+            "name":"Broken Authentication",
+            "owasp":[
+                "API2:2023 Broken Authentication"               
+            ],
+            "cwe":[
+                "CWE-287: Improper Authentication",
+                "CWE-522: Insufficiently Protected Credentials",
+                "CWE-523: Unprotected Transport of Credentials",
+                "CWE-620: Unverified Password Change"
+            ]
+        },
+        {
+            "vulnerabilityCode":13,
+            "name":"Excessive Data Exposure",
+            "owasp":[
+                "API3:2023 Broken Object Property Level Authorization"               
+            ],
+            "cwe":[
+                "CWE-200: Exposure of Sensitive Information to an Unauthorized Actor"                
+            ]
+        },
+        {
+            "vulnerabilityCode":14,
+            "name":"Injection",
+            "owasp":[
+                "API10:2023 Unsafe Consumption of APIs"                
+            ],
+            "cwe": [
+                "CWE-20: Improper Input Validation",
+                "CWE-74: Improper Neutralization of Special Elements in Output Used by a Downstream Component ('Injection')",
+                "CWE-75: Failure to Sanitize Special Elements into a Different Plane (Special Element Injection)",
+                "CWE-77: Improper Neutralization of Special Elements used in a Command ('Command Injection')",
+                "CWE-78: Improper Neutralization of Special Elements used in an OS Command ('OS Command Injection')",
+                "CWE-87: Improper Neutralization of Alternate XSS Syntax",
+                "CWE-88: Improper Neutralization of Argument Delimiters in a Command ('Argument Injection')",
+                "CWE-89: Improper Neutralization of Special Elements used in an SQL Command ('SQL Injection')",
+                "CWE-90: Improper Neutralization of Special Elements used in an LDAP Query ('LDAP Injection')",
+                "CWE-91: XML Injection (aka Blind XPath Injection)",
+                "CWE-93: Improper Neutralization of CRLF Sequences ('CRLF Injection')",
+                "CWE-94: Improper Control of Generation of Code ('Code Injection')",
+                "CWE-95: Improper Neutralization of Directives in Dynamically Evaluated Code ('Eval Injection')",
+                "CWE-96: Improper Neutralization of Directives in Statically Saved Code ('Static Code Injection')",
+                "CWE-98: Improper Control of Filename for Include/Require Statement in PHP Program ('PHP Remote File Inclusion')",
+                "CWE-99: Improper Control of Resource Identifiers ('Resource Injection')",
+                "CWE-113: Improper Neutralization of CRLF Sequences in HTTP Headers ('HTTP Request/Response Splitting')",
+                "CWE-116: Improper Encoding or Escaping of Output",
+                "CWE-138: Improper Neutralization of Special Elements",
+                "CWE-564: SQL Injection: Hibernate",
+                "CWE-643: Improper Neutralization of Data within XPath Expressions ('XPath Injection')",
+                "CWE-652: Improper Neutralization of Data within XQuery Expressions ('XQuery Injection')",
+                "CWE-917: Improper Neutralization of Special Elements used in an Expression Language Statement ('Expression Language Injection')"
+            ]
+        },
+        {
+            "vulnerabilityCode":15,
+            "name":"XSS Vulnerability Found",
+            "owasp":[                
+            ],
+            "cwe":[                
+            ]
+        },
+        {
+            "vulnerabilityCode":16,
+            "name":"Wallet Hijacking Possible",
+            "owasp":[
+                "API1:2023 Broken Object Level Authorization",
+                "API2:2023 Broken Authentication",
+                "API3:2023 Broken Object Property Level Authorization",
+                "API5:2023 Broken Function Level Authorization",
+                "API8:2023 Security Misconfiguration",
+                "API9:2023 Improper Inventory Management"               
+            ],
+            "cwe": [
+                "CWE-307: Improper Restriction of Excessive Authentication Attempts",
+                "CWE-285: Improper Authorization",
+                "CWE-829: Inclusion of Functionality from Untrusted Control Sphere",
+                "CWE-732: Incorrect Permission Assignment for Critical Resource",
+                "CWE-522: Insufficiently Protected Credentials",
+                "CWE-602: Client-Side Enforcement of Server-Side Security",
+                "CWE-269: Improper Privilege Management",
+                "CWE-311: Missing Encryption of Sensitive Data",
+                "CWE-863: Incorrect Authorization",
+                "CWE-334: Small Space of Random Values"
+            ]
+        },
+        {
+            "vulnerabilityCode":17,
+            "name":"Pre Image Attack Possible",
+            "owasp":[
+                "API1:2023 Broken Object Level Authorization",
+                "API2:2023 Broken Authentication",
+                "API3:2023 Broken Object Property Level Authorization",
+                "API5:2023 Broken Function Level Authorization",
+                "API8:2023 Security Misconfiguration",
+                "API9:2023 Improper Inventory Management"               
+            ],
+            "cwe": [
+                "CWE-327: Use of a Broken or Risky Cryptographic Algorithm",
+                "CWE-328: Use of Weak Hash",
+                "CWE-326: Inadequate Encryption Strength",
+                "CWE-334: Small Space of Random Values"
+            ]
+        },
+        {
+            "vulnerabilityCode":18,
+            "name":"Lack of Resource & Rate Limiting",
+            "owasp":[
+                "API4:2023 Unrestricted Resource Consumption"                
+            ],
+            "cwe": [
+                "CWE-770: Allocation of Resources Without Limits or Throttling",
+                "CWE-799: Improper Control of Interaction Frequency"
+            ]            
+        }
+        
+    ]
+}

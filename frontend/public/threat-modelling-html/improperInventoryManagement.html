@@ -1,0 +1,70 @@
+<html>
+
+<body>
+
+    <p>
+Threat modelling for APIs, particularly for the vulnerability categorised as "API 9:2023 - Improper Inventory Management"
+ under the OWASP API Security Top 10, involves analysing potential threats based on models like STRIDE and DREAD. 
+ These models help in understanding and prioritising threats based on their impact and likelihood.
+</p>
+
+
+<h3>STRIDE Model for API 9:2023</h3>
+
+
+<p>STRIDE is a model used to identify security threats based on six categories: Spoofing, Tampering, Repudiation,
+ Information Disclosure, Denial of Service (DoS), and Elevation of Privilege.
+</p>
+
+<p><strong>Spoofing (Critical):</strong> Not directly related to inventory management, but improper inventory could lead to misconfiguration
+ that exposes endpoints to unauthorised access.
+</p>
+
+<p><strong>Tampering (High):</strong> If attackers discover untracked or poorly managed APIs, they could modify data in transit or at rest.
+</p>
+
+<p><strong>Repudiation (Medium):</strong> Improper inventory management might lead to insufficient logging, making it difficult to track who did what.
+</p>
+
+<p><strong>Information Disclosure (High):</strong> Exposing more APIs than necessary or failing to secure them properly could lead to unintended data exposure.
+</p>
+
+
+<p><strong>Denial of Service (Medium):</strong> Poorly managed and unprotected APIs could be more susceptible to DoS attacks due to unknown or unmonitored endpoints 
+being exploited.
+</p>
+
+<p><strong>Elevation of Privilege (Critical):</strong> An attacker could exploit untracked APIs to gain unauthorised access or escalate privileges within a system.
+</p>
+
+
+<hr/>
+
+
+<h3>DREAD Model for API 9:2023</h3>
+
+
+<p>DREAD is another model to quantify, prioritise, and compare the level of risk in a consistent manner. It stands for Damage, Reproducibility, 
+Exploitability, Affected Users, and Discoverability.
+</p>
+
+<p><strong>Damage Potential (High):</strong> If an attacker exploits improperly managed APIs, the potential damage could range from data breaches to system compromise.
+</p>
+
+<p><strong>Reproducibility (Medium):</strong> The reproducibility of an attack depends on how well-known the unmanaged APIs are and the skills of the attacker.
+</p>
+
+<p><strong>Exploitability (High):</strong> Poor inventory management could lead to easily exploitable vulnerabilities for attackers who discover these APIs.
+</p>
+
+<p><strong>Affected Users (High):</strong> Depending on the API's role, the number of affected users could be vast, especially if critical data or services are compromised.
+</p>
+
+<p><strong>Discoverability (Medium to High):</strong> Untracked or improperly managed APIs might be harder to discover than known vulnerabilities, but dedicated 
+attackers or automated tools can still find them.
+</p>
+
+
+</body>
+
+</html>

@@ -1,0 +1,48 @@
+<p>Addressing the threat model for the category "API4:2023 - Unrestricted Resource Consumption" 
+involves understanding the potential threats and assessing their severity based on STRIDE and DREAD models.</p>
+ 
+<p>This vulnerability focuses on the scenario where an API fails to manage resources effectively, leading to 
+ exhaustion of system resources (CPU, memory, disk space, etc.) by attackers, potentially causing denial of service 
+ or impacting system performance for legitimate users.</p>
+
+<h3>STRIDE Model</h3>
+
+<p>STRIDE is a model used to identify security threats based on six categories: Spoofing, Tampering, Repudiation, 
+Information Disclosure, Denial of Service (DoS), and Elevation of Privilege.</p>
+
+<p><strong>Spoofing:</strong> Not directly applicable to unrestricted resource consumption.</p>
+
+<p><strong>Tampering: Low.</strong> While the main issue is resource consumption, an attacker could indirectly tamper with the system's 
+response times or availability.</p>
+
+
+<p><strong>Repudiation: Low.</strong> Attackers might deny their activities, but this threat is not the primary concern with resource consumption.</p>
+
+<p><strong>Information Disclosure: Low.</strong> The vulnerability does not primarily concern data leakage, although excessive logging during 
+an attack might inadvertently expose sensitive information.</p>
+
+<p><strong>Denial of Service (DoS): Critical.</strong> This is the primary threat posed by unrestricted resource consumption, as it can lead 
+to service outages or severely degraded performance.</p>
+
+<p><strong>Elevation of Privilege: Low.</strong> Although not directly related, in some scenarios, the system might misbehave under stress,
+ potentially exposing vulnerabilities that could lead to elevation of privilege.</p>
+
+
+<hr/>
+
+<h3>DREAD Model</h3>
+
+<p>DREAD is used to assess the risk of security threats based on five categories: Damage, Reproducibility, Exploitability, 
+Affected Users, and Discoverability.
+
+<p><strong>Damage Potential: High.</strong> If an attacker successfully exploits this vulnerability, it can lead to service downtime or significantly degraded service for legitimate users.
+
+<p><strong>Reproducibility: High.</strong> If the vulnerability is known and no mitigation is in place, it could be relatively easy for an attacker to reproduce the attack.
+
+<p><strong>Exploitability: Medium to High.</strong> Depending on the specific API and its configuration, exploiting this vulnerability could range from trivial (requiring minimal skill or knowledge) to more complex (requiring specific conditions or knowledge).
+
+<p><strong>Affected Users: High.</strong> A successful attack could affect all users of the API, denying access or degrading performance for legitimate users.
+
+<p><strong>Discoverability: Medium.</strong> The ease of discovering this vulnerability could depend on how prominently the API is used and the visibility of its performance characteristics under load.
+
+

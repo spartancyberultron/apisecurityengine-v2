@@ -1,0 +1,83 @@
+<html>
+
+<body>
+
+    <p>When evaluating the threat posed by "API2:2023 - Broken Authentication" within
+        the context of STRIDE and DREAD threat modelling frameworks, it's important to
+        understand the nature of the vulnerability first. Broken Authentication typically
+        refers to issues where attackers can compromise authentication mechanisms to impersonate
+        other users, gain unauthorised access to systems, or escalate privileges. This vulnerability
+        can have significant security implications for an API, affecting confidentiality, integrity, and availability.
+    </p>
+
+    <h3>STRIDE Model Analysis</h3>
+
+    <p>STRIDE is a model used to identify security threats based on six categories: Spoofing, Tampering, Repudiation,
+        Information Disclosure, Denial of Service (DoS), and Elevation of Privilege.</p>
+
+    <p>
+        Spoofing Identity (Critical): Broken Authentication directly allows for spoofing, where an attacker can assume
+        the
+        identity of another user. This is a critical threat as it compromises the integrity and confidentiality of the
+        system.
+    </p>
+
+    <p>
+        <strong>Tampering (High):</strong> Once an attacker has bypassed authentication mechanisms, the risk of
+        tampering with data
+        increases. However, the direct impact is more associated with unauthorised access than the act of tampering
+        itself.
+        Repudiation (Medium): With successful authentication compromise, tracing actions back to the true actor becomes
+        difficult. This can raise disputes over actions performed by the attacker under a spoofed identity.
+        Information Disclosure (Critical): Broken Authentication can lead to unauthorised access to sensitive
+        information,
+        making this a critical threat to data confidentiality.
+    </p>
+
+    <p>
+        <strong>Denial of Service (Low to Medium):</strong> While not the primary concern of broken authentication,
+        attackers could
+        potentially lock out legitimate users or consume resources, leading to a denial of service.
+        Elevation of Privilege (Critical): This vulnerability directly enables attackers to gain higher privileges than
+        they
+        are entitled to, posing a critical threat.
+    </p>
+
+    <hr />
+
+    <h3>DREAD Model Analysis</h3>
+
+    <p>
+        DREAD is another risk assessment model focusing on five categories: Damage Potential, Reproducibility,
+        Exploitability, Affected Users, and Discoverability.
+    </p>
+    
+
+    <p>
+        <strong>Damage Potential (Critical):</strong> If an attacker exploits broken authentication, they can cause
+        significant damage by
+        stealing data, performing unauthorised transactions, or compromising the entire system.
+    </p>
+
+    <p>
+        <strong> Reproducibility (High):</strong> If the flaw is known and not patched, attackers can consistently
+        reproduce the exploit.
+        Exploitability (High): Depending on the specific nature of the broken authentication vulnerability, it may be
+        relatively easy for an attacker with sufficient knowledge to exploit it.
+
+    <p>
+        <strong>Affected Users (Critical):</strong> All users of the API could potentially be affected by this
+        vulnerability, especially if
+        attackers can elevate their privileges or access sensitive information.
+    </p>
+
+    <p>
+        <strong> Discoverability (Medium to High):</strong> The discoverability of the vulnerability depends on how well
+        the attackers
+        understand the authentication mechanisms and how much information is available about the API's security
+        measures.
+    </p>
+
+</body>
+
+</html>

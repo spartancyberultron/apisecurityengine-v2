@@ -1,0 +1,888 @@
+// Here you can add other styles
+@import url("https://use.fontawesome.com/releases/v5.13.0/css/all.css");
+@import url('https://fonts.googleapis.com/css2?family=Public+Sans:wght@100;200;300;400;500;600;700;800;900&display=swap');
+
+
+@import "https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css";
+
+body, h1, h2, h3, h4, h5, h6, span, a, div, button{
+  font-family: 'Public Sans', sans-serif;
+}
+
+.container-xxl, .container-xl, .container-lg, .container-md, .container-sm, .container{
+    max-width:100%;
+}
+
+.form-control{
+    outline:none !important;
+}
+
+.MuiTableCell-head span button div {
+    text-align: left;
+    text-transform: none !important;
+    font-size:15px;
+    font-weight:600;
+}
+
+.sidebar-nav .nav-group-toggle::after {
+    background-image:none;
+    color:grey;
+    font-size: 20px;
+    margin-top: 1px;
+    font-family: "Font Awesome 5 Free";
+    content:'\f107';
+ }
+
+ .MuiPaper-rounded{
+   padding:5px !important;
+ }
+
+ .MuiTableCell-body div{
+     text-align: left;
+ }
+
+ .MuiTableCell-head div{
+    text-align: left;
+}
+
+ .MuiButtonBase-root div{
+    text-align: center;
+ }
+
+ .MuiTableCell-body .action-div{
+     text-align:left;
+     padding-left:0px;
+     padding-right:0px;
+ } 
+
+ .MuiTableCell-head{
+     width:200px;
+     text-align: left;
+     padding-left:3px !important;
+ }
+
+
+ .accordion__button:before{
+     display:none !important;
+ }
+
+ .form-control{
+     background-image: none !important;
+ }
+
+
+ .hh-checkbox .MuiFormControlLabel-label{
+     margin-top:5px;
+ }
+
+
+ .search-container {
+    position: relative;
+  }
+  
+  .search-input {
+    padding-left: 50px !important; 
+  }
+  
+  .search-icon {
+    position: absolute;
+    left: 10px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: #000; 
+    cursor: pointer;
+  }
+
+  input{
+    background-color: #ffffff;
+    border-color:#00BDC1;
+    color:#898989;
+    padding:12px 15px;
+    box-shadow: none !important;
+    border-radius:5px !important ;
+    width:500px;
+    border-width:1px;
+    font-size:16px;
+  }
+
+
+
+  .OuterContainer{
+    width:100%;
+    margin-top:16px;
+    margin-bottom:32px;
+    background-color:#fcfbfa;
+    color:#2d3747;
+    font-size:20px;
+    border-radius:4px;
+    overflow-x:auto
+  }  
+  
+  .schema{
+    font-size:18px
+   }
+   
+   .okrjoy-notifications{
+     text-decoration:none;
+     color:#999
+    }
+    
+    .okrjoy-notifications .okrjoy-icon{
+        position:relative
+    }
+    
+    .okrjoy-notifications .okrjoy-icon img{
+        height:25px;
+        width:25px
+    }
+    
+    .okrjoy-notifications .okrjoy-count{
+        height:17px;
+        width:17px;
+        max-width:17px;
+        min-height:17px;
+        display:flex;
+        align-items:center;
+        justify-content:center;
+        position:absolute;
+        top:-2px;
+        right:0;
+        font-size:10px;
+        border-radius:50%;
+        background-color:#7ac2fa;
+        font-weight:400;
+        color:#fff
+    }
+    
+    .okrjoy-notifications .okrjoy-container{
+        width:320px;
+        position:absolute;
+        background:#fff;
+        border-radius:6px;
+        z-index:2;
+        box-shadow:-1px 2px 7px -3px rgba(0,0,0,.3);
+        display:flex;
+        justify-content:space-between;
+        flex-direction:column;
+        -webkit-transition:all .4s ease-in-out;
+        transition:all .4s ease-in-out;
+        height:390px;
+        overflow-y:hidden
+    }
+    
+    .okrjoy-notifications .okrjoy-container .okrjoy-header{
+        display:flex;
+        justify-content:space-between;
+        padding:8px;
+        background-color:#e9e9e9;
+        border-top-left-radius:6px;
+        border-top-right-radius:6px;
+        font-weight:500;
+        font-size:14px
+    }
+    
+    .okrjoy-notifications .okrjoy-container .okrjoy-header .okrjoy-header-title{
+        color:#1d2129;
+        font-weight:700
+    }
+    
+    .okrjoy-notifications .okrjoy-container .okrjoy-header .okrjoy-header-option{
+        margin:0 5px;
+        color:#365899
+    }
+    
+    .okrjoy-notifications .okrjoy-container .okrjoy-header .okrjoy-header-option:hover{
+        cursor:pointer;
+        text-decoration:underline
+    }
+    
+    .okrjoy-notifications .okrjoy-container .okrjoy-items{
+        height:400px;
+        overflow:auto
+    }
+    
+    .okrjoy-notifications .okrjoy-container .okrjoy-items .okrjoy-empty-notifications{
+        display:flex;
+        justify-content:center;
+        align-items:center;
+        height:inherit
+    }
+    
+    .okrjoy-notifications .okrjoy-container .okrjoy-items .okrjoy-card{
+        display:flex;
+        justify-content:space-between;
+        background-color:#fff;
+        cursor:pointer;
+        border-bottom:1px solid #f0ebe3;
+        font-size:13px;
+        border-radius:0;
+        padding:4px;
+        margin-bottom:0
+    }
+    
+    .okrjoy-notifications .okrjoy-container .okrjoy-items .okrjoy-card:hover{
+        background-color:#ebedf0
+    }
+    
+    .okrjoy-notifications .okrjoy-container .okrjoy-items .okrjoy-card .okrjoy-content{
+        display:flex;
+        align-items:center
+    }
+    
+    .okrjoy-notifications .okrjoy-container .okrjoy-items .okrjoy-card .okrjoy-content .okrjoy-time{
+        color:#999
+    }
+    
+    .okrjoy-notifications .okrjoy-container .okrjoy-items .okrjoy-card .okrjoy-content .okrjoy-message{
+        color:#939393;
+        font-weight:700;
+        width:220px
+    }
+    
+    .okrjoy-notifications .okrjoy-container .okrjoy-items .okrjoy-card .okrjoy-content:after{
+        content:"\2605   New";
+        display:flex;
+        align-self:flex-end;
+        right:4px;
+        font-size:8px;
+        font-weight:700;
+        padding:2px 4px;
+        color:#0076b3;
+        border-radius:6px;
+        background:#cef
+    }
+    
+    .okrjoy-notifications .okrjoy-container .okrjoy-items .okrjoy-card .okrjoy-image{
+        margin:5px
+    }
+    
+    .okrjoy-notifications .okrjoy-container .okrjoy-items .okrjoy-card .okrjoy-image img{
+        height:2.5rem;
+        border-radius:50%;
+        border:1px solid #f0ebe3
+    }
+    
+    .okrjoy-notifications .okrjoy-container .okrjoy-items .okrjoy-card .okrjoy-options{
+        visibility:hidden;
+        text-align:center;
+        font-size:20px
+    }
+    
+    .okrjoy-notifications .okrjoy-container .okrjoy-items .okrjoy-card .okrjoy-options .okrjoy-option{
+        cursor:pointer;
+        opacity:.5
+    }
+    
+    .okrjoy-notifications .okrjoy-container .okrjoy-items .okrjoy-card .okrjoy-options .okrjoy-option:hover{
+        opacity:1
+    }
+    
+    .okrjoy-notifications .okrjoy-container .okrjoy-items .okrjoy-card:hover{
+        background-color:#f4f4f4
+    }
+    
+    .okrjoy-notifications .okrjoy-container .okrjoy-items .okrjoy-card:hover .okrjoy-options{
+        visibility:visible
+    }
+    
+    .okrjoy-notifications .okrjoy-container .okrjoy-items .loader{
+        display:flex;align-items:center;justify-content:center
+    }
+    
+    .okrjoy-notifications .okrjoy-container .notification-footer{
+        text-align:center;padding:5px;color:#365899;text-transform:capitalize;font-weight:700
+    }
+    
+    .okrjoy-notifications .okrjoy-container .notification-footer .notification-see-all{
+        cursor:pointer
+    }
+    
+    .CustomComponent-module--card--DXz69{
+        display:flex;
+        border:1px solid #000;
+        background-color:#fff;
+        border-radius:5px;
+        justify-content:space-between;
+        font-size:12px;
+        cursor:pointer;
+        padding:6px
+    }
+    
+    .CustomComponent-module--card--DXz69:hover{
+        background-color:#ebedf0
+    }
+    
+    .CustomComponent-module--card--DXz69 .CustomComponent-module--content--2i3nU{
+        display:flex
+    }
+    
+    .CustomComponent-module--card--DXz69 .CustomComponent-module--content--2i3nU .CustomComponent-module--time--3PwvT{
+        color:#999
+    }
+    
+    .CustomComponent-module--card--DXz69 .CustomComponent-module--image--6PoTs{
+        margin:5px
+    }
+    
+    .CustomComponent-module--card--DXz69 .CustomComponent-module--image--6PoTs img{
+        height:2.5rem;
+        border-radius:50%
+    }
+    
+    .CustomComponent-module--card--DXz69 .CustomComponent-module--options--2v4TG{
+        visibility:hidden;
+        text-align:center;
+        font-size:20px
+    }
+    
+    .CustomComponent-module--card--DXz69 .CustomComponent-module--options--2v4TG .CustomComponent-module--option--on32-{
+        cursor:pointer;
+        opacity:.5;
+        color:#999
+    }
+    
+    .CustomComponent-module--card--DXz69 .CustomComponent-module--options--2v4TG .CustomComponent-module--option--on32-:hover{
+        opacity:1
+    }
+    
+    .CustomComponent-module--card--DXz69:hover .CustomComponent-module--options--2v4TG{
+        visibility:visible
+    }
+    
+    [data-testid=live-preview]{
+        height:150px;
+        padding:10px 20px
+    }
+    
+    [data-testid=live-preview]>div:first-child{
+        width:30px
+    }
+    
+
+    .okrjoy-image{
+        display:none;
+    }
+
+    .okrjoy-notifications .okrjoy-container .okrjoy-items .okrjoy-card .okrjoy-content::after{
+        display:none !important
+    }
+
+    .okrjoy-message{
+        padding:10px;
+    }
+
+    .okrjoy-text{
+        color:#2f2f3b;
+    }
+
+    .MuiButton-root{
+       padding-left:0px !important;
+    }
+
+
+    .dashboardCard{
+        width:18%
+    }
+
+
+    .pagination {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  margin-top: 20px;
+}
+
+.pagination-button {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 40px;
+  height: 40px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  margin: 2px 5px;
+  cursor: pointer;
+}
+
+.pagination-button:hover {
+  background-color: #f0f0f0;
+}
+
+.pagination-button.active {
+  background-color: #007bff;
+  color: #fff;
+}
+
+.pagination-arrow {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 40px;
+  height: 40px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  margin: 0 5px;
+  cursor: pointer;
+}
+
+.pagination-arrow:hover {
+  background-color: #f0f0f0;
+}
+
+.pagination-arrow.disabled {
+  pointer-events: none;
+  opacity: 0.6;
+}
+
+.dashboardCard span{
+  font-size:16px;
+}
+
+.dashboardCard h3{
+  font-size:30px;
+}
+
+.dashboardLinkDiv{
+  margin-left: 50px;
+  margin-top:0px;
+}
+
+
+
+.apexcharts-canvas{
+  height: 400px !important;
+}
+   
+
+    @media (max-width: 1550px) {
+        
+        .headerText{
+            font-size:12px;
+            margin-top:3px;
+        }
+    }
+
+    /* Styles for screens up to 1300px wide */
+    @media (max-width: 1300px) {
+
+        .dashboardCard{
+            width:18%
+        }
+    
+        .secondRow{
+            margin-top:0px
+        }
+
+        .dashboardCard span{
+          font-size:15px !important;
+        }
+        
+        .dashboardCard h3{
+          font-size:20px !important;
+        }
+
+        .dashboardLinkDiv{
+          margin-left: 20px;
+          margin-top:10px;
+        }        
+
+    }
+
+  
+
+  /* Styles for screens between 1300px and 1600px wide */
+@media (min-width: 1301px) and (max-width: 1600px) {
+
+    .dashboardCard{
+        width:18%
+    }
+
+    .secondRow{
+        margin-top:0px
+    }
+
+    
+
+  }
+
+
+  /* Styles for screens between 1300px and 1600px wide */
+@media (min-width: 1601px) {
+    
+    .dashboardCard{
+        width:18%
+    }
+
+    .secondRow{
+        margin-top:0px
+    }    
+} 
+
+
+.activeScans ul[role="navigation"] {
+    display:flex;
+    flex-direction:row;
+    width:30%;
+    float: right;
+    justify-content:space-around;
+    list-style-type: none; 
+    margin-top:20px;
+  }
+  
+  .activeScans ul[role="navigation"] > li a{
+    padding: 10px; 
+    border: 1px solid rgba(0, 0, 0, 0.5); 
+    background-color: white; 
+    border-radius: 5px;
+  }
+  
+  .activeScans ul[role="navigation"] > li.selected a{
+    background-color: #7367f0; 
+    color: white !important;  
+    border-color: #7367f0;
+  }
+
+  .activeScans ul[role="navigation"] > li.selected a:hover{
+    background-color: #7367f0; 
+    color: white !important; 
+    border-color: #7367f0;
+  }
+  
+
+.activeScans .previous a{
+
+    text-transform: uppercase;
+    text-decoration: none;
+
+}
+
+.activeScans .previous.disabled a{
+    text-transform: uppercase;
+    text-decoration: none;
+}
+
+.activeScans .next a{
+    text-transform: uppercase;
+    text-decoration: none;
+}
+
+.activeScans .next.disabled a{
+    text-transform: uppercase;
+    text-decoration: none;
+}
+
+
+pre {
+    background-color: #f8f8f8;
+    color: #333;
+    padding: 15px;
+    border-radius: 5px;
+    font-family: 'Fira Code', monospace;
+    font-size: 14px;
+    line-height: 1.5;
+    overflow-x: auto;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  }
+  
+  pre code {
+    display: block;
+    white-space: pre;
+  }
+  
+  pre .token.comment,
+  pre .token.prolog,
+  pre .token.doctype,
+  pre .token.cdata {
+    color: #777;
+  }
+  
+  pre .token.punctuation {
+    color: #999;
+  }
+  
+  pre .token.namespace {
+    opacity: 0.7;
+  }
+  
+  pre .token.property,
+  pre .token.tag,
+  pre .token.constant,
+  pre .token.symbol,
+  pre .token.deleted {
+    color: #905;
+  }
+  
+  pre .token.boolean,
+  pre .token.number {
+    color: #690;
+  }
+  
+  pre .token.selector,
+  pre .token.attr-name,
+  pre .token.string,
+  pre .token.char,
+  pre .token.builtin,
+  pre .token.inserted {
+    color: #07a;
+  }
+  
+  pre .token.operator,
+  pre .token.entity,
+  pre .token.url,
+  pre .language-css .token.string,
+  pre .style .token.string {
+    color: #9a6e3a;
+    background: hsla(0, 0%, 100%, 0.5);
+  }
+  
+  pre .token.atrule,
+  pre .token.attr-value,
+  pre .token.keyword {
+    color: #07a;
+  }
+  
+  pre .token.function {
+    color: #DD4A68;
+  }
+  
+  pre .token.regex,
+  pre .token.important,
+  pre .token.variable {
+    color: #e90;
+  }
+  
+  pre .token.important,
+  pre .token.bold {
+    font-weight: bold;
+  }
+  pre .token.italic {
+    font-style: italic;
+  }
+  
+  pre .token.entity {
+    cursor: help;
+  }
+  
+  .header{
+    border:0px solid white;
+  }
+
+  .header .container-fluid{
+    background:#fff
+  }
+
+  body, .bg-light{
+    background:#f8f7fa !important;
+  }
+
+  .dashboardCard, .header, thead, tbody, th, table{
+    background:#f8f7fa !important;
+  }
+
+  .container-fluid div a{
+    background:transparent;
+  }
+
+  .cardText{
+    color:#CFD3EC
+  }
+
+  .cardCount{
+     font-size:18px;
+     font-weight: 500;
+  }
+
+  .cardLabel{
+    font-size:13px;
+    font-weight: 400;
+  }
+
+  .theCards{
+    background-color:#fff ;
+    background-clip: padding-box;
+    box-shadow:0 0.25rem 1.25rem rgba(15,20,34,.4);
+    border-radius:10px;
+    padding:20px;
+    margin-top:20px; 
+
+  }
+
+
+  .theCheckboxLabel{
+    display: flex;
+    flex-direction: row;
+    justify-content: flex-start;
+    width:100%;
+    margin-left: 20px;
+
+  }
+
+  .theCheckbox{
+    width:auto;
+  }
+
+  h1,h2,h3,h4,h5,h6,p,span,a,li, td, th, input{
+    color:#5D596C;
+  }
+
+  .MuiPaper-root{
+    background:#fff
+  }
+
+  .remediations{
+    color:black !important;
+  }
+
+  .blackText{
+    color:black !important;
+  }
+
+  .dropdown-menu{
+    background:#fff
+  }
+  
+  .header-primary{
+     background:#fff !important;
+     height:100px;
+     width:100%;
+     border-width: 0px;
+  }
+
+  .header.header-sticky{
+    background: white;
+    padding:0px !important;
+  }
+
+  .header-welcome-text{
+     color:#616060 !important;
+  }
+
+
+  .header-noti-count{
+    background-color: red !important;
+    color:white;
+    position: absolute;
+    top: 30px !important;
+    border-radius:50%;
+    width:20px;
+    height:20px;
+    text-align:center;
+    font-size:13px;
+  }
+
+  .header-menu{
+    background:#fff !important;
+  }
+
+  th,td{
+    padding:3px !important;
+  }
+
+  tr{
+    border-bottom:1px solid white;
+  }
+
+  thead, th{
+    background-color:#fff !important;
+    font-size: 14px;
+  }
+ 
+  .addAgentPage p, h5, h6{
+    color:black !important;
+  }
+
+  .MuiSvgIcon-root{
+    fill:#000 !important;
+  }
+
+  
+  .css-l4u8b9-MuiInputBase-root-MuiInput-root::after {
+    color:#000 !important;
+  }
+
+  .token{
+    color:black !important;;
+  }
+
+  .addAgentPage li{
+    color:black;
+  }
+  
+
+  .addAgentPage ul{
+    list-style-type: circle;
+  }
+
+  li a{
+    color:black !important;
+  }
+
+  footer li a {
+    color:white !important;
+  }
+
+  .apexcharts-pie-series path {
+    stroke: none !important;
+  }
+
+
+  .menuLink{
+    width:100%;
+    justify-content: flex-start !important;
+    font-size: 15px !important;
+    font-weight: 500 !important;
+  }
+
+  .MuiTablePagination-displayedRows{
+    margin-bottom: 0rem;
+  }
+
+  .white-input{
+    color:black !important;
+  }
+
+  #hi{
+    color:black !important
+  }  
+
+  .activeScans{
+    overflow-x: hidden;
+    overflow-y: hidden;
+    overflow: hidden;
+    position: relative;
+  }
+
+  ul[role="navigation"] a {
+    padding:3px !important;
+    padding-top:3px !important;
+    padding-bottom: 3px !important;
+  }
+
+  .shimmer-table-row{
+    background-color: #252B3B !important;
+  }
+
+  .shimmer{
+    background:#fff !important;
+  }
+
+  .react-syntax-highlighter-line-number{
+    color:black !important;
+  }
+
+  .react-tabs__tab--selected{
+    background:#7367f0 !important;
+    color:#fff !important
+  }
+
+  .sidebar-nav{
+    background:#fff;
+  }
+
+  input::placeholder {
+    color: rgb(111, 107, 125) !important; 
+    font-size: 15px !important;
+    font-weight: 400;     
+  }
+
+  

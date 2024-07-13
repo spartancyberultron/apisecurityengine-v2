@@ -1,0 +1,68 @@
+<html>
+
+<body>
+
+<p>   
+Threat modelling for APIs, particularly regarding vulnerabilities like "API1:2023 - Broken Object Level Authorization (BOLA)," 
+involves understanding the potential risks and categorising them according to their severity.
+BOLA occurs when an API endpoint that accesses a data object does not properly check that the
+ user making the request has the authorization to perform the requested operation on the object. 
+ This can lead to unauthorised access and manipulation of sensitive data.
+</p>
+
+<p>
+Let's break this down using the STRIDE and DREAD models to understand the severity and potential impact of the BOLA vulnerability.
+</p> 
+
+
+<h3>STRIDE Model</h3>
+
+
+<p>
+STRIDE is a model used to identify security threats by categorising them into six types: Spoofing, Tampering, Repudiation, Information Disclosure,
+ Denial of Service (DoS), and Elevation of Privilege.
+</p> 
+
+<p>Spoofing: Not directly applicable to BOLA, since BOLA is about authorization flaws, not about impersonating users.</p>
+
+<p>Tampering: Critical. If BOLA is present, an attacker could tamper with data they shouldn't have access to by modifying 
+    requests to target objects that belong to other users.</p>
+
+<p>Repudiation: High. The lack of proper authorization checks may make it difficult to track who accessed or modified data unlawfully, 
+    making it challenging to prove malicious activity.</p>
+
+<p>Information Disclosure: Critical. Unauthorised users could gain access to sensitive or private information they are not supposed to see.</p>
+
+<p>Denial of Service (DoS): Medium. Although BOLA primarily concerns unauthorised access, exploiting it could indirectly lead to a 
+    DoS condition if an attacker modifies or deletes critical data.</p>
+
+<p>Elevation of Privilege: Critical. BOLA can lead to elevation of privilege if 
+    an attacker accesses functionality or data reserved for higher-privileged users without proper authorization.</p>
+
+<hr/>
+
+<h3>DREAD Model</h3>
+
+<p>DREAD is used to assess the severity of security threats based on five factors: Damage, Reproducibility, Exploitability, Affected Users, 
+and Discoverability.</p>
+
+
+<p><strong>Damage: Critical.</strong> If an attacker exploits BOLA, the impact could include data breaches, data loss, and unauthorised data modification.</p>
+
+<p><strong>Reproducibility: High.</strong> If the vulnerability is well-documented or the API lacks proper authorization controls uniformly, it might be easy
+ for attackers to reproduce the attack. </p>
+
+ <p><strong>Exploitability: High.</strong> Exploiting BOLA often requires minimal technical skills, as it can be as simple as changing a user 
+ID in a request to access or modify another user's data.</p>
+
+
+<p><strong>Affected Users: High.</strong> Depending on the application's user base, a BOLA vulnerability could affect a 
+wide range of users, especially if the data involved is sensitive or critical.</p>
+
+<p><strong>Discoverability: Medium to High.</strong> The ease of discovering a BOLA vulnerability can vary but given
+ enough time or access, attackers can identify endpoints lacking proper authorization checks.</p>
+
+
+</body>
+
+</html>

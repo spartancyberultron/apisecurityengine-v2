@@ -1,0 +1,54 @@
+<p>Threat modelling is a structured approach used to identify and prioritise potential threats to 
+    a system, as well as to identify and implement countermeasures to mitigate or reduce the impact of these threats. 
+    The STRIDE and DREAD models are two popular methods for conducting threat analysis.</p>
+
+
+<h3>STRIDE Model</h3>
+
+<p>STRIDE is an acronym that stands for Spoofing, Tampering, Repudiation, 
+Information Disclosure, Denial of Service (DoS), and Elevation of Privilege.  </p>
+
+<p>Let's evaluate the "API 10:2023 - Unsafe Consumption of APIs" vulnerability according to each category in STRIDE: </p>
+
+<p>If the API does not properly validate the identity of consumers, malicious actors could
+     spoof legitimate consumers, leading to unauthorised access.</p>
+
+<p><strong>Tampering:High:</strong> If data transmitted between the API consumer and provider can be intercepted and altered due 
+    to lack of integrity checks, it could lead to tampered data being processed by the API.</p>
+
+<p><strong>Repudiation:Medium:</strong> Without proper logging and auditing mechanisms, it might be difficult to trace and prove wrongful
+     actions by consumers, making it hard to repudiate unauthorised or malicious requests.</p>
+
+<p><strong>Information Disclosure:Critical:</strong> Inadequate security controls can lead to unintended information disclosure, 
+    especially if sensitive data is not properly encrypted or access controls are weak.</p>
+
+<p><strong>Denial of Service (DoS):High:</strong> If the API is not designed to handle excessive requests gracefully,
+     it could be susceptible to DoS attacks, potentially making the service unavailable to legitimate users.</p>
+
+
+<p><strong>Elevation of Privilege:Critical:</strong> If the API does not enforce strict access controls, 
+    attackers might exploit vulnerabilities to gain higher privileges than intended, leading to unauthorised actions.</p>
+
+
+<hr/>
+
+<h3>DREAD Model</h3>
+
+<p>DREAD stands for Damage, Reproducibility, Exploitability, Affected Users,
+ and Discoverability. Let's assess the vulnerability in the context of DREAD:</p>
+
+<p><strong>Damage:High:</strong> Compromise due to unsafe consumption of APIs could lead to significant damage, 
+including data breaches, financial loss, and reputational damage.</p>
+
+<p><strong>Reproducibility:Medium:</strong> Depending on the complexity of the vulnerability and the skills
+ of the attacker, reproducing an attack might vary from easy to difficult.</p>
+
+<p><strong>Exploitability:High:</strong> If exploiting the vulnerability requires little technical skill or knowledge, the risk is higher.</p>
+
+<p><strong>Affected Users:High:</strong> Depending on the API's usage, a vulnerability could potentially affect a large number of users, 
+especially if the API is public or widely used across different services.</p>
+
+<p><strong>Discoverability:Medium:</strong> If the vulnerability requires in-depth knowledge of the API or specific conditions to 
+exploit, it might be less likely to be discovered. However, public APIs or well-documented services increase the risk of discovery.</p>
+
+

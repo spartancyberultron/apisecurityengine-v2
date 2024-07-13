@@ -1,0 +1,54 @@
+.nav-link{
+    color:white !important;
+    font-weight:600;
+}
+
+.hide{
+    display: none;
+}
+
+.unhide{
+    display:block
+}
+
+::-webkit-input-placeholder { /* WebKit browsers */
+    text-transform: none;
+    color:#2f2f3b;
+}
+:-moz-placeholder { /* Mozilla Firefox 4 to 18 */
+    text-transform: none;
+    color:#2f2f3b;
+}
+::-moz-placeholder { /* Mozilla Firefox 19+ */
+    text-transform: none;
+    color:#2f2f3b !important;
+}
+:-ms-input-placeholder { /* Internet Explorer 10+ */
+    text-transform: none;
+}
+::placeholder { /* Recent browsers */
+    text-transform: none;
+    color:#2f2f3b;
+}
+
+.ReactModal__Body--open {
+    overflow-y: hidden;
+  }
+
+
+  .search-container {
+    position: relative;
+  }
+  
+  .search-input {
+    padding-left: 30px; /* Adjust the padding to accommodate the icon */
+  }
+  
+  .search-icon {
+    position: absolute;
+    left: 10px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: #000; /* Adjust the color of the search icon */
+    cursor: pointer;
+  }

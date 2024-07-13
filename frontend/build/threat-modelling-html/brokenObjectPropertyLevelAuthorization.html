@@ -1,0 +1,88 @@
+<html>
+
+<body>
+
+    <p>
+To threat model an API with a vulnerability categorised under
+ "API3:2023 - Broken Object Property Level Authorization" according to the STRIDE and DREAD models, 
+ it's crucial first to understand what this vulnerability entails. "Broken Object Property Level Authorization"
+  occurs when an API does not adequately enforce access controls on a per-user (or per-role) basis at the property
+   level of an object, leading to unauthorised access or modification of data.</p>
+
+
+<h3>STRIDE Model</h3>
+
+<p>
+STRIDE is a threat modelling methodology that categorises security threats into six categories: 
+Spoofing, Tampering, Repudiation, Information Disclosure, Denial of Service, and Elevation of Privilege.
+</p>
+
+<p>
+<strong>Spoofing: Low to Medium.</strong> While spoofing (impersonating another user) is not directly related to
+ property level authorization, exploiting broken object property level authorization could be easier
+  if an attacker can first spoof another user's identity.
+</p>
+
+ <p>
+    <strong>Tampering: Critical.</strong> Broken object property level authorization directly impacts the integrity of 
+data, as unauthorised users could alter data they should not have access to.
+</p>
+
+<p>
+    <strong>Repudiation: High.</strong> In the absence of proper authorization checks, malicious users might modify or 
+delete data without being traced, as they are not supposed to have access in the first place.
+</p>
+
+<p>
+    <strong>Information Disclosure: Critical.</strong> This category is directly impacted because unauthorised 
+access to object properties could lead to sensitive data exposure.
+</p>
+
+<p>
+    <strong>Denial of Service (DoS): Low.</strong> While not directly related, if an attacker continuously exploits
+ this vulnerability to alter data, it could lead to a denial of service for legitimate users.
+</p>
+
+ <p>
+    <strong>Elevation of Privilege: Critical.</strong> The very nature of this vulnerability allows users to access 
+or modify data at a level they should not be able to, effectively elevating their privileges within the application.
+</p>
+
+<hr/>
+
+<h3>DREAD Model</h3>
+
+<p>
+    <strong>DREAD is another threat modelling methodology that assesses the severity of security threats based on five 
+categories: Damage, Reproducibility, Exploitability, Affected Users, and Discoverability.
+</p>
+
+<p>
+    <strong>Damage Potential: High to Critical.</strong> If exploited, this vulnerability could lead 
+to significant data breaches or unauthorised data modifications, causing substantial harm to the organisation and its users.
+</p>
+
+<p>
+    <strong>Reproducibility: High.</strong> If the vulnerability is well-known and the API lacks proper
+ authorization checks, it might be easy for attackers to reproduce the attack.
+</p>
+
+ <p>
+    <strong>Exploitability: Medium to High.</strong> The ease of exploitation depends on the specific 
+implementation of the API and how the authorization checks are conducted or bypassed.
+</p>
+
+<p>
+    <strong>Affected Users: High.</strong> Depending on the application's user base and the data exposed, 
+a large segment of users could be impacted by this vulnerability.
+</p>
+
+<p>
+    <strong>Discoverability: Medium to High.</strong> If an attacker is actively probing for vulnerabilities
+ or if there is a lack of monitoring and logging, discovering this vulnerability could be relatively straightforward.
+</p>
+
+
+</body>
+
+</html>

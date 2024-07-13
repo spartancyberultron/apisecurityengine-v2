@@ -1,0 +1,272 @@
+[
+    {
+        "_type": "finding",
+        "url": "https://trikara.com",
+        "severity": "HIGH",
+        "header": "content-security-policy",
+        "ftype": "missing_directives",
+        "directive": "default-src",
+        "value": "",
+        "description": "The default-src directive should be set as a fall-back when other restrictions have not been specified. "
+    },
+    {
+        "_type": "finding",
+        "url": "https://trikara.com",
+        "severity": "HIGH",
+        "header": "content-security-policy",
+        "ftype": "missing_directives",
+        "directive": "script-src",
+        "value": "",
+        "description": "script-src directive is missing."
+    },
+    {
+        "_type": "finding",
+        "url": "https://trikara.com",
+        "severity": "HIGH",
+        "header": "content-security-policy",
+        "ftype": "missing_directives",
+        "directive": "object-src",
+        "value": "",
+        "description": "Missing object-src allows the injection of plugins which can execute JavaScript. Can you set it to 'none'?"
+    },
+    {
+        "_type": "finding",
+        "url": "https://trikara.com",
+        "severity": "HIGH",
+        "header": "content-security-policy",
+        "ftype": "missing_directives",
+        "directive": "base-uri",
+        "value": "",
+        "description": "Missing base-uri allows the injection of base tags. They can be used to set the base URL for all relative (script) URLs to an attacker controlled domain. Can you set it to 'none' or 'self'?"
+    },
+    {
+        "_type": "finding",
+        "url": "https://trikara.com",
+        "severity": "NONE",
+        "header": "content-security-policy",
+        "ftype": "info_directive",
+        "directive": "upgrade-insecure-requests",
+        "value": "",
+        "description": ""
+    },
+    {
+        "_type": "finding",
+        "url": "https://trikara.com",
+        "severity": "INFO",
+        "header": "server",
+        "ftype": "info_disclosure",
+        "directive": "",
+        "value": "hcdn",
+        "description": "server header present. This header gives an attacker info for more targeted attacks."
+    },
+    {
+        "_type": "finding",
+        "url": "https://trikara.com",
+        "severity": "NONE",
+        "header": "server",
+        "ftype": "info_header",
+        "directive": "",
+        "value": "",
+        "description": "hcdn"
+    },
+    {
+        "_type": "finding",
+        "url": "https://trikara.com",
+        "severity": "NONE",
+        "header": "date",
+        "ftype": "info_header",
+        "directive": "",
+        "value": "",
+        "description": "Thu, 20 Jun 2024 17:13:22 GMT"
+    },
+    {
+        "_type": "finding",
+        "url": "https://trikara.com",
+        "severity": "NONE",
+        "header": "content-type",
+        "ftype": "info_header",
+        "directive": "",
+        "value": "",
+        "description": "text/html"
+    },
+    {
+        "_type": "finding",
+        "url": "https://trikara.com",
+        "severity": "NONE",
+        "header": "transfer-encoding",
+        "ftype": "info_header",
+        "directive": "",
+        "value": "",
+        "description": "chunked"
+    },
+    {
+        "_type": "finding",
+        "url": "https://trikara.com",
+        "severity": "NONE",
+        "header": "connection",
+        "ftype": "info_header",
+        "directive": "",
+        "value": "",
+        "description": "keep-alive"
+    },
+    {
+        "_type": "finding",
+        "url": "https://trikara.com",
+        "severity": "NONE",
+        "header": "vary",
+        "ftype": "info_header",
+        "directive": "",
+        "value": "",
+        "description": "Accept-Encoding"
+    },
+    {
+        "_type": "finding",
+        "url": "https://trikara.com",
+        "severity": "NONE",
+        "header": "last-modified",
+        "ftype": "info_header",
+        "directive": "",
+        "value": "",
+        "description": "Tue, 04 Jun 2024 09:15:04 GMT"
+    },
+    {
+        "_type": "finding",
+        "url": "https://trikara.com",
+        "severity": "NONE",
+        "header": "etag",
+        "ftype": "info_header",
+        "directive": "",
+        "value": "",
+        "description": "W/\"b750b-665edb18-5c70c7f9d83811b6;gz\""
+    },
+    {
+        "_type": "finding",
+        "url": "https://trikara.com",
+        "severity": "NONE",
+        "header": "platform",
+        "ftype": "info_header",
+        "directive": "",
+        "value": "",
+        "description": "hostinger"
+    },
+    {
+        "_type": "finding",
+        "url": "https://trikara.com",
+        "severity": "NONE",
+        "header": "content-security-policy",
+        "ftype": "info_header",
+        "directive": "",
+        "value": "",
+        "description": "upgrade-insecure-requests"
+    },
+    {
+        "_type": "finding",
+        "url": "https://trikara.com",
+        "severity": "NONE",
+        "header": "alt-svc",
+        "ftype": "info_header",
+        "directive": "",
+        "value": "",
+        "description": "h3=\":443\"; ma=86400"
+    },
+    {
+        "_type": "finding",
+        "url": "https://trikara.com",
+        "severity": "NONE",
+        "header": "x-hcdn-request-id",
+        "ftype": "info_header",
+        "directive": "",
+        "value": "",
+        "description": "99a50b7d315f00ed073d76eb0b0f8b55-mum-edge6"
+    },
+    {
+        "_type": "finding",
+        "url": "https://trikara.com",
+        "severity": "NONE",
+        "header": "x-hcdn-cache-status",
+        "ftype": "info_header",
+        "directive": "",
+        "value": "",
+        "description": "DYNAMIC"
+    },
+    {
+        "_type": "finding",
+        "url": "https://trikara.com",
+        "severity": "NONE",
+        "header": "x-hcdn-upstream-rt",
+        "ftype": "info_header",
+        "directive": "",
+        "value": "",
+        "description": "0.404"
+    },
+    {
+        "_type": "finding",
+        "url": "https://trikara.com",
+        "severity": "INFO",
+        "header": "referrer-policy",
+        "ftype": "missing_header",
+        "directive": "",
+        "value": "",
+        "description": "referrer-policy header not present. It is a new header that allows a site to control how much information the browser includes with navigations away from a document and should be set by all sites."
+    },
+    {
+        "_type": "finding",
+        "url": "https://trikara.com",
+        "severity": "INFO",
+        "header": "expect-ct",
+        "ftype": "missing_header",
+        "directive": "",
+        "value": "",
+        "description": "expect-ct header not present. Expect-CT allows a site to determine if they are ready to enforce their CT policy."
+    },
+    {
+        "_type": "finding",
+        "url": "https://trikara.com",
+        "severity": "INFO",
+        "header": "x-frame-options",
+        "ftype": "missing_header",
+        "directive": "",
+        "value": "",
+        "description": "x-frame-options header not present. This header tells the browser whether the site can be framed. Not allowing framing defends against clickjacking attacks."
+    },
+    {
+        "_type": "finding",
+        "url": "https://trikara.com",
+        "severity": "INFO",
+        "header": "strict-transport-security",
+        "ftype": "missing_header",
+        "directive": "",
+        "value": "",
+        "description": "strict-transport-security header not present. This header strengthens your implementation of TLS by getting the User Agent to enforce the use of HTTPS. The recommended value us \"strict-transport-security: max-age=31536000; includeSubDomains\"."
+    },
+    {
+        "_type": "finding",
+        "url": "https://trikara.com",
+        "severity": "INFO",
+        "header": "x-xss-protection",
+        "ftype": "missing_header",
+        "directive": "",
+        "value": "",
+        "description": "x-xss-protection header not present. This header sets the configuration for the cross-site scripting filter built into most browsers. The recommended value is \"X-XSS-Protection: 1; mode=block"
+    },
+    {
+        "_type": "finding",
+        "url": "https://trikara.com",
+        "severity": "INFO",
+        "header": "x-content-type-options",
+        "ftype": "missing_header",
+        "directive": "",
+        "value": "",
+        "description": "x-content-type-options header not present. This header stops a browser from trying to MIME-sniff the content type and forces it to stick with the declared content-type. The only valid value for this header is \"X-Content-Type-Options: nosniff\"."
+    },
+    {
+        "_type": "finding",
+        "url": "https://trikara.com",
+        "severity": "INFO",
+        "header": "feature-policy",
+        "ftype": "missing_header",
+        "directive": "",
+        "value": "",
+        "description": "feature-policy header not present. It is a new header that allows a site to control which features and APIs can be used in the browser."
+    }
+]

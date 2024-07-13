@@ -1,0 +1,61 @@
+<html>
+
+<body>
+<p>
+To address the vulnerability "API5:2023 - Broken Function Level Authorization"
+ within the STRIDE and DREAD threat modelling frameworks, we need to categorise the threat levels according to these models.
+</p>
+
+
+<h3>STRIDE Model Analysis</h3>
+
+<p>STRIDE is an acronym for Spoofing, Tampering, Repudiation, Information Disclosure, Denial of Service, and Elevation of Privilege.</p>
+
+<p>
+<strong>Spoofing (Critical):</strong> Given that broken function level authorization can allow unauthorised users 
+to impersonate others or assume roles they shouldn't have, the risk is critical. An attacker
+ could exploit this vulnerability to spoof a legitimate user's identity.</p>
+
+
+ <p><strong></strong>Tampering (High): If an attacker gains access to functionalities not intended for 
+their use, they might be able to alter data or the system's behaviour. The severity is 
+high because it could lead to data integrity issues but requires specific conditions to exploit effectively.
+Repudiation (Medium): This vulnerability indirectly increases the risk of repudiation 
+threats because an attacker might perform actions without proper logging or accountability. 
+However, it's more about the absence of controls than a direct consequence of broken function level authorization.</p>
+
+<p><strong></strong>Information Disclosure (Critical): Unauthorised access to functions often leads to unauthorised access to data. 
+If an attacker can invoke functions they shouldn't, sensitive information might be exposed, making this threat critical.</p>
+
+<p><strong></strong>Denial of Service (Low): While not directly related, exploiting this vulnerability could lead to conditions
+ where services are misused or overloaded unintentionally. The impact is typically lower compared to other threats in this context.</p>
+
+ <p><strong></strong>Elevation of Privilege (Critical): This is the most direct threat associated with broken function level authorization.
+ Attackers could elevate their privileges by accessing functions reserved for higher-privileged users, posing a critical threat.</p>
+
+
+ <hr/>
+
+<h3>DREAD Model Analysis</h3>
+
+<p>DREAD stands for Damage, Reproducibility, Exploitability, Affected Users, and Discoverability.</p>
+
+<p><strong>Damage (High):</strong> The potential damage from exploiting broken function level authorization can be high, leading to
+ data breaches, loss of integrity, and unauthorised actions within the system.</p>
+
+<p><strong>Reproducibility (Medium):</strong> Depending on the complexity of the API and the implementation details, 
+the vulnerability might be more or less easy to reproduce by attackers.</p>
+
+<p><strong>Exploitability (High):</strong> If the authorization flaw is well-understood and documented, it might be
+ relatively easy for an attacker to exploit, especially if detailed error messages or API documentation is publicly available.</p>
+
+<p><strong>Affected Users (High):</strong> Given that this vulnerability could impact the security posture of 
+the entire API, potentially all users of the system could be affected by its exploitation. </p>
+
+<p><strong>Discoverability (Medium):</strong> The ease with which this issue can be discovered depends on the level
+ of access an attacker has and the amount of information available about the API. In some cases, 
+ it might require in-depth knowledge or insider information. </p>
+
+</body>
+
+</html>

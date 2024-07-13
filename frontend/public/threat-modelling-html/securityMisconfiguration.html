@@ -1,0 +1,52 @@
+<p>Threat modelling is a process 
+used in cybersecurity to identify, prioritise, and mitigate potential threats to a system. </p>
+
+<p>Two common frameworks used in threat modelling are STRIDE and DREAD. STRIDE categorises threats into six types: Spoofing, 
+Tampering, Repudiation, Information Disclosure, Denial of Service, and Elevation of Privilege. DREAD is a system for rating 
+the severity of security threats, based on five categories: Damage, Reproducibility, Exploitability, Affected Users, and Discoverability.
+For the vulnerability "API 8:2023 - Security Misconfiguration", let's analyse and 
+rate the potential threats according to STRIDE and DREAD models.
+</p>
+
+
+<h3>STRIDE Analysis for "API 8:2023 - Security Misconfiguration"</h3>
+
+
+<p><strong> (Identity Fraud): Low to Medium.</strong> Security misconfigurations can sometimes make it easier 
+    for attackers to impersonate legitimate users if authentication mechanisms are misconfigured. However, spoofing 
+    directly attributed to security misconfiguration alone is less common.</p>
+
+<p><strong>Tampering (Data Integrity): High.</strong> If an API is misconfigured, attackers might be able 
+    to modify data in transit or at rest. Misconfigurations that expose administrative interfaces without 
+    proper authentication can allow unauthorised data manipulation.</p>
+
+<p><strong>Repudiation (Non-Repudiation): Medium.</strong> Without proper logging configurations
+     and integrity checks, malicious actors might deny performing actions, or legitimate actions might be falsely attributed to wrong entities.</p>
+
+<p><strong>Information Disclosure (Confidentiality): Critical.</strong> Security misconfiguration is a common cause for unauthorised access to sensitive information.
+     Improperly configured access controls can lead to exposure of data.</p>
+
+<p><strong>Denial of Service (Availability): Medium to High.</strong> Misconfigurations can inadvertently lead to services being more
+     susceptible to denial of service attacks, such as leaving development features enabled that can be exploited to exhaust system resources.</p>
+
+<p><strong>Elevation of Privilege (Authorization): High.</strong> Security misconfigurations can allow attackers to gain unauthorised access or elevated
+     privileges, particularly if default accounts/passwords are not changed or if excessive privileges are granted by default.</p>
+
+
+<hr/>
+
+<h3>DREAD Analysis for "API 8:2023 - Security Misconfiguration"</h3>
+
+
+<p><strong>Damage Potential: High.</strong> Depending on the specific misconfiguration, the potential damage can vary from data leakage to complete system takeover.</p>
+
+<p><strong>Reproducibility: High.</strong> If the misconfiguration is known and documented, it can be easily reproduced by attackers who have knowledge of it.</p>
+
+<p><strong>Exploitability: Medium to High.</strong> The effort required to exploit a misconfiguration can vary, but many are often simple to exploit once discovered.</p>
+
+
+<p><strong>Affected Users: Medium to High.</strong> The number of affected users depends on the API's role and data it handles. A critical API misconfiguration 
+    can affect all users.</p>
+
+<p><strong>Discoverability: High.</strong> Misconfigurations can often be discovered through automated scanning tools and manual 
+    inspection if the attacker knows what to look for.</p>

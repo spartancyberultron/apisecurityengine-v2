@@ -1,0 +1,55 @@
+<p>Server-Side Request Forgery (SSRF) is a vulnerability that allows an attacker to send crafted requests from a 
+vulnerable web application to internal systems behind the firewall. The attacker can potentially access or manipulate internal
+ resources that were not intended to be exposed. In the context of APIs, this can be particularly concerning because APIs often interact 
+ with various internal and external services.
+
+
+<p>When performing a threat model for SSRF vulnerabilities, particularly API 7:2023, it's important to consider both 
+STRIDE and DREAD models to evaluate the risks comprehensively. Here's how you might categorise the threat based on these models:
+
+
+<h3>STRIDE Model for API 7:2023 (SSRF)</h3>
+
+<p>STRIDE is a model used to identify and categorise security threats based on six categories: Spoofing, Tampering, Repudiation, 
+Information Disclosure, Denial of Service (DoS), and Elevation of Privilege.</p>
+
+<p><strong>(Critical):</strong> SSRF can allow an attacker to impersonate the server or another internal service, making requests
+ that appear legitimate.</p>
+
+<p><strong>Tampering (High):</strong> If the SSRF vulnerability allows an attacker to modify internal HTTP requests, this could lead to 
+unauthorised changes in data or system configurations.</p>
+
+<p><strong>Repudiation (Medium):</strong> SSRF attacks may not always leave a clear trail, especially if the attacker can mask their actions 
+as legitimate requests from the vulnerable server, complicating auditing and tracking.</p>
+
+<p><strong>Information Disclosure (Critical):</strong> SSRF can expose sensitive information from internal services that are not intended 
+to be accessible, posing a significant risk.</p>
+
+<p><strong>Denial of Service (High):</strong> By abusing SSRF, an attacker could target internal systems, potentially leading to a denial of service for critical 
+    infrastructure.</p>
+
+<p><strong>Elevation of Privilege (High):</strong> Depending on the systems accessible via SSRF, an attacker might escalate their privileges within the network.</p>
+
+<hr/>
+
+<h3>DREAD Model for API 7:2023 (SSRF)</h3>
+
+<p>DREAD is another risk assessment model used to quantify, prioritise, and 
+compare different types of threats. It stands for Damage, Reproducibility, Exploitability, Affected Users, and Discoverability.</p>
+
+
+<p><strong>Damage (Critical):</strong> The potential damage from SSRF can be very high, including data breaches, internal system 
+compromise, and exposure of sensitive information.</p>
+
+<p><strong>Reproducibility (High):</strong> If an attacker knows about the SSRF vulnerability, it can be relatively easy to reproduce the attack.</p>
+
+<p><strong>Exploitability (Medium):</strong> The difficulty of exploiting SSRF vulnerabilities can vary, but often it requires some knowledge of
+ the internal network and the targeted application's behaviour.</p>
+
+<p><strong>Affected Users (High):</strong> Depending on the application and the nature of the SSRF vulnerability, the number of affected users could 
+be extensive, especially if critical systems are compromised.</p>
+
+<p><strong>Discoverability (Medium):</strong> Discovering SSRF vulnerabilities might require some effort from the attacker, such as understanding the 
+application's architecture and internal services. However, once identified, the vulnerability can be highly exploitable.</p>
+
+
