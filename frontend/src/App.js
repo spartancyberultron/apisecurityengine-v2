@@ -23,8 +23,8 @@ if (window.location.hostname === 'localhost') {
   global.backendUrl = "http://localhost:5001";
 } else {
   
-  axios.defaults.baseURL = "https://apisecv2-backend.trikodev.xyz";
-  global.backendUrl = "https://apisecv2-backend.trikodev.xyz";
+  axios.defaults.baseURL = "https://backend-new.apisecurityengine.com";
+  global.backendUrl = "https://backend-new.apisecurityengine.com";
 }
 
 if (window.location.hostname === 'localhost') {
