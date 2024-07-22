@@ -27,6 +27,8 @@ const { URL } = require('url');
 const crypto = require('crypto');
 const { v4: uuidv4 } = require('uuid');
 
+const cron = require('node-cron');
+
 const { basicAuthenticationDetectedCheck } = require("../services/securityTests/basicAuthenticationDetectedCheck.service");
 const { brokenAuthenticationCheck } = require("../services/securityTests/brokenAuthenticationCheck.service");
 const { brokenObjectLevelAuthoriztionCheck } = require("../services/securityTests/brokenObjectLevelAuthoriztionCheck.service");
@@ -1723,211 +1725,73 @@ module.exports.startActiveScan = asyncHandler(async (req, res) => {
 
     const user = await User.findById(req.user._id);
 
-    const { theCollectionVersion, endpoints } = req.body;
+    const { theCollectionVersion, endpoints, scanScheduleType,
+        specificDateTime,
+        recurringSchedule, } = req.body;
 
-    runActiveScan(user, theCollectionVersion, endpoints);
+    const newScan = new ActiveScan({
+            user: user._id,
+            theCollectionVersion,
+            scanScheduleType,
+            specificDateTime: scanScheduleType === 'specificTime' ? new Date(specificDateTime) : undefined,
+            recurringSchedule: scanScheduleType === 'recurring' ? recurringSchedule : undefined,
+            status: scanScheduleType=='now'?'in progress':'scheduled'
+    });  
+    
+    await newScan.save();
 
-    res.status(200).json({
+    if (scanScheduleType === 'now') {
+
+            // Run the scan immediately
+            runActiveScan(user, theCollectionVersion, endpoints, newScan._id);
+            res.status(200).json({ "status": "started" });
+
+    } else if (scanScheduleType === 'specificTime') {
+
+            // Schedule the scan for a specific time
+            const scanTime = new Date(specificDateTime);
+            cron.schedule(scanTime, () => {
+                runActiveScan(user, theCollectionVersion, endpoints, newScan._id);
+            });
+            res.status(200).json({ "status": "scheduled" });
+
+    } else if (scanScheduleType === 'recurring') {
+
+            // Schedule recurring scans
+            let cronExpression;
+            switch (recurringSchedule) {
+                case 'daily':
+                    cronExpression = '0 0 * * *'; // Run at midnight every day
+                    break;
+                case 'weekly':
+                    cronExpression = '0 0 * * 0'; // Run at midnight every Sunday
+                    break;
+                case 'biweekly':
+                    cronExpression = '0 0 1,15 * *'; // Run at midnight on the 1st and 15th of every month
+                    break;
+                case 'monthly':
+                    cronExpression = '0 0 1 * *'; // Run at midnight on the 1st of every month
+                    break;
+                default:
+                    throw new Error('Invalid recurring schedule');
+            }
+    
+            cron.schedule(cronExpression, () => {
+                runActiveScan(user, theCollectionVersion, endpoints, newScan._id);
+            });
+            res.status(200).json({ "status": "scheduled" });
+     } else {
+            throw new Error('Invalid scan schedule type');
+    }
+
+    //runActiveScan(user, theCollectionVersion, endpoints);
+
+   /* res.status(200).json({
         "status": "started"
     });
+    */
 
-    /*
     
-    
-        if (collectionUrl !== '') {
-    
-            const result = await fetchAndCheckContentType(collectionUrl);
-    
-            if (result.contentType == 'application/yaml') {
-    
-                const collectionFile = result.content;
-                const collectionData = collectionFile;
-    
-                if (collectionData.swagger) {
-    
-                    var theScan = await parseSwaggerYAML(collectionData, user, collectionFilePath, projectName, email);
-    
-                    if (theScan) {
-                        return res.send({ message: "Scan Started" })
-                    } else {
-                        return res.send({ error: "Scan failed for some reason. Please try again." })
-                    }
-    
-                } else if (collectionData.info && collectionData.info._postman_id) {
-    
-                    var theScan = await parsePostmanYAML(collectionData, user, collectionFilePath, projectName, email);
-    
-                    if (theScan) {
-                        return res.send({ message: "Scan Started" })
-                    } else {
-                        return res.send({ error: "Scan failed for some reason. Please try again." })
-                    }
-                } else if (collectionData.openapi) {
-    
-                    var theScan = await parseOpenAPIYAML(collectionData, user, collectionFilePath, projectName, email);
-    
-                    if (theScan) {
-                        return res.send({ message: "Scan Started" })
-                    } else {
-                        return res.send({ error: "Scan failed for some reason. Please try again." })
-                    }
-                }
-              
-    
-    
-            } else if (result.contentType == 'application/json') {
-    
-    
-                var collectionJson = result.content;
-    
-                const variables = extractVariablesFromJSON(JSON.stringify(collectionJson));
-                collectionJson = replaceVariablesInJSON(JSON.stringify(collectionJson), variables);
-    
-               // console.log('collectionJson:',collectionJson)
-                const collection = new Collection(JSON.parse(collectionJson));
-    
-                const collectiondata = JSON.parse(collectionJson);
-              
-                if (collection && collectiondata.info._postman_id && collectiondata.item && Array.isArray(collectiondata.item)) {
-    
-    
-                    var theScan = await parsePostmanJSON(collectiondata, user, collectionFilePath, projectName, email);
-    
-                    if (theScan) {
-                        return res.send({ message: "Scan Started" });
-                    } else {
-                        return res.send({ error: "Scan failed for some reason. Please try again." });
-                    }
-    
-                } else if (collection && (collectiondata.swagger)) {
-    
-                    var theScan = await parseSwaggerJSON(collectiondata, user, collectionFilePath, projectName, email);
-    
-                    if (theScan) {
-                        return res.send({ message: "Scan Started" });
-                    } else {
-                        return res.send({ error: "Scan failed for some reason. Please try again." });
-                    }
-                } else if (collection && (collectiondata.openapi)) {
-    
-    
-                    var theScan = await parseOpenAPIJSON(collectiondata, user, collectionFilePath, projectName, email);
-    
-                    if (theScan) {
-                        return res.send({ message: "Scan Started" });
-                    } else {
-                        return res.send({ error: "Scan failed for some reason. Please try again." });
-                    }
-                }
-    
-    
-            } else {
-    
-                res.send({ error: "The URL does not contain a valid Postman/Swagger collection2" });
-            }
-    
-        } else {
-    
-            try {
-    
-                const originalname = req.file.originalname
-                const fileformat = originalname.split('.').pop();
-    
-                if (fileformat === "json") {
-    
-    
-                    var collectionFilePath = path.join(__dirname, "..", "uploads", "postman-collections", originalname);
-                    var collectionJson = fs.readFileSync(collectionFilePath, 'utf8');
-    
-    
-                    const variables = extractVariablesFromJSON(collectionJson);
-                    collectionJson = replaceVariablesInJSON(collectionJson, variables);
-    
-    
-                    const collection = new Collection(JSON.parse(collectionJson));
-    
-                    const collectiondata = JSON.parse(collectionJson);
-    
-                    if (collection && collectiondata.info._postman_id && collectiondata.item && Array.isArray(collectiondata.item)) {
-    
-    
-                        var theScan = await parsePostmanJSON(collectiondata, user, collectionFilePath, projectName, email);
-    
-                        if (theScan) {
-                            return res.send({ message: "Scan Started" });
-                        } else {
-                            return res.send({ error: "Scan failed for some reason. Please try again." });
-                        }
-    
-                    } else if (collection && (collectiondata.swagger)) {
-    
-                        var theScan = await parseSwaggerJSON(collectiondata, user, collectionFilePath, projectName, email);
-    
-                        if (theScan) {
-                            return res.send({ message: "Scan Started" });
-                        } else {
-                            return res.send({ error: "Scan failed for some reason. Please try again." });
-                        }
-                    } else if (collection && (collectiondata.openapi)) {
-    
-                        var theScan = await parseOpenAPIJSON(collectiondata, user, collectionFilePath, projectName, email);
-    
-                        if (theScan) {
-                            return res.send({ message: "Scan Started" });
-                        } else {
-                            return res.send({ error: "Scan failed for some reason. Please try again." });
-                        }
-                    }
-    
-                }
-                else if (fileformat === "yaml") {
-    
-    
-                    var collectionFilePath = path.join(__dirname, ".." , "uploads", "postman-collections", originalname);
-                    const collectionFile = fs.readFileSync(collectionFilePath, 'utf8');
-                    const collectionData = YAML.parse(collectionFile);
-    
-                    if (collectionData.swagger) {
-    
-                        var theScan = await parseSwaggerYAML(collectionData, user, collectionFilePath, projectName, email);
-    
-                        if (theScan) {
-                            return res.send({ message: "Scan Started" })
-                        } else {
-                            return res.send({ error: "Scan failed for some reason. Please try again." })
-                        }
-    
-                    } else if (collectionData.info && collectionData.info._postman_id) {
-    
-                        var theScan = await parsePostmanYAML(collectionData, user, collectionFilePath, projectName, email);
-    
-                        if (theScan) {
-                            return res.send({ message: "Scan Started" })
-                        } else {
-                            return res.send({ error: "Scan failed for some reason. Please try again." })
-                        }
-                    } else if (collectionData.openapi) {
-    
-                        var theScan = await parseOpenAPIYAML(collectionData, user, collectionFilePath, projectName, email);
-    
-                        if (theScan) {
-                            return res.send({ message: "Scan Started" })
-                        } else {
-                            return res.send({ error: "Scan failed for some reason. Please try again." })
-                        }
-                    }
-                }
-    
-            }
-            catch (err) {
-                console.log('err1', err)
-                return res.send({ err: err })
-            }
-    
-        }
-    
-        */
-
 });
 
 
@@ -1971,27 +1835,34 @@ module.exports.generatePDFForAScan = asyncHandler(async (req, res) => {
 });
 
 
-async function runActiveScan(user, theCollectionVersion, endpoints) {
+async function runActiveScan(user, theCollectionVersion, endpoints, scanId) {
+
+    console.log('scanId:',scanId)
 
     try {
 
+        const theActiveScan = await ActiveScan.findById(scanId);
+
+        console.log('theActiveScan:',theActiveScan)
+
+       // theActiveScan.theCollectionVersion = theCollectionVersion;
+        //theActiveScan.status = 'in progress';
+
         // Create an Active Scan object
-        const theActiveScan = await ActiveScan.create({
+      /*  const theActiveScan = await ActiveScan.create({
 
             user: user,
             theCollectionVersion: theCollectionVersion,
+            
             //projectName: projectName,
             //emailToSendReportTo: email,
             status: 'in progress'
         });
 
-        theActiveScan.save();
+        theActiveScan.save(); */
 
-        //const theEndpoints = await ApiEndpoint.find({ theCollection: theCollection });
 
         const theEndpoints = await ApiEndpoint.find({ _id: { $in: endpoints } });
-
-        //console.log('theEndpoints:',theEndpoints);
 
         var theVulns = [];
 

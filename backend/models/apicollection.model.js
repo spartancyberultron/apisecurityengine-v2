@@ -6,6 +6,10 @@ const apiSchema = new mongoose.Schema({
         type: mongoose.Schema.Types.ObjectId,
         ref: 'User',
   },
+  orgProject: { 
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'OrgProject',
+  },
   collectionType: { // OpenAPI, PostMan, Swagger
     type: String,
   },

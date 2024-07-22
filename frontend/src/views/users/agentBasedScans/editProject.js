@@ -129,7 +129,7 @@ const EditProject = () => {
       } else {
 
 
-        toast('Project updated', {
+        toast('Application updated', {
           position: "top-right",
           autoClose: 5000,
           hideProgressBar: false,
@@ -177,20 +177,20 @@ const EditProject = () => {
     <div style={{ overflow: "scroll", position: 'relative', overflowY: 'hidden', }}>
       <div>
         <div style={{ marginBottom: '2rem', }}>
-          <h2>Editing Project</h2>
+          <h2>Editing Application</h2>
         </div>
 
 
         <CInputGroup className="mb-3 mt-3" style={{ flexDirection: 'column', marginTop: 30 }}>
           <CFormInput
-            placeholder="Project Name"
+            placeholder="Application Name"
             onChange={(e) => setProjectName(e.target.value)}
             value={projectName}
             className="white-input"
             style={{ width: '30%', color:'black' }}
           />
           {projectNameEmpty &&
-            <span style={{ color: 'red', fontSize: 12, marginTop: 5 }}>Please enter project name</span>
+            <span style={{ color: 'red', fontSize: 12, marginTop: 5 }}>Please enter application name</span>
           }
         </CInputGroup>       
 
@@ -210,7 +210,7 @@ const EditProject = () => {
           {onSubmitting ?
             <CircularProgress color="primary" size={24} style={{ marginTop: 10, color: '#fff' }} />
             :
-            'UPDATE PROJECT'
+            'UPDATE APPLICATION'
           }
         </CButton>
 

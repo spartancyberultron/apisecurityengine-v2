@@ -368,8 +368,18 @@ module.exports.addTicket = asyncHandler(async (req, res) => {
         const organization = await Organization.findById(user.organization._id)
 
         const highestTicket = await Ticket.findOne().sort({ ticketId: -1 }).exec();
-      var highestTicketId = highestTicket.ticketId;
-        var newTicketId = highestTicketId + 1;
+
+        let highestTicketId;
+        let newTicketId;
+
+        if(highestTicket){
+            highestTicketId = highestTicket.ticketId;
+            newTicketId = highestTicketId + 1;
+        }else{
+            newTicketId = 1;
+        }
+
+        
 
             console.log('highestTicket:', highestTicket);
             console.log('highestTicketId:', highestTicketId);

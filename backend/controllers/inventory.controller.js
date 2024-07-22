@@ -41,11 +41,13 @@ module.exports.fetchAPICollections = asyncHandler(async (req, res) => {
     // Calculate the skip value based on the pageNumber and pageSize
     const skip = (pageNumber - 1) * pageSize;
 
-    const apiCollections = await APICollection.find({ user: req.user._id })
+    const apiCollections = await APICollection.find({ user: req.user._id }).populate('orgProject')
         .sort({ createdAt: -1 })
         .skip(skip)
         .limit(pageSize)
         .lean();
+
+
 
 
     for (var i = 0; i < apiCollections.length; i++) {
@@ -1277,7 +1279,7 @@ module.exports.addAPICollectionVersion = asyncHandler(async (req, res) => {
 
     const user = await User.findById(req.user._id);
 
-    const { collectionName, collectionUrl, version, collectionId } = req.body;
+    const { collectionName, collectionUrl, version, collectionId, projectId } = req.body;
 
     let theVersion = version;
 
@@ -1300,6 +1302,7 @@ module.exports.addAPICollectionVersion = asyncHandler(async (req, res) => {
                         collectionType: 'Swagger',
                         collectionName: collectionName,
                         collectionFilePath: collectionFilePath,
+                        orgProject:projectId
                     });
                 } else {
                     theCollection = await APICollection.findById(collectionId)
@@ -1334,6 +1337,7 @@ module.exports.addAPICollectionVersion = asyncHandler(async (req, res) => {
                         collectionNativeId: collectionData.info._postman_id,
                         collectionSchemaURL: collectionData.info.schema,
                         collectionFilePath: collectionFilePath,
+                        orgProject:projectId
                     });
 
                 } else {
@@ -1367,6 +1371,7 @@ module.exports.addAPICollectionVersion = asyncHandler(async (req, res) => {
                         collectionType: 'OpenAPI',
                         collectionName: collectionName,
                         collectionFilePath: collectionFilePath,
+                        orgProject:projectId
                     });
                 } else {
                     theCollection = await APICollection.findById(collectionId)
@@ -1420,6 +1425,7 @@ module.exports.addAPICollectionVersion = asyncHandler(async (req, res) => {
                         collectionNativeId: collectiondata.info._postman_id,
                         collectionSchemaURL: collectiondata.info.schema,
                         collectionFilePath: collectionFilePath,
+                        orgProject:projectId
                     });
                 } else {
                     theCollection = await APICollection.findById(collectionId)
@@ -1455,6 +1461,7 @@ module.exports.addAPICollectionVersion = asyncHandler(async (req, res) => {
                             collectionType: 'Swagger',
                             collectionName: collectionName,
                             collectionFilePath: collectionFilePath,
+                            orgProject:projectId
                         });
 
                     } else {
@@ -1463,6 +1470,7 @@ module.exports.addAPICollectionVersion = asyncHandler(async (req, res) => {
                             user: user,
                             collectionType: 'Swagger',
                             collectionName: collectionName,
+                            orgProject:projectId
                         });
 
                         
@@ -1502,6 +1510,7 @@ module.exports.addAPICollectionVersion = asyncHandler(async (req, res) => {
                             collectionType: 'OpenAPI',
                             collectionName: collectionName,
                             collectionFilePath: collectionFilePath,
+                            orgProject:projectId
                         });
                     } else {
 
@@ -1509,6 +1518,7 @@ module.exports.addAPICollectionVersion = asyncHandler(async (req, res) => {
                             user: user,
                             collectionType: 'OpenAPI',
                             collectionName: collectionName,
+                            orgProject:projectId
                         });
                     }
 
@@ -1576,6 +1586,7 @@ module.exports.addAPICollectionVersion = asyncHandler(async (req, res) => {
                             collectionNativeId: collectiondata.info._postman_id,
                             collectionSchemaURL: collectiondata.info.schema,
                             collectionFilePath: collectionFilePath,
+                            orgProject:projectId
                         });
                     } else {
                         theCollection = await APICollection.findById(collectionId)
@@ -1611,6 +1622,7 @@ module.exports.addAPICollectionVersion = asyncHandler(async (req, res) => {
                                 collectionType: 'Swagger',
                                 collectionName: collectionName,
                                 collectionFilePath: collectionFilePath,
+                                orgProject:projectId
                             });
     
                         } else {
@@ -1619,6 +1631,7 @@ module.exports.addAPICollectionVersion = asyncHandler(async (req, res) => {
                                 user: user,
                                 collectionType: 'Swagger',
                                 collectionName: collectionName,
+                                orgProject:projectId
                             });
                         }
     
@@ -1655,6 +1668,7 @@ module.exports.addAPICollectionVersion = asyncHandler(async (req, res) => {
                                 collectionType: 'OpenAPI',
                                 collectionName: collectionName,
                                 collectionFilePath: collectionFilePath,
+                                orgProject:projectId
                             });
                         } else {
     
@@ -1662,6 +1676,7 @@ module.exports.addAPICollectionVersion = asyncHandler(async (req, res) => {
                                 user: user,
                                 collectionType: 'OpenAPI',
                                 collectionName: collectionName,
+                                orgProject:projectId
                             });
                         }
     
@@ -1705,6 +1720,7 @@ module.exports.addAPICollectionVersion = asyncHandler(async (req, res) => {
                             collectionType: 'Swagger',
                             collectionName: collectionName,
                             collectionFilePath: collectionFilePath,
+                            orgProject:projectId
                         });
                     } else {
                         theCollection = await APICollection.findById(collectionId)
@@ -1739,6 +1755,7 @@ module.exports.addAPICollectionVersion = asyncHandler(async (req, res) => {
                             collectionNativeId: collectionData.info._postman_id,
                             collectionSchemaURL: collectionData.info.schema,
                             collectionFilePath: collectionFilePath,
+                            orgProject:projectId
                         });
     
                     } else {
@@ -1771,6 +1788,7 @@ module.exports.addAPICollectionVersion = asyncHandler(async (req, res) => {
                             collectionType: 'OpenAPI',
                             collectionName: collectionName,
                             collectionFilePath: collectionFilePath,
+                            orgProject:projectId
                         });
                     } else {
                         theCollection = await APICollection.findById(collectionId)

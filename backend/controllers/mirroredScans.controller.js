@@ -12,6 +12,8 @@ const { none } = require('../config/multerUpload');
 const APICollection = require('../models/apicollection.model');
 const Vulnerability = require('../models/vulnerability.model');
 const ProjectVulnerability = require('../models/projectVulnerability.model');
+const TrafficProjectEndpoint = require('../models/trafficprojectendpoint.model');
+
 const jsyaml = require('js-yaml');
 const pdfkit = require('pdfkit-table');
 const YAML = require('yaml');
@@ -24,25 +26,23 @@ const { URL } = require('url');
 const crypto = require('crypto');
 const { v4: uuidv4 } = require('uuid');
 
-//test comment
 // Get all vulnerabilities of a project
 module.exports.getProjectVulnerabilities = asyncHandler(async (req, res) => {
 
     const projectVulnerabilities = await ProjectVulnerability.find({
-      project: req.query.projectId,
+        project: req.query.projectId,
     }).populate('vulnerability');
-  
+
     const project = await Project.findById(req.query.projectId);
-  
+
     const result = {
-      vulnerabilities: projectVulnerabilities,
-      projectName: project.projectName,
-      piiFields: project.piiFields,
+        vulnerabilities: projectVulnerabilities,
+        projectName: project.projectName,
+        piiFields: project.piiFields,
     };
-  
+
     res.status(200).json(result);
-  });
-  
+});
 
 
 
@@ -54,6 +54,8 @@ module.exports.sendRequestInfo = asyncHandler(async (req, res) => {
     const { api_key, the_request } = req.body;
     const { requestId, method, url, headers, body, query, timestamp, projectType, protocol, host } = the_request;
 
+    console.log('the_request:', the_request)
+
     // Fetch individual fields from the request object dynamically
     const requestBody = { ...body }; // Copy the body object
     const queryParameters = { ...query }; // Copy the query object
@@ -62,125 +64,181 @@ module.exports.sendRequestInfo = asyncHandler(async (req, res) => {
     // Trim the quotes around api_key, in case someone has inputted with quotes in their env file
     const trimmed_api_key = api_key.replace(/^['"](.*)['"]$/, '$1');
     const project = await Project.findOne({ projectIntegrationID: trimmed_api_key });
-    project.projectType = projectType;
-    await project.save();
+
+    if (project.capturingStatus == 'Capturing') {
+
+        console.log('method:', method)
+        console.log('url:', url)
+        console.log('headers:', headers)
+        console.log('body:', body)
+
+        console.log('%%%%%%%%%%%%%%%%%%%%%%%:')
 
 
-    // Check for Sensitive Data in Query Params  
-    var pIIData = await runTestForSensitiveDataInQueryParams(queryParameters)
+        // Check if a record with matching method and url exists
+        TrafficProjectEndpoint.findOne({ method, url }, (err, existingEndpoint) => {
+            if (err) {
+                console.error('Error checking for existing TrafficProjectEndpoint:', err);
+                return res.status(500).json({ error: 'An error occurred while processing the request' });
+            }
 
-    var piiArray = [];
+           
 
-    for (var p = 0; p < pIIData.length; p++) {
+            if (!existingEndpoint) {
 
-        if (!piiArray.includes(pIIData[p])) {
-            piiArray.push(pIIData[p]);
-        }
-    }
+                // If no matching record found, create a new one
+                const newEndpoint = new TrafficProjectEndpoint({
+                    project:project._id,
+                    method,
+                    url,
+                    headers: headers && Object.entries(headers).map(([key, value]) => {
+                        // Check if the key is a number (TCP packet info) or a string (HTTP header)
+                        if (isNaN(key)) {
+                            return {
+                                key: key,
+                                value: value,
+                                type: 'HTTP'
+                            };
+                        } else {
+                            return {
+                                key: 'TCP Info',
+                                value: value,
+                                type: 'TCP'
+                            };
+                        }
+                    }).filter(header => header !== null),
+                    queryParams: Object.entries(queryParameters).map(([key, value]) => ({ key, value })),
+                    requestBody,
+                    // Add other fields as needed
+                    firstDetected: new Date().toISOString(),
+                    lastActive: new Date().toISOString(),
+                });
 
-    var description = 'The query params of this API contain sensitive data. The data classes found are as follows :: ' + piiArray.join(' ');
-
-    if (pIIData.length > 0) {
-
-        const vuln = await Vulnerability.findOne({ vulnerabilityCode: 6 })
-
-        const theProjectVulnerability = await ProjectVulnerability.create({
-
-            project: project,
-            vulnerability: vuln,
-            endpoint: url,
-            description: description,
+                newEndpoint.save((saveErr) => {
+                    if (saveErr) {
+                        console.error('Error saving new TrafficProjectEndpoint:', saveErr);
+                        return res.status(500).json({ error: 'An error occurred while saving the new endpoint' });
+                    }
+                    console.log('New TrafficProjectEndpoint created');
+                    // Continue with your logic here
+                });
+            } else {
+                // If a matching record is found, update the lastActive field
+                existingEndpoint.lastActive = new Date().toISOString();
+                existingEndpoint.save((saveErr) => {
+                    if (saveErr) {
+                        console.error('Error updating existing TrafficProjectEndpoint:', saveErr);
+                        return res.status(500).json({ error: 'An error occurred while updating the existing endpoint' });
+                    }
+                    console.log('Existing TrafficProjectEndpoint found and updated');
+                    // Continue with your logic here
+                });
+            }
         });
 
-        const uniquePiiFields = [];
 
-        for (const piiField of pIIData) {
 
-            if (!project.piiFields.includes(piiField)) {
-                uniquePiiFields.push(piiField);
+
+        console.log('project.capturingStatus:', project.capturingStatus)
+
+        project.projectType = projectType;
+        await project.save();
+
+        // Just save here, dont run scan immediately
+
+        /*
+
+        // Check for Sensitive Data in Query Params  
+        var pIIData = await runTestForSensitiveDataInQueryParams(queryParameters)
+
+        var piiArray = [];
+
+        for (var p = 0; p < pIIData.length; p++) {
+
+            if (!piiArray.includes(pIIData[p])) {
+                piiArray.push(pIIData[p]);
             }
         }
 
-        project.piiFields.push(...uniquePiiFields);
-        project.save();
-        
-    }
-    // END - Check for Sensitive Data in Query Params  
+        var description = 'The query params of this API contain sensitive data. The data classes found are as follows :: ' + piiArray.join(' ');
 
+        if (pIIData.length > 0) {
 
-    // Check for Sensitive Data in Path Params
-    var pIIData = await runTestForSensitiveDataInPathParams(url)
+            const vuln = await Vulnerability.findOne({ vulnerabilityCode: 6 })
 
-    var piiArray = [];
+            const theProjectVulnerability = await ProjectVulnerability.create({
 
-    for (var p = 0; p < pIIData.length; p++) {
-        if (!piiArray.includes(pIIData[p])) {
-            piiArray.push(pIIData[p]);
+                project: project,
+                vulnerability: vuln,
+                endpoint: url,
+                description: description,
+            });
+
+            const uniquePiiFields = [];
+
+            for (const piiField of pIIData) {
+
+                if (!project.piiFields.includes(piiField)) {
+                    uniquePiiFields.push(piiField);
+                }
+            }
+
+            project.piiFields.push(...uniquePiiFields);
+            project.save();
+
         }
-    }
+        // END - Check for Sensitive Data in Query Params  
 
-    var description = 'The query params of this API contain sensitive data. The data classes found are as follows :: ' + piiArray.join(' ');
 
-    if (pIIData.length > 0) {
+        // Check for Sensitive Data in Path Params
+        var pIIData = await runTestForSensitiveDataInPathParams(url)
 
-        const vuln = await Vulnerability.findOne({ vulnerabilityCode: 6 })
+        var piiArray = [];
 
-        const theProjectVulnerability = await ProjectVulnerability.create({
-
-            project: project,
-            vulnerability: vuln,
-            endpoint: url,
-            description: description,
-        });
-
-        const uniquePiiFields = [];
-
-        for (const piiField of pIIData) {
-
-            if (!project.piiFields.includes(piiField)) {
-                uniquePiiFields.push(piiField);
+        for (var p = 0; p < pIIData.length; p++) {
+            if (!piiArray.includes(pIIData[p])) {
+                piiArray.push(pIIData[p]);
             }
         }
 
-        project.piiFields.push(...uniquePiiFields);
-        project.save();
-    }
-    // END - Check for Sensitive Data in Path Params
+        var description = 'The query params of this API contain sensitive data. The data classes found are as follows :: ' + piiArray.join(' ');
+
+        if (pIIData.length > 0) {
+
+            const vuln = await Vulnerability.findOne({ vulnerabilityCode: 6 })
+
+            const theProjectVulnerability = await ProjectVulnerability.create({
+
+                project: project,
+                vulnerability: vuln,
+                endpoint: url,
+                description: description,
+            });
+
+            const uniquePiiFields = [];
+
+            for (const piiField of pIIData) {
+
+                if (!project.piiFields.includes(piiField)) {
+                    uniquePiiFields.push(piiField);
+                }
+            }
+
+            project.piiFields.push(...uniquePiiFields);
+            project.save();
+        }
+        // END - Check for Sensitive Data in Path Params
 
 
 
-    // Check for Basic Authentication Detected
-    var basicAuthFound = await runTestForBasicAuthenticationDetected(headers)
+        // Check for Basic Authentication Detected
+        var basicAuthFound = await runTestForBasicAuthenticationDetected(headers)
 
-    if (basicAuthFound) {
+        if (basicAuthFound) {
 
-        const vuln = await Vulnerability.findOne({ vulnerabilityCode: 3 })
+            const vuln = await Vulnerability.findOne({ vulnerabilityCode: 3 })
 
-        var description = 'This API has basic authentication on it. A stronger authentication method like Bearer token, is recommended.'
-
-        const theProjectVulnerability = await ProjectVulnerability.create({
-
-            project: project,
-            vulnerability: vuln,
-            endpoint: url,
-            description: description,
-        });
-
-    }
-    // END - Check for Basic Authentication Detected
-
-
-
-    // Check for Endpoint Not Secured by SSL
-    try {
-
-        var sslIssues = await runTestForEndpointNotSecuredBySSL(protocol, host);
-
-        if (sslIssues.length > 0) {
-
-            const vuln = await Vulnerability.findOne({ vulnerabilityCode: 4 })
-
-            var description = sslIssues.join('\n');
+            var description = 'This API has basic authentication on it. A stronger authentication method like Bearer token, is recommended.'
 
             const theProjectVulnerability = await ProjectVulnerability.create({
 
@@ -191,63 +249,92 @@ module.exports.sendRequestInfo = asyncHandler(async (req, res) => {
             });
 
         }
-
-    } catch (error) {
-        console.log('execption occured in check for ENDPOINT NOT SECURED BY SSL');
-    }
-    // END - Check for Endpoint Not Secured by SSL
+        // END - Check for Basic Authentication Detected
 
 
 
-    // Check for HTTP Verb Tampering Possible
-    var tamperableMethods = await runTestForHTTPVerbTamperingPossible(protocol, host, method);
+        // Check for Endpoint Not Secured by SSL
+        try {
+
+            var sslIssues = await runTestForEndpointNotSecuredBySSL(protocol, host);
+
+            if (sslIssues.length > 0) {
+
+                const vuln = await Vulnerability.findOne({ vulnerabilityCode: 4 })
+
+                var description = sslIssues.join('\n');
+
+                const theProjectVulnerability = await ProjectVulnerability.create({
+
+                    project: project,
+                    vulnerability: vuln,
+                    endpoint: url,
+                    description: description,
+                });
+
+            }
+
+        } catch (error) {
+            console.log('execption occured in check for ENDPOINT NOT SECURED BY SSL');
+        }
+        // END - Check for Endpoint Not Secured by SSL
 
 
-    if (tamperableMethods.length > 0) {
 
-        const vuln = await Vulnerability.findOne({ vulnerabilityCode: 8 })
+        // Check for HTTP Verb Tampering Possible
+        var tamperableMethods = await runTestForHTTPVerbTamperingPossible(protocol, host, method);
 
-        var description = 'The method on this endpoint can be tampered to any of the following:' + tamperableMethods.join(',');
 
-        const theProjectVulnerability = await ProjectVulnerability.create({
+        if (tamperableMethods.length > 0) {
 
-            project: project,
-            vulnerability: vuln,
-            endpoint: url,
-            description: description,
+            const vuln = await Vulnerability.findOne({ vulnerabilityCode: 8 })
+
+            var description = 'The method on this endpoint can be tampered to any of the following:' + tamperableMethods.join(',');
+
+            const theProjectVulnerability = await ProjectVulnerability.create({
+
+                project: project,
+                vulnerability: vuln,
+                endpoint: url,
+                description: description,
+            });
+
+        }
+        // END - Check for HTTP Verb Tampering Possible
+
+
+
+
+        // Check for Security Headers not Enabled in Host
+        var missingHeaders = await runTestForSecurityHeadersNotEnabledOnHost(protocol, host);
+
+        if (missingHeaders.length > 0) {
+
+            const vuln = await Vulnerability.findOne({ vulnerabilityCode: 10 })
+
+            var description = 'The following security headers are not enabled on the host:' + missingHeaders.join(',');
+
+            const theProjectVulnerability = await ProjectVulnerability.create({
+
+                project: project,
+                vulnerability: vuln,
+                endpoint: url,
+                description: description,
+            });
+        }
+
+        // END - Check for HTTP Verb Tampering Possible
+
+        */
+
+
+        // Return the active scans, currentPage, totalRecords, and totalPages in the response
+        res.status(200).json({
+            status: 'received',
         });
+        
 
     }
-    // END - Check for HTTP Verb Tampering Possible
-
-
-
-
-    // Check for Security Headers not Enabled in Host
-    var missingHeaders = await runTestForSecurityHeadersNotEnabledOnHost(protocol, host);
-
-    if (missingHeaders.length > 0) {
-
-        const vuln = await Vulnerability.findOne({ vulnerabilityCode: 10 })
-
-        var description = 'The following security headers are not enabled on the host:' + missingHeaders.join(',');
-
-        const theProjectVulnerability = await ProjectVulnerability.create({
-
-            project: project,
-            vulnerability: vuln,
-            endpoint: url,
-            description: description,
-        });
-    }
-
-    // END - Check for HTTP Verb Tampering Possible
-
-
-    // Return the active scans, currentPage, totalRecords, and totalPages in the response
-    res.status(200).json({
-        status: 'received',
-    });
 
 });
 
@@ -860,19 +947,19 @@ const runTestForSensitiveDataInPathParams = async (endpoint) => {
 const runTestForBasicAuthenticationDetected = async (headers) => {
 
     const headerEntries = Object.entries(headers);
-    
+
     const authorizationHeader = headerEntries.find(([key, value]) =>
-      key.toLowerCase() === 'authorization' && value.toLowerCase().startsWith('basic ')
+        key.toLowerCase() === 'authorization' && value.toLowerCase().startsWith('basic ')
     );
-    
+
     if (authorizationHeader) {
-      const [, authCredentials] = authorizationHeader;
-      return !!authCredentials;
+        const [, authCredentials] = authorizationHeader;
+        return !!authCredentials;
     }
-    
+
     return false;
-  };
-  
+};
+
 
 
 
@@ -1088,3 +1175,60 @@ const runTestForSecurityHeadersNotEnabledOnHost = async (protocol, host) => {
 };
 
 
+
+
+// Set capturing status to either Capturing or Stopped
+module.exports.setCapturingStatus = asyncHandler(async (req, res) => {
+    const { projectId, status } = req.body;
+
+    // Validate input
+    if (!projectId || !status) {
+        return res.status(400).json({ error: 'Project ID and status are required' });
+    }
+
+    if (status !== 'Capturing' && status !== 'Stopped') {
+        return res.status(400).json({ error: 'Status must be either Capturing or Stopped' });
+    }
+
+    try {
+        // Find the project and update its status
+        const updatedProject = await Project.findByIdAndUpdate(
+            projectId,
+            { capturingStatus: status },
+            { new: true, runValidators: true }
+        );
+
+        if (!updatedProject) {
+            return res.status(404).json({ error: 'Project not found' });
+        }
+
+        // Send the updated project as the response
+        res.status(200).json({
+            message: 'Capturing status updated successfully',
+            project: {
+                id: updatedProject._id,
+                projectName: updatedProject.projectName,
+                capturingStatus: updatedProject.capturingStatus
+            }
+        });
+    } catch (error) {
+        console.error('Error updating capturing status:', error);
+        res.status(500).json({ error: 'Failed to update capturing status' });
+    }
+});
+
+
+
+module.exports.getInventoryOfProject = asyncHandler(async (req, res) => {
+
+    const projectId = req.params.projectId;
+
+    const endpoints = await TrafficProjectEndpoint.find({ project: projectId }).populate('project');
+
+    if (!endpoints) {
+        return res.status(404).json({ message: 'No endpoints found for the project' });
+    }
+
+    res.status(200).json(endpoints);
+
+});

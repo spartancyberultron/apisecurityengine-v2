@@ -150,7 +150,8 @@ export const AppSidebarNav = ({ items }) => {
                 padding: 15, display: 'flex', flexDirection: 'row', textDecoration: 'none',
                 background: currentRoute == '/agents' || currentRoute == '/add-agent'
                   || currentRoute == '/add-mirroring-project'
-                  || currentRoute == '/edit-mirroring-project' || currentRoute == '/project-vulnerabilities'
+                  || currentRoute == '/edit-mirroring-project' || currentRoute == '/project-vulnerabilities' 
+                  || currentRoute == '/project-inventory'
                   ? '#7367f0' : 'transparent', justifyContent: 'center'
               }}>
 
@@ -160,6 +161,7 @@ export const AppSidebarNav = ({ items }) => {
                   || currentRoute == '/add-mirroring-project'
                   || currentRoute == '/edit-mirroring-project'
                   || currentRoute == '/project-vulnerabilities'
+                  || currentRoute == '/project-inventory'
                   ? '#fff' : '#b6bee3'} />
               <span className="headerText" style={{
                 marginLeft: 10, color: currentRoute == '/agents'
@@ -167,6 +169,7 @@ export const AppSidebarNav = ({ items }) => {
                   || currentRoute == '/add-mirroring-project'
                   || currentRoute == '/edit-mirroring-project'
                   || currentRoute == '/project-vulnerabilities'
+                  || currentRoute == '/project-inventory'
                   ? '#fff' : '#5D596C'
               }}>Mirroring Agents</span>
             </Link>

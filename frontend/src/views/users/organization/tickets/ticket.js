@@ -224,7 +224,7 @@ const Ticket = () => {
         <div>
           <div style={{ marginBottom: '0rem', display: 'flex', flexDirection: 'row', justifyContent: 'space-between' }}>
 
-            <h3 className="pageHeader">Ticket #{ticket._id}</h3>
+            <h3 className="pageHeader">Ticket #{ticket.ticketId}</h3>
             <CButton
               onClick={goBack}
               style={{
@@ -246,19 +246,19 @@ const Ticket = () => {
             </CButton>
           </div>
 
-{!loading ?
+        {!loading ?
           <div style={{ marginBottom: '0rem', display: 'flex', flexDirection: 'column', justifyContent: 'space-between', marginBottom:30, backgroundColor: '#252B3B', padding: 15 }}>
 
-            <h4>{ticket.title}</h4>
-            <p>{ticket.description}</p>
+            <h4 style={{color:'#fff'}}>{ticket.title}</h4>
+            <p style={{color:'#fff'}}>{ticket.description}</p>
 
 
           {ticket.status == 'OPEN' &&
-            <span style={{background:'red', color:'black', borderRadius:5, padding:5, width:100, textAlign:'center'}}>{ticket.status}</span>
+            <span style={{background:'red', color:'#fff', borderRadius:5, padding:5, width:100, textAlign:'center'}}>{ticket.status}</span>
           }
 
           {ticket.status == 'RESOLVED' &&
-            <span style={{background:'green', color:'black', borderRadius:5, padding:5, width:100, textAlign:'center'}}>{ticket.status}</span>
+            <span style={{background:'green', color:'#fff', borderRadius:5, padding:5, width:100, textAlign:'center'}}>{ticket.status}</span>
           }
 
             <span style={{color:'#fff',marginTop:15, fontSize:13}}>Assigned To: {ticket.assignedTo?ticket.assignedTo.firstName + ' ' + ticket.assignedTo.lastName:''}</span>
@@ -271,7 +271,7 @@ const Ticket = () => {
 }
 
 
-{!loading ?
+      {!loading ?
 
           <div style={{ marginBottom: '0rem', display: 'flex', flexDirection: 'column', justifyContent: 'space-between', marginBottom:30, backgroundColor: '#252B3B', padding: 15 }}>
 
@@ -291,7 +291,7 @@ const Ticket = () => {
           </div>
           :
           <ShimmerTable row={8} col={10} />
-}
+      }
 
 
           {loading ?
@@ -350,6 +350,12 @@ const Ticket = () => {
               >
                   <option value="OPEN">
                     OPEN
+                  </option>
+                  <option value="IN PROGRESS">
+                    IN PROGRESS
+                  </option>
+                  <option value="ON HOLD">
+                    ON HOLD
                   </option>
                   <option value="OPEN">
                     RESOLVED

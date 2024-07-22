@@ -40,6 +40,13 @@ const APICollectionVersions = () => {
   const [endpointsEmptyError, setEndpointsEmptyError] = useState(false) 
 
 
+  const [scanScheduleType, setScanScheduleType] = useState('now');
+  const [specificDateTime, setSpecificDateTime] = useState('');
+  const [recurringSchedule, setRecurringSchedule] = useState('daily');
+
+  const [scanDate, setScanDate] = useState('');
+  const [scanTime, setScanTime] = useState('');
+
   const location = useLocation();
 
   const [pageCount, setPageCount] = useState(100);
@@ -121,6 +128,17 @@ const APICollectionVersions = () => {
       setSelectedEndpointIdsToScan([]);
     }
   }; 
+
+
+  
+
+  const handleScanDateChange = (event) => {
+    setScanDate(event.target.value);
+};
+
+const handleScanTimeChange = (event) => {
+    setScanTime(event.target.value);
+};
 
 
 
@@ -219,6 +237,7 @@ const handleCheckboxChange = (event) => {
         formData.append('version', 'new');
         formData.append('collectionUrl', collectionUrl);
         formData.append('collectionId', collectionId);
+        
 
         // Make the API call
         fetch(global.backendUrl + '/api/v1/inventory/addAPICollectionVersion', {
@@ -510,7 +529,10 @@ const handleCheckboxChange = (event) => {
         // Make the API call
         const theBody = {
           theCollectionVersion:currentVersionIdToSelectEndpoints,
-          endpoints:endpoints
+          endpoints:endpoints,
+          scanScheduleType:scanScheduleType,
+          specificDateTime:specificDateTime,
+          recurringSchedule:recurringSchedule,
         }
 
         fetch(global.backendUrl+'/api/v1/activeScans/startActiveScan', {
@@ -1017,100 +1039,145 @@ const handleCheckboxChange = (event) => {
   </Modal>
 
 
-
-
 <Modal
     isOpen={endpointsSelectionModalIsOpen}
     onRequestClose={closeEndpointSelectionModal}
     style={customStylesEndpointModal}
     contentLabel="Select Endpoints to be scanned"
-  >
-
-    <div style={{display:'flex', flexDirection:'row', justifyContent:'space-between'}}>
-
-      <h3>Select Endpoints to be Scanned</h3>
-
-      <MdClose size={25} onClick={closeEndpointSelectionModal}/>
-
+>
+    <div style={{ display: 'flex', flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
+        <h3>Select Endpoints to be Scanned</h3>
+        <MdClose size={25} onClick={closeEndpointSelectionModal} style={{ cursor: 'pointer' }} />
     </div>
 
-   {endpointsLoading?
+    {endpointsLoading ? (
+        <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100%' }}>
+            <CircularProgress />
+        </div>
+    ) : (
+        <div style={{ marginTop: 20 }}>
+            <div style={{
+                backgroundColor: '#fff',
+                padding: 10,
+                marginBottom: 10,
+                borderRadius: 5,
+                display: 'flex',
+                flexDirection: 'column',
+            }}>
+                <label style={{ display: 'flex', flexDirection: 'row', alignItems: 'center' }}>
+                    <input 
+                        type="checkbox" 
+                        name="allendpoints" 
+                        id="allendpoints"
+                        onChange={handleSelectAllChange}
+                        checked={endpoints.length > 0 && selectedEndpointIdsToScan.length === endpoints.length} 
+                        style={{ width: 30, height: 30, marginRight: 20 }} 
+                    /> 
+                    All Endpoints
+                </label>
+            </div>
 
-<CircularProgress/>
+            {endpoints && endpoints.map(endpoint => (
+                <div key={endpoint._id} style={{
+                    backgroundColor: '#fff',
+                    padding: 10,
+                    marginBottom: 10,
+                    borderRadius: 5,
+                    display: 'flex',
+                    flexDirection: 'column',
+                }}>
+                    <label style={{ display: 'flex', flexDirection: 'row', alignItems: 'center' }}>
+                        <input 
+                            type="checkbox" 
+                            name={endpoint._id} 
+                            id={endpoint._id} 
+                            onChange={handleCheckboxChange} 
+                            checked={selectedEndpointIdsToScan.includes(endpoint._id)}
+                            style={{ width: 30, height: 30, marginRight: 20 }} 
+                        /> 
+                        <span>{endpoint.url}</span>
+                    </label>
+                </div>
+            ))}
 
-:
+            {endpointsEmptyError && (
+                <span style={{ color: 'red', fontSize: 13 }}>Please select one or more endpoints to scan</span>
+            )}
 
-<div style={{marginTop:20}}>
+           
 
+<div style={{ marginTop: 20, marginBottom: 20 }}>
+        <label htmlFor="scanScheduleType">Run this scan:</label>
+        <select 
+            id="scanScheduleType" 
+            value={scanScheduleType} 
+            onChange={(e) => setScanScheduleType(e.target.value)}
+            style={{ width: '100%', padding: '5px', marginTop: '5px' }}
+        >
+            <option value="now">Now</option>
+            <option value="specificTime">At a Specific Time</option>
+            <option value="recurring">Recurringly</option>
+        </select>
+    </div>
 
-<div style={{backgroundColor:'#fff', padding:10, marginBottom:10, borderRadius:5, display:'flex', flexDirection:'column',}}>
+    {scanScheduleType === 'specificTime' && (
+        <div style={{ marginBottom: 20 }}>
+            <label htmlFor="specificDateTime">Select Date and Time:</label>
+            <input 
+                type="datetime-local" 
+                id="specificDateTime" 
+                value={specificDateTime} 
+                onChange={(e) => setSpecificDateTime(e.target.value)}
+                style={{ width: '100%', padding: '5px', marginTop: '5px' }}
+            />
+        </div>
+    )}
 
-  <label style={{display:'flex', flexDirection:'row', justifyContent:'flex-start'}}>
-    <input type="checkbox" 
-           name="allendpoints" 
-           id="allendpoints"
-           onChange={handleSelectAllChange}
-           checked={endpoints.length > 0 && selectedEndpointIdsToScan.length === endpoints.length} 
-           style={{width:30, height:30, marginRight:20}}/> All Endpoints
-  </label>
-
-  </div>
-
-{endpoints && endpoints.map(endpoint => (
-
-<div style={{backgroundColor:'#fff', padding:10, marginBottom:10, borderRadius:5, display:'flex', flexDirection:'column',}}>
-
-  <label style={{display:'flex', flexDirection:'row', justifyContent:'flex-start',}}>
-    <input type="checkbox" 
-           name={endpoint._id} 
-           id={endpoint._id} 
-           onChange={handleCheckboxChange} 
-           checked={selectedEndpointIdsToScan.includes(endpoint._id)}
-           style={{width:30, height:30, marginRight:20}}/> <span>{endpoint.url}</span>
-  </label>  
-
-</div>
-
-))}
-
-
-{endpointsEmptyError &&
-
- <span style={{color:'red', fontSize:13}}>Please select one or more endpoints to scan</span>
-}
-
-
-<CButton
-                                style={{
-                                    width: '100%',
-                                    marginTop: '3%',
-                                    marginBottom: '2%',
-                                    borderWidth: 0,
-                                    fontSize: 20,
-                                    background: '#7367f0'
-                                }}
-                                color="primary"
-                                className="px-3"
-                                onClick={startScanOfSelectedEndpoints}
-                            >
+    {scanScheduleType === 'recurring' && (
+        <div style={{ marginBottom: 20 }}>
+            <label htmlFor="recurringSchedule">Select Recurring Schedule:</label>
+            <select 
+                id="recurringSchedule" 
+                value={recurringSchedule} 
+                onChange={(e) => setRecurringSchedule(e.target.value)}
+                style={{ width: '100%', padding: '5px', marginTop: '5px' }}
+            >
+                <option value="daily">Daily Once</option>
+                <option value="weekly">Weekly Once</option>
+                <option value="biweekly">Biweekly Once</option>
+                <option value="monthly">Monthly Once</option>
+            </select>
+        </div>
+    )}
 
 
-                                {loading ?
-                                    <CircularProgress color="primary" size={24} style={{ marginTop: 10, color: '#fff' }} />
-                                    :
-                                    'Start Scan of Selected Endpoints'
-                                }
 
 
-                            </CButton>
+            <CButton
+                style={{
+                    width: '100%',
+                    marginTop: '3%',
+                    marginBottom: '2%',
+                    borderWidth: 0,
+                    fontSize: 20,
+                    background: '#7367f0',
+                    color: '#fff'
+                }}
+                color="primary"
+                className="px-3"
+                onClick={startScanOfSelectedEndpoints}
+            >
+                {loading ? (
+                    <CircularProgress color="inherit" size={24} style={{ marginTop: 10 }} />
+                ) : (
+                    'Start Scan of Selected Endpoints'
+                )}
+            </CButton>
+        </div>
+    )}
+</Modal>
 
 
-</div>
-
-   }                          
-  
-    
-  </Modal>
 
   
     </div>

@@ -7,6 +7,10 @@ const llmScanSchema = new mongoose.Schema({
     ref: 'User',
     index: true,
   }, 
+  orgProject: { 
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'OrgProject',
+  },
   probes: {
     type: [String],
   },

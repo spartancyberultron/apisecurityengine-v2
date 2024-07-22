@@ -10,6 +10,8 @@ import StartQuickScan from './views/users/activeScans/startQuickScan';
 import ViewQuickScanReport from './views/users/activeScans/viewQuickScanReport';
 import Agents from './views/users/agentBasedScans/agents';
 import ProjectVulnerabilities from './views/users/agentBasedScans/projectVulnerabilities';
+import ProjectInventory from './views/users/agentBasedScans/projectInventory';
+
 import AddMirroringProject from './views/users/agentBasedScans/addProject';
 import EditMirroringProject from './views/users/agentBasedScans/editProject';
 import HostsUnderProtection from './views/users/protection/hostsUnderProtection';
@@ -89,6 +91,7 @@ const routes = [
   { path: '/start-active-scan', name: 'Start a Active Scan', element: StartQuickScan}, 
   { path: '/view-active-scan-report', name: 'View Active Scan Report', element: ViewQuickScanReport},
   { path: '/agents', name: 'Agents', element: Agents},
+  { path: '/project-inventory', name: 'ProjectInventory', element: ProjectInventory},
   { path: '/add-mirroring-project', name: 'AddMirroringProject', element: AddMirroringProject},
   { path: '/edit-mirroring-project', name: 'EditMirroringProject', element: EditMirroringProject},
   { path: '/agents', name: 'Agents', element: Agents},

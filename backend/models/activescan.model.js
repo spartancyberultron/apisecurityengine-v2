@@ -34,6 +34,18 @@ const activeScanSchema = new mongoose.Schema({
   },
   securityHeadersCheckDone:{
     type: Boolean,
+  },
+  scanScheduleType: {
+    type: String,
+    enum: ['now', 'specificTime', 'recurring'],
+    default: 'now'
+  },
+  specificDateTime: {
+    type: Date
+  },
+  recurringSchedule: {
+    type: String,
+    enum: ['daily', 'weekly', 'biweekly', 'monthly']
   }
 }, {
   timestamps: true,
@@ -42,5 +54,7 @@ const activeScanSchema = new mongoose.Schema({
 const ActiveScan = mongoose.model('ActiveScan', activeScanSchema);
 
 module.exports = ActiveScan;
+
+
 
 

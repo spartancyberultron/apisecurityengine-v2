@@ -1010,7 +1010,7 @@ module.exports.getScanDetailsForReport = asyncHandler(async (req, res) => {
 // Controller function to add a new user
 module.exports.addProject = asyncHandler(async (req, res) => {
 
-    const { projectName } = req.body;
+    const { projectName, projectId } = req.body;
 
     function generateRandomID() {
         const length = 20;
@@ -1031,7 +1031,8 @@ module.exports.addProject = asyncHandler(async (req, res) => {
     const project = new Project({
         projectName,
         projectIntegrationID: randomID,
-        user:req.user._id
+        user:req.user._id,
+        orgProject:projectId
     });
     await project.save();
     res.status(201).json(project);
@@ -1093,7 +1094,7 @@ module.exports.deleteProject = asyncHandler(async (req, res) => {
 module.exports.listAllProjects = asyncHandler(async (req, res) => {
     
 
-    const projects = await Project.find({user:req.user._id}).sort({ createdAt: -1 });
+    const projects = await Project.find({user:req.user._id}).sort({ createdAt: -1 }).populate('orgProject');
     res.json(projects);
 });
 

@@ -6,6 +6,10 @@ const projectSchema = new mongoose.Schema({
     type: mongoose.Schema.Types.ObjectId,
     ref: 'User',
   },  
+  orgProject: { 
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'OrgProject',
+  },
   projectName: {
     type: String,
   },
@@ -15,9 +19,15 @@ const projectSchema = new mongoose.Schema({
   projectType:{
     type: String,
   },  
+  capturingStatus:{
+    type: String,
+    default: 'Capturing',
+    enum: ['Capturing', 'Stopped']
+  },
   piiFields: [{ 
     type: String 
   }],
+
 
 }, {
   timestamps: true,

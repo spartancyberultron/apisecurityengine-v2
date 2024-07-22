@@ -239,6 +239,12 @@ const APIInventory = () => {
       }
     },
     {
+      label: "Project Name",
+      options: {
+          filter: true,           
+      }
+    },
+    {
       label: "Version",
       options: {
           filter: false,           
@@ -367,6 +373,7 @@ const APIInventory = () => {
     var dataItem = [];
 
     dataItem.push(apiCollections[i].index);
+    dataItem.push(apiCollections[i].orgProject?apiCollections[i].orgProject.name:'---');
     dataItem.push(apiCollections[i].collectionName);
 
     dataItem.push(apiCollections[i].latestVersion.version);

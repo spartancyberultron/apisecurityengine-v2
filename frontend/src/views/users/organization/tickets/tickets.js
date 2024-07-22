@@ -47,9 +47,7 @@ const Tickets = () => {
     },
   };
 
-  const itemsPerPage = 10;
-
-  
+  const itemsPerPage = 10; 
 
 
   // Function to handle the button click and show the confirm dialog
@@ -235,10 +233,10 @@ const Tickets = () => {
                   onClick={() => goToTicket(value._id)}
                   className="m-2" 
                   style={{ width: '100%', fontSize: 12, 
-                  fontWeight: 'bold', color: '#fff', display:'flex',
+                  fontWeight: 'bold', color: '#000', display:'flex',
                   flexDirection:'column', alignItems:'center',
-                   borderColor:'#fff' }}>
-<FaEye size={15} style={{ color: 'white' }} />
+                   borderColor:'#000' }}>
+<FaEye size={15} style={{ color: '#000' }} />
                     </CButton>                
 
             </div>
@@ -264,7 +262,7 @@ const Tickets = () => {
             className="m-1"
             onClick={() => goToEditTicket(value)}
             style={{ width: '100%', fontSize: 12, fontWeight: 'bold', color:'red', borderColor:'#2185d0' }}>
-                <CiEdit size={15} style={{ color: 'white' }} />
+                <CiEdit size={15} style={{ color: '#2185d0' }} />
             </CButton>
 
 
@@ -273,7 +271,7 @@ const Tickets = () => {
               className="m-1"
               onClick={() => handleClick(value)}
               style={{ width: '100%', fontSize: 12, fontWeight: 'bold', color:'red', borderColor:'red' }}>
-                  <MdDeleteOutline size={15} style={{ color: 'white' }} />
+                  <MdDeleteOutline size={15} style={{ color: 'red' }} />
               </CButton>
           </div>
           )
@@ -289,7 +287,7 @@ const Tickets = () => {
         styleOverrides: {
           root: {
             textAlign: "left",
-            color:'#fff',
+            color:'#000',
             '&:nth-child(1)': {
               width: 150,
             },
@@ -300,7 +298,7 @@ const Tickets = () => {
         styleOverrides: {
           root: {
             textAlign: "left",
-            color:'#fff',
+            color:'#000',
             '&:nth-child(1)': {
               width: 150,
             },

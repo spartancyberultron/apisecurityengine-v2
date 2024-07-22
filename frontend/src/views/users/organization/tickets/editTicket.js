@@ -452,6 +452,12 @@ const EditTicket = () => {
                   <option value="OPEN">
                     OPEN
                   </option>
+                  <option value="IN PROGRESS">
+                    IN PROGRESS
+                  </option>
+                  <option value="ON HOLD">
+                    ON HOLD
+                  </option>
                   <option value="RESOLVED">
                     RESOLVED
                   </option>

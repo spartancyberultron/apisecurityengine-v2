@@ -279,20 +279,25 @@ const QuickScans = () => {
           let bgColor;
           let theColor;
 
-          if (value == 'COMPLETED') {
+          if (value.status == 'COMPLETED') {
 
             bgColor = '#28C76F';
             theColor = '#fff';
 
-          } else if (value == 'FAILED') {
+          } else if (value.status == 'FAILED') {
 
             bgColor = '#A6001B';
             theColor = '#fff';
 
 
-          } else if (value == 'IN PROGRESS') {
+          } else if (value.status == 'IN PROGRESS') {
 
             bgColor = '#FFC300';
+            theColor = 'black';
+
+          } else if (value.status == 'SCHEDULED') {
+
+            bgColor = 'cyan';
             theColor = 'black';
 
           } 
@@ -301,13 +306,32 @@ const QuickScans = () => {
           return (
             <div style={{
               display: "flex",
-              alignItems: "center"
+              alignContent: "center",
+              flexDirection:'column',
+              justifyContent:'center'
             }} >
 
               <div style={{
                 padding: 5, backgroundColor: bgColor, color: theColor, width: 120,
                 textAlign: 'center', borderRadius: 10, fontSize: 12, fontWeight:'normal'
-              }}>{value}</div>
+              }}>
+                {value.status}
+              </div>
+
+              {value.scanScheduleType == 'specificTime' &&
+
+                <span style={{marginTop:5,}}>{'At ' + (new Date(value.specificDateTime)).toLocaleDateString() + '-' + (new Date(value.specificDateTime)).toLocaleTimeString()}</span>
+
+              }
+
+              {value.scanScheduleType == 'recurring' &&
+
+                <span style={{marginTop:5}}>{'Recurring ' + value.recurringSchedule}</span>
+
+              }
+
+
+
 
             </div>
           )
@@ -486,7 +510,8 @@ const QuickScans = () => {
     }*/
 
     if(activeScans[i].status){
-      dataItem.push(activeScans[i].status.toUpperCase());
+      dataItem.push({status:activeScans[i].status.toUpperCase(), scanScheduleType:activeScans[i].scanScheduleType, 
+        specificDateTime:activeScans[i].specificDateTime, recurringSchedule:activeScans[i].recurringSchedule} );
     }else{
       dataItem.push('');
     }
@@ -539,6 +564,7 @@ const QuickScans = () => {
 
             <span className="pageHeader">Scans</span>
 
+            <div style={{display:'none'}}>
             <CButton
               className="primaryButton"              
               onClick={goToStartQuickScan}
@@ -549,6 +575,8 @@ const QuickScans = () => {
 
               <span className="primaryButtonText" style={{marginLeft:10}}>Start a Scan</span>
             </CButton>
+            </div>
+
           </div>
 
 
