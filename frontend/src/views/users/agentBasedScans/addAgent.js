@@ -275,7 +275,7 @@ public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
 
                             <Tab style={{ width: 150, borderWidth: 0, textAlign:'center' }}>
 
-                               Burpsuite Plugin
+                               Burpsuite Extension
                             </Tab>
 
                             <Tab style={{ width: 150, borderWidth: 0, textAlign:'center' }}>
@@ -322,19 +322,19 @@ public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
         <li>
           <strong>Clone the GitHub Repository:</strong> 
           <pre style={{ backgroundColor: '#eaeaea', padding: '10px', borderRadius: '5px', overflowX: 'auto' }}>
-            git clone https://github.com/repository-url.git
+            git clone https://github.com/spartancyberultron/apisecurityengine-cli-agent.git
           </pre>
         </li>
         <li>
           <strong>Navigate to the Project Directory:</strong>
           <pre style={{ backgroundColor: '#eaeaea', padding: '10px', borderRadius: '5px', overflowX: 'auto' }}>
-            cd repository-directory
+            cd apisecurityengine-cli-agent
           </pre>
         </li>
         <li>
           <strong>Install the Required Python Packages:</strong>
           <pre style={{ backgroundColor: '#eaeaea', padding: '10px', borderRadius: '5px', overflowX: 'auto' }}>
-            pip install -r requirements.txt
+            pip install requests
           </pre>
         </li>
         <li>
@@ -357,22 +357,22 @@ public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
 
 </TabPanel>
 
-{/* BurpSuite Plugin  */}
+{/* BurpSuite Extension  */}
 <TabPanel style={{ padding: 30, backgroundColor: 'white', borderRadius: 5 }}>  
 
-<h4 style={{ color: '#333' }}>How to Install and Configure our Burp Suite Plugin</h4>
+<h4 style={{ color: '#333' }}>How to Install and Configure our Burp Suite Extension</h4>
 
       <p style={{ fontSize: '16px', color: '#555' }}>
-        Follow these steps to install a Burp Suite plugin from a JAR file and configure it to start analyzing traffic:
+        Follow these steps to install a Burp Suite extension from a JAR file and configure it to start analyzing traffic:
       </p>
       <ol style={{ fontSize: '16px', color: '#555' }}>
         <li>
-          <strong>Download the Plugin JAR File:</strong>
+          <strong>Download the Extension JAR File:</strong>
           <p>
-            Obtain the JAR file for the Burp Suite plugin from the provided Git URL. You can download it using the following command:
+            Obtain the JAR file for the Burp Suite Extension from the provided Git URL. You can download it from the below URL:
           </p>
           <pre style={{ backgroundColor: '#eaeaea', padding: '10px', borderRadius: '5px', overflowX: 'auto' }}>
-            wget https://github.com/your-repository-url/plugin.jar
+                https://github.com/spartancyberultron/apisecurityengine-burpsuite-plugin
           </pre>
         </li>
         <li>
@@ -382,24 +382,24 @@ public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
           </p>
         </li>
         <li>
-          <strong>Install the Plugin:</strong>
+          <strong>Install the Extension:</strong>
           <p>
             In Burp Suite, go to the <strong>“User Options”</strong> or <strong>“Extensions”</strong> tab, depending on your version.
           </p>
           <p>
-            Look for a section related to extensions or plugins. Click on the <strong>“Add”</strong> or <strong>“Load”</strong> button.
+            Look for a section related to extensions. Click on the <strong>“Add”</strong> or <strong>“Load”</strong> button.
           </p>
           <p>
-            Choose the <strong>“Java”</strong> extension type and browse to the location where you downloaded the <code>plugin.jar</code> file. Select the file and confirm the installation.
+            Choose the <strong>“Java”</strong> extension type and browse to the location where you downloaded the extension jar file. Select the file and confirm the installation.
           </p>
         </li>
         <li>
-          <strong>Configure the Plugin:</strong>
+          <strong>Configure the Extension:</strong>
           <p>
-            After installing the plugin, locate it in the list of installed extensions. Click on the plugin to open its configuration settings.
+            After installing the Extension, locate it in the list of installed extensions. Click on the Extension to open its configuration settings.
           </p>
           <p>
-            Set the following variables in the plugin’s settings:
+            Set the following variables in the Extension settings:
           </p>
           <ul>
             <li><strong>API_KEY</strong>: Your unique API key for the analysis service. Replace with your actual key.</li>
@@ -410,12 +410,12 @@ public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
         <li>
           <strong>Start Traffic Analysis:</strong>
           <p>
-            With the plugin installed and configured, start capturing traffic in Burp Suite. The plugin will send captured traffic to the analysis service using the provided API key and settings.
+            With the extension installed and configured, start capturing traffic in Burp Suite. The extension will send captured traffic to the analysis service using the provided API key and settings.
           </p>
         </li>
       </ol>
       <p style={{ fontSize: '16px', color: '#555' }}>
-        Ensure that the plugin is correctly configured with the appropriate API key, host, and port to ensure accurate traffic analysis.
+        Ensure that the extension is correctly configured with the appropriate API key, host, and port to ensure accurate traffic analysis.
       </p>
 
 
