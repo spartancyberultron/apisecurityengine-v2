@@ -1,7 +1,7 @@
 {
   "files": {
-    "main.css": "./static/css/main.ebb9eef9.css",
-    "main.js": "./static/js/main.3e15b6cb.js",
+    "main.css": "./static/css/main.1d5a8491.css",
+    "main.js": "./static/js/main.6fd9e922.js",
     "react-syntax-highlighter/refractor-core-import.js": "./static/js/react-syntax-highlighter/refractor-core-import.27573f4b.chunk.js",
     "react-syntax-highlighter_languages_refractor_abap.js": "./static/js/react-syntax-highlighter_languages_refractor_abap.221f6ac3.chunk.js",
     "react-syntax-highlighter_languages_refractor_actionscript.js": "./static/js/react-syntax-highlighter_languages_refractor_actionscript.4c2236ad.chunk.js",
@@ -184,8 +184,8 @@
     "static/media/aws-logo.png": "./static/media/aws-logo.f94586bbc2d6d5f6a605.png",
     "static/media/kubernetes-logo.png": "./static/media/kubernetes-logo.60a6a11474d5ee6f1434.png",
     "index.html": "./index.html",
-    "main.ebb9eef9.css.map": "./static/css/main.ebb9eef9.css.map",
-    "main.3e15b6cb.js.map": "./static/js/main.3e15b6cb.js.map",
+    "main.1d5a8491.css.map": "./static/css/main.1d5a8491.css.map",
+    "main.6fd9e922.js.map": "./static/js/main.6fd9e922.js.map",
     "refractor-core-import.27573f4b.chunk.js.map": "./static/js/react-syntax-highlighter/refractor-core-import.27573f4b.chunk.js.map",
     "react-syntax-highlighter_languages_refractor_abap.221f6ac3.chunk.js.map": "./static/js/react-syntax-highlighter_languages_refractor_abap.221f6ac3.chunk.js.map",
     "react-syntax-highlighter_languages_refractor_actionscript.4c2236ad.chunk.js.map": "./static/js/react-syntax-highlighter_languages_refractor_actionscript.4c2236ad.chunk.js.map",
@@ -341,7 +341,7 @@
     "6453.6dbe93ef.chunk.js.map": "./static/js/6453.6dbe93ef.chunk.js.map"
   },
   "entrypoints": [
-    "static/css/main.ebb9eef9.css",
-    "static/js/main.3e15b6cb.js"
+    "static/css/main.1d5a8491.css",
+    "static/js/main.6fd9e922.js"
   ]
 }

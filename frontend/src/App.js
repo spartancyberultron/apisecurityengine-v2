@@ -38,8 +38,6 @@ if (window.location.hostname === 'localhost') {
 
 
 
-
-
 //axios.defaults.baseURL = "https://apisecv2-backend.trikodev.xyz"
 //global.backendUrl = "https://apisecv2-backend.trikodev.xyz"
 global.reportAPIURL = "https://reports.apisecurityengine.com/api/v1/download/apisec-report-download/"

@@ -26,6 +26,40 @@ const { URL } = require('url');
 const crypto = require('crypto');
 const { v4: uuidv4 } = require('uuid');
 
+
+const { basicAuthenticationDetectedCheck } = require("../services/securityTests/agentScansTools/basicAuthenticationDetectedCheck.service");
+const { brokenAuthenticationCheck } = require("../services/securityTests/brokenAuthenticationCheck.service");
+const { brokenObjectLevelAuthoriztionCheck } = require("../services/securityTests/brokenObjectLevelAuthoriztionCheck.service");
+const { contentTypeInjectionPossibleCheck } = require("../services/securityTests/contentTypeInjectionPossibleCheck.service");
+const { endpointNotSecuredBySSLCheck } = require("../services/securityTests/agentScansTools/endpointNotSecuredBySSLCheck.service");
+const { excessiveDataExposureCheck } = require("../services/securityTests/excessiveDataExposureCheck.service");
+const { httpVerbTamperingPossibleCheck } = require("../services/securityTests/agentScansTools/httpVerbTamperingPossibleCheck.service");
+const { injectionCheck } = require("../services/securityTests/injectionCheck.service");
+const { lackOfResourcesAndRateLimitingCheck } = require("../services/securityTests/lackOfResourcesAndRateLimitingCheck.service");
+const { piiDataDetectedInResponseCheck } = require("../services/securityTests/piiDataDetectedInResponseCheck.service");
+const { preImageAttackPossibleCheck } = require("../services/securityTests/preImageAttackPossibleCheck.service");
+const { resourceDeletionPossibleCheck } = require("../services/securityTests/resourceDeletionPossibleCheck.service");
+const { securityHeadersNotEnabledOnHostCheck } = require("../services/securityTests/agentScansTools/securityHeadersNotEnabledOnHostCheck.service");
+const { sensitiveDataInPathParamsCheck } = require("../services/securityTests/agentScansTools/sensitiveDataInPathParamsCheck.service");
+const { sensitiveDataInQueryParamsCheck } = require("../services/securityTests/agentScansTools/sensitiveDataInQueryParamsCheck.service");
+const { unauthenticatedEndpointReturningSensitiveDataCheck } = require("../services/securityTests/unauthenticatedEndpointReturningSensitiveDataCheck.service");
+const { walletHijackingPossibleCheck } = require("../services/securityTests/walletHijackingPossibleCheck.service");
+
+
+const {
+    checkCipherSuitesVulnerabilities,
+    gettlsCompressionIssue,
+    gettls13EarlyDataIssue,
+    getopenSSLCCSInjectionIssue,
+    gettlsFallbackSCSVIssue,
+    getheartbleedIssue,
+    getrobotIssue,
+    getsessionRenegotiationIssue,
+    getsessionResumptionIssue,
+    getellipticCurvesIssue,
+} = require("../services/securityTests/helpers/findSSLIssues.service");
+
+
 // Get all vulnerabilities of a project
 module.exports.getProjectVulnerabilities = asyncHandler(async (req, res) => {
 
@@ -58,7 +92,12 @@ module.exports.sendRequestInfo = asyncHandler(async (req, res) => {
 
     // Fetch individual fields from the request object dynamically
     const requestBody = { ...body }; // Copy the body object
-    const queryParameters = { ...query }; // Copy the query object
+    //const queryParameters = { ...query }; // Copy the query object
+
+
+    const queryParameters = getQueryParameters(url)
+    console.log('queryParameters:',queryParameters)
+
 
 
     // Trim the quotes around api_key, in case someone has inputted with quotes in their env file
@@ -74,21 +113,19 @@ module.exports.sendRequestInfo = asyncHandler(async (req, res) => {
 
         console.log('%%%%%%%%%%%%%%%%%%%%%%%:')
 
-
         // Check if a record with matching method and url exists
         TrafficProjectEndpoint.findOne({ method, url }, (err, existingEndpoint) => {
+
             if (err) {
                 console.error('Error checking for existing TrafficProjectEndpoint:', err);
                 return res.status(500).json({ error: 'An error occurred while processing the request' });
             }
 
-           
-
             if (!existingEndpoint) {
 
                 // If no matching record found, create a new one
                 const newEndpoint = new TrafficProjectEndpoint({
-                    project:project._id,
+                    project: project._id,
                     method,
                     url,
                     headers: headers && Object.entries(headers).map(([key, value]) => {
@@ -138,131 +175,122 @@ module.exports.sendRequestInfo = asyncHandler(async (req, res) => {
 
 
 
-
         console.log('project.capturingStatus:', project.capturingStatus)
 
         project.projectType = projectType;
         await project.save();
 
-        // Just save here, dont run scan immediately
+        ///////*** Run the scan ***////////        
 
-        /*
+        // Check for Sensitive Data in Query Params 
 
-        // Check for Sensitive Data in Query Params  
-        var pIIData = await runTestForSensitiveDataInQueryParams(queryParameters)
+        var { issueFound, findings } = await sensitiveDataInQueryParamsCheck(queryParameters)
 
-        var piiArray = [];
+        console.log('issueFound:',issueFound)
 
-        for (var p = 0; p < pIIData.length; p++) {
+        if (issueFound) {
 
-            if (!piiArray.includes(pIIData[p])) {
-                piiArray.push(pIIData[p]);
-            }
-        }
+            var piiArray = [];
 
-        var description = 'The query params of this API contain sensitive data. The data classes found are as follows :: ' + piiArray.join(' ');
+            for (var p = 0; p < findings.length; p++) {
 
-        if (pIIData.length > 0) {
-
-            const vuln = await Vulnerability.findOne({ vulnerabilityCode: 6 })
-
-            const theProjectVulnerability = await ProjectVulnerability.create({
-
-                project: project,
-                vulnerability: vuln,
-                endpoint: url,
-                description: description,
-            });
-
-            const uniquePiiFields = [];
-
-            for (const piiField of pIIData) {
-
-                if (!project.piiFields.includes(piiField)) {
-                    uniquePiiFields.push(piiField);
+                if (!piiArray.includes(findings[p])) {
+                    piiArray.push(findings[p]);
                 }
             }
 
-            project.piiFields.push(...uniquePiiFields);
-            project.save();
+            var description = 'The query params of this endpoint contain sensitive data.';
 
+            if (findings.length > 0) {
+
+                const vuln = await Vulnerability.findOne({ vulnerabilityCode: 6 })
+
+                const theProjectVulnerability = await ProjectVulnerability.create({
+
+                    project: project,
+                    vulnerability: vuln,
+                    endpoint: url,
+                    description: description,
+                    findings: piiArray
+                });
+
+                const uniquePiiFields = [];
+
+                for (const piiField of findings) {
+
+                    if (!project.piiFields.includes(piiField)) {
+                        uniquePiiFields.push(piiField);
+                    }
+                }
+
+                project.piiFields.push(...uniquePiiFields);
+                project.save();
+
+            }
         }
+
         // END - Check for Sensitive Data in Query Params  
 
 
+
         // Check for Sensitive Data in Path Params
-        var pIIData = await runTestForSensitiveDataInPathParams(url)
+        var { issueFound, findings } = await sensitiveDataInPathParamsCheck(url)
 
-        var piiArray = [];
+        console.log('issueFound11:',issueFound)
 
-        for (var p = 0; p < pIIData.length; p++) {
-            if (!piiArray.includes(pIIData[p])) {
-                piiArray.push(pIIData[p]);
-            }
-        }
+        if (issueFound) {
 
-        var description = 'The query params of this API contain sensitive data. The data classes found are as follows :: ' + piiArray.join(' ');
+            var piiArray = [];
 
-        if (pIIData.length > 0) {
-
-            const vuln = await Vulnerability.findOne({ vulnerabilityCode: 6 })
-
-            const theProjectVulnerability = await ProjectVulnerability.create({
-
-                project: project,
-                vulnerability: vuln,
-                endpoint: url,
-                description: description,
-            });
-
-            const uniquePiiFields = [];
-
-            for (const piiField of pIIData) {
-
-                if (!project.piiFields.includes(piiField)) {
-                    uniquePiiFields.push(piiField);
+            for (var p = 0; p < findings.length; p++) {
+                if (!piiArray.includes(findings[p])) {
+                    piiArray.push(findings[p]);
                 }
             }
 
-            project.piiFields.push(...uniquePiiFields);
-            project.save();
+            var description = 'The path params of this API contain sensitive data.';
+
+            if (findings.length > 0) {
+
+                const vuln = await Vulnerability.findOne({ vulnerabilityCode: 6 })
+
+                const theProjectVulnerability = await ProjectVulnerability.create({
+
+                    project: project,
+                    vulnerability: vuln,
+                    endpoint: url,
+                    description: description,
+                    findings: piiArray
+                });
+
+                const uniquePiiFields = [];
+
+                for (const piiField of findings) {
+
+                    if (!project.piiFields.includes(piiField)) {
+                        uniquePiiFields.push(piiField);
+                    }
+                }
+
+                project.piiFields.push(...uniquePiiFields);
+                project.save();
+            }
+            // END - Check for Sensitive Data in Path Params
         }
-        // END - Check for Sensitive Data in Path Params
 
+            console.log('headers:', headers)
 
+            // Check for Basic Authentication Detected
+            var basicAuthFound = await basicAuthenticationDetectedCheck(headers)
 
-        // Check for Basic Authentication Detected
-        var basicAuthFound = await runTestForBasicAuthenticationDetected(headers)
+            
+            console.log('basicAuthFound:',basicAuthFound)
 
-        if (basicAuthFound) {
+            if (basicAuthFound) {
 
-            const vuln = await Vulnerability.findOne({ vulnerabilityCode: 3 })
+                const vuln = await Vulnerability.findOne({ vulnerabilityCode: 3 })
 
-            var description = 'This API has basic authentication on it. A stronger authentication method like Bearer token, is recommended.'
-
-            const theProjectVulnerability = await ProjectVulnerability.create({
-
-                project: project,
-                vulnerability: vuln,
-                endpoint: url,
-                description: description,
-            });
-
-        }
-        // END - Check for Basic Authentication Detected
-
-
-
-        // Check for Endpoint Not Secured by SSL
-        try {
-
-            var sslIssues = await runTestForEndpointNotSecuredBySSL(protocol, host);
-
-            if (sslIssues.length > 0) {
-
-                const vuln = await Vulnerability.findOne({ vulnerabilityCode: 4 })
-
-                var description = sslIssues.join('\n');
+                var description = 'This API has basic authentication on it. A stronger authentication method like Bearer token, is recommended.'
 
                 const theProjectVulnerability = await ProjectVulnerability.create({
 
@@ -273,40 +301,424 @@ module.exports.sendRequestInfo = asyncHandler(async (req, res) => {
                 });
 
             }
+            // END - Check for Basic Authentication Detected
+        
+
+
+
+        // 1. Test for ENDPOINT NOT SECURED BY SSL
+        try {
+
+            // This check will happen only on unique hosts found across all endpoints
+
+            // Extract unique hosts
+
+            var uniqueHosts = [url];
+
+            console.log('uniqueHosts:', uniqueHosts)
+
+            var findings = await endpointNotSecuredBySSLCheck(uniqueHosts.join(','));
+
+            var hostsResults = [];
+
+            for (var i = 0; i < findings.server_scan_results.length; i++) {
+
+                var serverScanResult = findings.server_scan_results[i];
+
+                var hostsResult = {};
+
+                var theHost = serverScanResult.server_location.hostname;
+
+                if (!(theHost.includes('localhost') || (theHost.includes('127.0')))) {
+
+                    hostsResult.host = host;
+
+                    if (serverScanResult.scan_result) {
+
+                        var ssl20CipherSuites = serverScanResult.scan_result.ssl_2_0_cipher_suites;
+                        var ssl30CipherSuites = serverScanResult.scan_result.ssl_3_0_cipher_suites;
+                        var tls10CipherSuites = serverScanResult.scan_result.tls_1_0_cipher_suites;
+                        var tls11CipherSuites = serverScanResult.scan_result.tls_1_1_cipher_suites;
+                        var tls12CipherSuites = serverScanResult.scan_result.tls_1_2_cipher_suites;
+                        var tls13CipherSuites = serverScanResult.scan_result.tls_1_3_cipher_suites;
+                        var tlsCompression = serverScanResult.scan_result.tls_compression;
+                        var tls13EarlyData = serverScanResult.scan_result.tls_1_3_early_data;
+                        var openSSLCCSInjection = serverScanResult.scan_result.openssl_ccs_injection;
+                        var tlsFallbackSCSV = serverScanResult.scan_result.tls_fallback_scsv;
+                        var heartbleed = serverScanResult.scan_result.heartbleed;
+                        var sessionRenegotiation = serverScanResult.scan_result.session_renegotiation;
+                        var sessionResumption = serverScanResult.scan_result.session_resumption;
+                        var ellipticCurves = serverScanResult.scan_result.elliptic_curves;
+
+
+                        var cipherSuitesIssues = await checkCipherSuitesVulnerabilities(ssl20CipherSuites,
+                            ssl30CipherSuites, tls10CipherSuites, tls11CipherSuites, tls12CipherSuites, tls13CipherSuites); // cipher suites check
+                        var tlsCompressionIssues = await gettlsCompressionIssue(tlsCompression); // Crime check
+                        var tls13EarlyDataIssues = await gettls13EarlyDataIssue(tls13EarlyData); // TLS 1.3 eary data check
+                        var openSSLCCSInjectionIssues = await getopenSSLCCSInjectionIssue(openSSLCCSInjection); //OpenSSL CCS Injection check
+                        var tlsFallbackSCSVIssues = await gettlsFallbackSCSVIssue(tlsFallbackSCSV); // Downgrade prevention check
+                        var heartbleedIssues = await getheartbleedIssue(heartbleed); //Heartbleed check
+                        var sessionRenegotiationIssues = await getsessionRenegotiationIssue(sessionRenegotiation); // Insecure renegotiation check
+                        var sessionResumptionIssues = await getsessionResumptionIssue(sessionResumption); // Session resumption support check
+                        var ellipticCurvesIssues = await getellipticCurvesIssue(ellipticCurves); // Supported weak elliptic curve
+
+                        console.log(cipherSuitesIssues, tlsCompressionIssues, tls13EarlyDataIssues, openSSLCCSInjectionIssues,
+                            tlsFallbackSCSVIssues, heartbleedIssues, sessionRenegotiationIssues, sessionResumptionIssues, ellipticCurvesIssues)
+
+                        if (cipherSuitesIssues) {
+                            hostsResult.cipherSuitesIssues = true;
+                        }
+
+                        if (tlsCompressionIssues) {
+                            hostsResult.crimeIssue = true;
+                        }
+
+                        if (tls13EarlyDataIssues) {
+                            hostsResult.tls13EarlyCheckIssue = true;
+                        }
+
+                        if (openSSLCCSInjectionIssues) {
+                            hostsResult.openSSLCCSInjectionIssues = true;
+                        }
+
+                        if (tlsFallbackSCSVIssues) {
+                            hostsResult.downgradePreventionIssue = true;
+                        }
+
+                        if (heartbleedIssues) {
+                            hostsResult.heartbleedIssues = true;
+                        }
+
+                        if (sessionRenegotiationIssues) {
+                            hostsResult.insecureNegotiationIssue = true;
+                        }
+
+                        if (sessionResumptionIssues) {
+                            hostsResult.sessionResumptionIssues = true;
+                        }
+
+                        if (ellipticCurvesIssues) {
+                            hostsResult.ellipticCurvesIssues = true;
+                        }
+
+
+                    } else {
+                        hostsResult.certificateMissing = true;
+                    }
+
+                    hostsResults.push(hostsResult);
+
+                }
+            }
+
+
+            console.log('hostsResults:', hostsResults)
+
+            if (hostsResults) {
+
+                for (var i = 0; i < theEndpoints.length; i++) {
+
+                    // Initialize the findings array
+                    let findings = [];
+
+                    let additionalCWEs = [];
+
+                    // Find matching records from the JSON array
+                    const matchingHosts = hostsResults.filter(hostResult => theEndpoints[i].url.includes(hostResult.host));
+
+                    console.log('matchingHosts:', matchingHosts)
+
+                    // Only proceed if there are matching hosts
+                    if (matchingHosts.length > 0) {
+
+                        // Check for SSL-related issues from hostsResults
+                        const hostResult = hostsResults.find(hostResult => theEndpoints[i].url.includes(hostResult.host));
+
+                        if (hostResult) {
+                            if (hostResult.certificateMissing) {
+
+                                findings.push({ description: 'SSL Certificate not installed', exploitability: '' });
+                            }
+
+                            if (hostResult.cipherSuitesIssues) {
+
+
+                                var description = 'The vulnerability arises when an endpoint is not secured with SSL, specifically when it fails to implement strong encryption standards or secure cipher suites. This leaves the data transmitted between the client and server susceptible to interception and eavesdropping.';
+
+                                var exploitability = 'Attackers can exploit this vulnerability by performing man-in-the-middle (MITM) attacks, intercepting, and potentially altering the communication, which can lead to data breaches and unauthorized access to sensitive information.';
+
+                                findings.push({ description, exploitability });
+
+
+                                additionalCWEs.push('CWE-259: Use of a Hardcoded Password')
+                                additionalCWEs.push('CWE-327: Broken or Risky Cryptographic Algorithm')
+
+
+                            }
+
+                            if (hostResult.crimeIssue) {
+
+                                var description = 'The ""Endpoint Not Secured by SSL - CRIME"" vulnerability occurs when SSL/TLS is not properly implemented, leaving endpoints vulnerable to CRIME (Compression Ratio Info-leak Made Easy) attacks.';
+
+                                var exploitability = 'Attackers can exploit this by manipulating cipher suites to compress and intercept data, potentially revealing sensitive information through side-channel attacks.'
+
+
+                                findings.push({ description, exploitability });
+
+                                additionalCWEs.push('CWE-295: Improper Access Control')
+                                additionalCWEs.push('CWE-300: Insufficient Cryptographic Strength')
+                                additionalCWEs.push('CWE-758: Use of a Broken or Risky Cryptographic Algorithm')
+                            }
+
+                            if (hostResult.tls13EarlyCheckIssue) {
+
+                                var description = 'The vulnerability ""Endpoint Not Secured by SSL - TLS 1.3 Early Data"" refers to endpoints using the TLS 1.3 early data feature without proper security measures, risking exposure of sensitive data during the handshake process.';
+
+                                var exploitability = 'Attackers can exploit this by intercepting or replaying the early data before the encryption keys are fully established, particularly in weak cipher suites, leading to potential data breaches and unauthorized access.';
+                                findings.push({ description, exploitability });
+
+                                additionalCWEs.push('CWE-319: Cleartext Transmission of Sensitive Information')
+                                additionalCWEs.push('CWE-352: Cross-Site Request Forgery (CSRF)')
+                                additionalCWEs.push('CWE-294: Authentication Bypass by Capture-replay')
+                            }
+
+                            if (hostResult.openSSLCCSInjectionIssues) {
+
+                                var description = 'The vulnerability ""EndPoint Not Secured by SSL - OpenSSL CCS Injection"" involves the improper handling of the ChangeCipherSpec (CCS) protocol in OpenSSL, allowing an attacker to intercept or manipulate encrypted data.';
+
+                                var exploitability = 'This flaw can be exploited if the endpoint uses vulnerable versions of OpenSSL with certain cipher suites, enabling attackers to perform man-in-the-middle attacks and decrypt sensitive information.';
+
+                                findings.push({ description, exploitability });
+
+                                additionalCWEs.push('CWE-295: Improper Access Control')
+                                additionalCWEs.push('CWE-894: Improper Control of TLS Communication')
+                            }
+
+                            if (hostResult.downgradePreventionIssue) {
+
+                                var description = 'This vulnerability occurs when an endpoint is not secured by SSL, allowing attackers to force the use of weaker, insecure cipher suites by preventing the use of secure ones through downgrade attacks.';
+
+                                var exploitability = 'Attackers can intercept and manipulate traffic, exploiting the vulnerability to decrypt or alter sensitive information, leading to data breaches and unauthorized access.';
+                                findings.push({ description, exploitability });
+
+                                additionalCWEs.push('CWE Reference: CWE-2001: Sensitive Information Disclosure')
+                            }
+
+                            if (hostResult.heartbleedIssues) {
+
+                                var description = 'The vulnerability occurs when an endpoint is not secured by SSL, making it susceptible to the Heartbleed exploit, which allows attackers to read memory of the vulnerable system, potentially exposing sensitive data such as encryption keys and passwords.';
+
+                                var exploitability = 'This vulnerability can be exploited in cipher suites where improper implementation of the SSL/TLS protocol exists, allowing attackers to exploit the Heartbleed bug to retrieve sensitive information directly from the memory of the affected systems.';
+
+                                findings.push({ description, exploitability });
+
+                                additionalCWEs.push('CWE-311: Improper Restriction of Operation within the Bounds of a Memory Buffer')
+                                additionalCWEs.push('CWE-255: Improper Check for Certificate Revocation')
+                            }
+
+                            if (hostResult.insecureNegotiationIssue) {
+
+                                var description = 'The vulnerability ""Endpoint Not Secured by SSL - Insecure Renegotiation"" occurs when a server endpoint uses SSL/TLS but does not secure renegotiation processes, making it susceptible to man-in-the-middle attacks.';
+
+                                var exploitability = 'Attackers can exploit this vulnerability by intercepting and injecting data into the encrypted communication, potentially compromising the integrity and confidentiality of the data exchanged between the client and server.';
+                                findings.push({ description, exploitability });
+
+                                additionalCWEs.push('CWE-2001: Sensitive Information Not Protected')
+                            }
+
+                            if (hostResult.sessionResumptionIssues) {
+
+                                var description = 'The endpoint lacks SSL protection, making it vulnerable to interception and man-in-the-middle attacks. Additionally, the support for session resumption in cipher suites can be exploited to hijack sessions and decrypt sensitive data.';
+
+                                var exploitability = 'Attackers can exploit this vulnerability by intercepting unencrypted traffic and leveraging session resumption to gain unauthorized access to encrypted sessions, compromising data confidentiality and integrity.';
+                                findings.push({ description, exploitability });
+
+                                additionalCWEs.push('CWE-319: Cleartext Transmission of Sensitive Information')
+                            }
+
+                            if (hostResult.ellipticCurvesIssues) {
+
+                                var description = 'The endpoint is not secured by SSL, indicating that the communication between the client and server is unencrypted and susceptible to interception. This vulnerability particularly involves the use of weak or unsupported elliptic curves in cipher suites, compromising the strength of the encryption.';
+
+                                var exploitability = 'Attackers can exploit this by intercepting and manipulating the data transmitted, leading to potential data breaches and unauthorized access to sensitive information.';
+
+                                findings.push({ description, exploitability });
+
+                                additionalCWEs.push('CWE-326: Inadequate Encryption Strength')
+                            }
+                        }
+
+                        console.log('findings:', findings)
+                        console.log('additionalCWEs:', additionalCWEs)
+
+                        // Ensure findings array is not empty before creating the vulnerability
+                        if (findings.length > 0) {
+
+                            const vuln = await Vulnerability.findOne({ vulnerabilityCode: 4 });
+
+                            var description = 'This host has SSL related problems';
+
+                            /*  const theActiveScanVulnerability = await ActiveScanVulnerability.create({
+                                  activeScan: theActiveScan,
+                                  vulnerability: vuln,
+                                  endpoint: theEndpoints[i],
+                                  description: description,
+                                  sslFindings: findings,
+                                  additionalCWEs:additionalCWEs
+                              }); */
+
+                            const theProjectVulnerability = await ProjectVulnerability.create({
+
+                                project: project,
+                                vulnerability: vuln,
+                                endpoint: url,
+                                description: description,
+                                sslFindings: findings,
+                                additionalCWEs: additionalCWEs
+                            });
+
+                        }
+                    }
+                }
+            }
+
+
 
         } catch (error) {
-            console.log('execption occured in check for ENDPOINT NOT SECURED BY SSL');
+
+            console.log('error:', error)
+            console.log('execption occured in check for SSL issues')
         }
-        // END - Check for Endpoint Not Secured by SSL
+
+
+
+        // Check for Endpoint Not Secured by SSL
+        /* try {
+ 
+             var sslIssues = await runTestForEndpointNotSecuredBySSL(protocol, host);
+ 
+             if (sslIssues.length > 0) {
+ 
+                 const vuln = await Vulnerability.findOne({ vulnerabilityCode: 4 })
+ 
+                 var description = sslIssues.join('\n');
+ 
+                 const theProjectVulnerability = await ProjectVulnerability.create({
+ 
+                     project: project,
+                     vulnerability: vuln,
+                     endpoint: url,
+                     description: description,
+                 });
+ 
+             }
+ 
+         } catch (error) {
+             console.log('execption occured in check for ENDPOINT NOT SECURED BY SSL');
+         }
+         // END - Check for Endpoint Not Secured by SSL
+         */
 
 
 
         // Check for HTTP Verb Tampering Possible
-        var tamperableMethods = await runTestForHTTPVerbTamperingPossible(protocol, host, method);
+        var { issueFound, findings, description } = await httpVerbTamperingPossibleCheck(protocol, host, method);
 
+        if (issueFound) {
 
-        if (tamperableMethods.length > 0) {
+            if (findings.length > 0) {
 
-            const vuln = await Vulnerability.findOne({ vulnerabilityCode: 8 })
+                const vuln = await Vulnerability.findOne({ vulnerabilityCode: 8 })
 
-            var description = 'The method on this endpoint can be tampered to any of the following:' + tamperableMethods.join(',');
+                //var description = 'The method on this endpoint can be tampered to any of the following:' + tamperableMethods.join(',');
 
-            const theProjectVulnerability = await ProjectVulnerability.create({
+                const theProjectVulnerability = await ProjectVulnerability.create({
 
-                project: project,
-                vulnerability: vuln,
-                endpoint: url,
-                description: description,
-            });
+                    project: project,
+                    vulnerability: vuln,
+                    endpoint: url,
+                    description: description,
+                    findings: findings
+                });
 
+            }
         }
         // END - Check for HTTP Verb Tampering Possible
 
 
+        // 4. Test for SECURITY HEADERS NOT ENABLED ON HOST
+        try {
+
+            // This check will happen only on unique hosts found across all endpoints
+
+            // Extract unique hosts
+            var uniqueHosts = [url];          
+
+            console.log('uniqueHosts:',uniqueHosts)
+
+            var findingsArray = await securityHeadersNotEnabledOnHostCheck(uniqueHosts.join(','));
+
+            console.log('findingsArray:',findingsArray)           
+          
+
+            if(findingsArray){
+
+            for (var i = 0; i < theEndpoints.length; i++) {
+                // Initialize the findings array
+                let findings = [];
+            
+                // Find matching records from the JSON array
+                const matchingFindings = findingsArray.filter(finding => theEndpoints[i].url.startsWith(new URL(finding.url).origin));
+            
+                // Only proceed if there are matching findings
+                if (matchingFindings.length > 0) {
+                    // Populate the findings array with appropriate strings
+                    matchingFindings.forEach(finding => {
+                        if (finding.severity !== "NONE") {
+                            findings.push(finding.header + ':' + finding.description);
+                        }
+                    });
+            
+                    // Ensure findings array is not empty before creating the vulnerability
+                    if (findings.length > 0) {
+                        const vuln = await Vulnerability.findOne({ vulnerabilityCode: 10 });
+            
+                        var description = 'Some security headers are not enabled on this host.';
+            
+                       /* const theActiveScanVulnerability = await ActiveScanVulnerability.create({
+                            activeScan: theActiveScan,
+                            vulnerability: vuln,
+                            endpoint: theEndpoints[i],
+                            description: description,
+                            findings: findings
+                        });
+                        */
+
+                        const theProjectVulnerability = await ProjectVulnerability.create({
+
+                            project: project,
+                            vulnerability: vuln,
+                            endpoint: url,
+                            description: description,
+                            findings:findings
+                        });            
+                        
+                    }
+                }
+            }
+
+        }             
+
+
+        } catch (error) {
+
+            console.log('error:',error)
+            console.log('execption occured in check for SECURITY HEADERS NOT ENABLED ON HOST')
+        }        
 
 
         // Check for Security Headers not Enabled in Host
-        var missingHeaders = await runTestForSecurityHeadersNotEnabledOnHost(protocol, host);
+       /* var missingHeaders = await securityHeadersNotEnabledOnHostCheck(protocol, host);
 
         if (missingHeaders.length > 0) {
 
@@ -324,15 +736,15 @@ module.exports.sendRequestInfo = asyncHandler(async (req, res) => {
         }
 
         // END - Check for HTTP Verb Tampering Possible
-
         */
 
 
-        // Return the active scans, currentPage, totalRecords, and totalPages in the response
+
+
         res.status(200).json({
             status: 'received',
         });
-        
+
 
     }
 
@@ -351,828 +763,6 @@ module.exports.sendResponseInfo = asyncHandler(async (req, res) => {
 });
 
 
-// Check for SENSITIVE DATA IN QUERY PARAMS
-const runTestForSensitiveDataInQueryParams = async (queryParams) => {
-
-    var pIIData = [];
-
-    for (const key in queryParams) {
-
-        const theKey = key.toLowerCase();
-
-        if (theKey.includes('name')
-            || theKey.includes('first_name')
-            || theKey.includes('last_name')
-            || theKey.includes('full_name')
-            || theKey.includes('firstname')
-            || theKey.includes('lastname')
-            || theKey.includes('fullname')
-            || theKey.includes('first-name')
-            || theKey.includes('last-name')
-            || theKey.includes('full-name')
-            || theKey.includes('firstName')
-            || theKey.includes('lastname')
-            || theKey.includes('fullName')) {
-
-            pIIData.push("Name");
-        }
-
-        if (theKey.includes('address')
-            || theKey.includes('address_line_1')
-            || theKey.includes('address_line_2')
-            || theKey.includes('city')
-            || theKey.includes('pincode')
-            || theKey.includes('zip')
-            || theKey.includes('postal')
-            || theKey.includes('state')
-            || theKey.includes('country')
-            || theKey.includes('house_number')
-            || theKey.includes('house_no')
-            || theKey.includes('house-number')
-            || theKey.includes('house-no')) {
-
-            pIIData.push("Address");
-        }
-
-        if (theKey.includes('phone')) {
-            pIIData.push("Phone Number")
-        }
-
-        if (theKey.includes('ip')
-            || theKey.includes('ip_address')
-            || theKey.includes('ip-address')
-            || theKey.includes('ipaddress')
-            || theKey.includes('internet protocol')) {
-
-            pIIData.push("Internet Protocol (IP)");
-        }
-
-        if (theKey.includes('media_access_control')
-            || theKey.includes('mac')
-            || theKey.includes('media-access-control')
-        ) {
-
-            pIIData.push("Media Access Control (MAC)");
-        }
-
-        if (theKey.includes('social_security_number')
-            || theKey.includes('ssn')
-            || theKey.includes('social-security-number')
-            || theKey.includes('socialsecuritynumber')
-        ) {
-
-            pIIData.push("Social Security Number (SSN)");
-        }
-
-        if (theKey.includes('passport_number')
-            || theKey.includes('passportnumber')
-            || theKey.includes('passport-number')
-        ) {
-
-            pIIData.push("Passport Number");
-        }
-
-        if (theKey.includes('driving_license_number')
-            || theKey.includes('drivinglicensenumber')
-            || theKey.includes('driving-license-number')
-        ) {
-
-            pIIData.push("Driving License Number")
-        }
-
-        if (theKey.includes('bank_account_number')
-            || theKey.includes('bankaccountnumber')
-            || theKey.includes('bank-account-number')
-        ) {
-
-            pIIData.push("Bank Account Number")
-        }
-
-        if (theKey.includes('credit_card_number')
-            || theKey.includes('creditcardnumber')
-            || theKey.includes('credit-card-number')
-            || theKey.includes('debitcardnumber')
-            || theKey.includes('debit-card-number')
-            || theKey.includes('debit_card_number')
-        ) {
-
-            pIIData.push("Credit/Debit Card Number")
-        }
-
-        if (theKey.includes('pan_number')
-            || theKey.includes('pannumber')
-            || theKey.includes('pan-number')
-            || theKey.includes('pancardnumber')
-            || theKey.includes('pan-card-number')
-            || theKey.includes('pan_card_number')
-        ) {
-
-            pIIData.push("PAN Number")
-        }
-
-        if (theKey.includes('aadhaar_number')
-            || theKey.includes('aadhaarnumber')
-            || theKey.includes('aadhaar-number')
-            || theKey.includes('aadhaarcardnumber')
-            || theKey.includes('aadhaar-card-number')
-            || theKey.includes('aadhaar_card_number')
-        ) {
-
-            pIIData.push("Aadhaar Number")
-        }
-
-        if (theKey.includes('voter_id')
-            || theKey.includes('voterid')
-            || theKey.includes('voter-id')
-        ) {
-
-            pIIData.push("Voter ID Number")
-        }
-
-        if (theKey.includes('vehicle_registration_number')
-            || theKey.includes('vehicle-registration-number')
-            || theKey.includes('vehicleregistrationnumber')
-        ) {
-
-            pIIData.push("Vehicle Registration Number")
-        }
-
-        if (theKey.includes('date_of_birth')
-            || theKey.includes('date-of-birth')
-            || theKey.includes('dateofbirth')
-            || theKey.includes('dob')
-        ) {
-
-            pIIData.push("Date of Birth")
-        }
-
-        if (theKey.includes('place_of_birth')
-            || theKey.includes('place-of-birth')
-            || theKey.includes('placeofbirth')
-            || theKey.includes('pob')
-        ) {
-
-            pIIData.push("Place of Birth")
-        }
-
-        if (theKey.includes('race')
-
-        ) {
-
-            pIIData.push("Race")
-        }
-
-        if (theKey.includes('religion')
-        ) {
-
-            pIIData.push("Religion")
-        }
-
-        if (theKey.includes('weight')
-        ) {
-
-            pIIData.push("Weight")
-        }
-
-        if (theKey.includes('height')
-        ) {
-
-            pIIData.push("Height")
-        }
-
-        if (theKey.includes('latitude')
-        ) {
-
-            pIIData.push("Latitude")
-        }
-
-        if (theKey.includes('longitude')
-        ) {
-
-            pIIData.push("Longitude")
-        }
-
-        if (theKey.includes('employee_id') || theKey.includes('employeeid') || theKey.includes('employee-id')
-        ) {
-
-            pIIData.push("Employee ID")
-        }
-
-        if (theKey.includes('bmi') || theKey.includes('body-mass-index') || theKey.includes('body_mass_index')
-        ) {
-
-            pIIData.push("BMI")
-        }
-
-        if (theKey.includes('heartrate') || theKey.includes('heart-rate') || theKey.includes('heart_rate')
-        ) {
-
-            pIIData.push("Heart Rate")
-        }
-
-        if (theKey.includes('bloodpressure') || theKey.includes('blood-pressure') || theKey.includes('blood_pressure')
-        ) {
-
-            pIIData.push("Blood Pressure")
-        }
-
-        if (theKey.includes('fathername') || theKey.includes('father-name') || theKey.includes('father_name')
-        ) {
-
-            pIIData.push("Father Name")
-        }
-
-        if (theKey.includes('mothername') || theKey.includes('mother-name') || theKey.includes('mother_name')
-        ) {
-
-            pIIData.push("Mother Name")
-        }
-
-        if (theKey.includes('brothername') || theKey.includes('brother-name') || theKey.includes('brother_name')
-        ) {
-
-            pIIData.push("Brother Name")
-        }
-
-        if (theKey.includes('sistername') || theKey.includes('sister-name') || theKey.includes('sister_name')
-        ) {
-
-            pIIData.push("Sister Name")
-        }
-
-        if (theKey.includes('daughtername') || theKey.includes('daughter-name') || theKey.includes('daughter_name')
-        ) {
-
-            pIIData.push("Daugther Name")
-        }
-
-        if (theKey.includes('sonname') || theKey.includes('son-name') || theKey.includes('son_name')
-        ) {
-
-            pIIData.push("Son Name")
-        }
-
-        if (theKey.includes('orderid') || theKey.includes('order-id') || theKey.includes('order_id')
-        ) {
-
-            pIIData.push("Order ID")
-        }
-
-        if (theKey.includes('transactionid') || theKey.includes('transaction-id') || theKey.includes('transaction_id')
-        ) {
-
-            pIIData.push("Transaction ID")
-        }
-
-        if (theKey.includes('cookiedata') || theKey.includes('cookie-data') || theKey.includes('cookie_data')
-        ) {
-
-            pIIData.push("Cookie Data")
-        }
-    }
-
-    return pIIData;
-
-};
-
-
-
-// Check for SENSITIVE DATA IN PATH PARAMS
-const runTestForSensitiveDataInPathParams = async (endpoint) => {
-
-    const pIIData = [];
-
-    const processPathParam = (param, parentKey = '') => {
-
-        const theKey = parentKey ? `${parentKey}.${param.key}` : param.key.toLowerCase();
-
-        if (
-            theKey.includes('name') ||
-            theKey.includes('first_name') ||
-            theKey.includes('last_name') ||
-            theKey.includes('full_name') ||
-            theKey.includes('firstname') ||
-            theKey.includes('lastname') ||
-            theKey.includes('fullname') ||
-            theKey.includes('first-name') ||
-            theKey.includes('last-name') ||
-            theKey.includes('full-name') ||
-            theKey.includes('firstName') ||
-            theKey.includes('lastname') ||
-            theKey.includes('fullName')
-        ) {
-            pIIData.push('Name');
-        }
-
-        if (
-            theKey.includes('address') ||
-            theKey.includes('address_line_1') ||
-            theKey.includes('address_line_2') ||
-            theKey.includes('city') ||
-            theKey.includes('pincode') ||
-            theKey.includes('zip') ||
-            theKey.includes('postal') ||
-            theKey.includes('state') ||
-            theKey.includes('country') ||
-            theKey.includes('house_number') ||
-            theKey.includes('house_no') ||
-            theKey.includes('house-number') ||
-            theKey.includes('house-no')
-        ) {
-            pIIData.push('Address');
-        }
-
-        if (theKey.includes('phone')) {
-            pIIData.push("Phone Number")
-        }
-
-        if (theKey.includes('ip')
-            || theKey.includes('ip_address')
-            || theKey.includes('ip-address')
-            || theKey.includes('ipaddress')
-            || theKey.includes('internet protocol')) {
-
-            pIIData.push("Internet Protocol (IP)");
-        }
-
-        if (theKey.includes('media_access_control')
-            || theKey.includes('mac')
-            || theKey.includes('media-access-control')
-        ) {
-
-            pIIData.push("Media Access Control (MAC)");
-        }
-
-        if (theKey.includes('social_security_number')
-            || theKey.includes('ssn')
-            || theKey.includes('social-security-number')
-            || theKey.includes('socialsecuritynumber')
-        ) {
-
-            pIIData.push("Social Security Number (SSN)");
-        }
-
-        if (theKey.includes('passport_number')
-            || theKey.includes('passportnumber')
-            || theKey.includes('passport-number')
-        ) {
-
-            pIIData.push("Passport Number");
-        }
-
-        if (theKey.includes('driving_license_number')
-            || theKey.includes('drivinglicensenumber')
-            || theKey.includes('driving-license-number')
-        ) {
-
-            pIIData.push("Driving License Number")
-        }
-
-        if (theKey.includes('bank_account_number')
-            || theKey.includes('bankaccountnumber')
-            || theKey.includes('bank-account-number')
-        ) {
-
-            pIIData.push("Bank Account Number")
-        }
-
-        if (theKey.includes('credit_card_number')
-            || theKey.includes('creditcardnumber')
-            || theKey.includes('credit-card-number')
-            || theKey.includes('debitcardnumber')
-            || theKey.includes('debit-card-number')
-            || theKey.includes('debit_card_number')
-        ) {
-
-            pIIData.push("Credit/Debit Card Number")
-        }
-
-        if (theKey.includes('pan_number')
-            || theKey.includes('pannumber')
-            || theKey.includes('pan-number')
-            || theKey.includes('pancardnumber')
-            || theKey.includes('pan-card-number')
-            || theKey.includes('pan_card_number')
-        ) {
-
-            pIIData.push("PAN Number")
-        }
-
-        if (theKey.includes('aadhaar_number')
-            || theKey.includes('aadhaarnumber')
-            || theKey.includes('aadhaar-number')
-            || theKey.includes('aadhaarcardnumber')
-            || theKey.includes('aadhaar-card-number')
-            || theKey.includes('aadhaar_card_number')
-        ) {
-
-            pIIData.push("Aadhaar Number")
-        }
-
-        if (theKey.includes('voter_id')
-            || theKey.includes('voterid')
-            || theKey.includes('voter-id')
-        ) {
-
-            pIIData.push("Voter ID Number")
-        }
-
-        if (theKey.includes('vehicle_registration_number')
-            || theKey.includes('vehicle-registration-number')
-            || theKey.includes('vehicleregistrationnumber')
-        ) {
-
-            pIIData.push("Vehicle Registration Number")
-        }
-
-        if (theKey.includes('date_of_birth')
-            || theKey.includes('date-of-birth')
-            || theKey.includes('dateofbirth')
-            || theKey.includes('dob')
-        ) {
-
-            pIIData.push("Date of Birth")
-        }
-
-        if (theKey.includes('place_of_birth')
-            || theKey.includes('place-of-birth')
-            || theKey.includes('placeofbirth')
-            || theKey.includes('pob')
-        ) {
-
-            pIIData.push("Place of Birth")
-        }
-
-        if (theKey.includes('race')
-
-        ) {
-
-            pIIData.push("Race")
-        }
-
-        if (theKey.includes('religion')
-        ) {
-
-            pIIData.push("Religion")
-        }
-
-        if (theKey.includes('weight')
-        ) {
-
-            pIIData.push("Weight")
-        }
-
-        if (theKey.includes('height')
-        ) {
-
-            pIIData.push("Height")
-        }
-
-        if (theKey.includes('latitude')
-        ) {
-
-            pIIData.push("Latitude")
-        }
-
-        if (theKey.includes('longitude')
-        ) {
-
-            pIIData.push("Longitude")
-        }
-
-        if (theKey.includes('employee_id') || theKey.includes('employeeid') || theKey.includes('employee-id')
-        ) {
-
-            pIIData.push("Employee ID")
-        }
-
-        if (theKey.includes('bmi') || theKey.includes('body-mass-index') || theKey.includes('body_mass_index')
-        ) {
-
-            pIIData.push("BMI")
-        }
-
-        if (theKey.includes('heartrate') || theKey.includes('heart-rate') || theKey.includes('heart_rate')
-        ) {
-
-            pIIData.push("Heart Rate")
-        }
-
-        if (theKey.includes('bloodpressure') || theKey.includes('blood-pressure') || theKey.includes('blood_pressure')
-        ) {
-
-            pIIData.push("Blood Pressure")
-        }
-
-        if (theKey.includes('fathername') || theKey.includes('father-name') || theKey.includes('father_name')
-        ) {
-
-            pIIData.push("Father Name")
-        }
-
-        if (theKey.includes('mothername') || theKey.includes('mother-name') || theKey.includes('mother_name')
-        ) {
-
-            pIIData.push("Mother Name")
-        }
-
-        if (theKey.includes('brothername') || theKey.includes('brother-name') || theKey.includes('brother_name')
-        ) {
-
-            pIIData.push("Brother Name")
-        }
-
-        if (theKey.includes('sistername') || theKey.includes('sister-name') || theKey.includes('sister_name')
-        ) {
-
-            pIIData.push("Sister Name")
-        }
-
-        if (theKey.includes('daughtername') || theKey.includes('daughter-name') || theKey.includes('daughter_name')
-        ) {
-
-            pIIData.push("Daugther Name")
-        }
-
-        if (theKey.includes('sonname') || theKey.includes('son-name') || theKey.includes('son_name')
-        ) {
-
-            pIIData.push("Son Name")
-        }
-
-        if (theKey.includes('orderid') || theKey.includes('order-id') || theKey.includes('order_id')
-        ) {
-
-            pIIData.push("Order ID")
-        }
-
-        if (theKey.includes('transactionid') || theKey.includes('transaction-id') || theKey.includes('transaction_id')
-        ) {
-
-            pIIData.push("Transaction ID")
-        }
-
-        if (theKey.includes('cookiedata') || theKey.includes('cookie-data') || theKey.includes('cookie_data')
-        ) {
-
-            pIIData.push("Cookie Data")
-        }
-
-
-    };
-
-    const processPathParams = (params, parentKey = '') => {
-
-        for (const param of params) {
-            if (param.pathParams && param.pathParams.length > 0) {
-                const newParentKey = parentKey ? `${parentKey}.${param.key}` : param.key;
-                processPathParams(param.pathParams, newParentKey);
-            } else {
-                processPathParam(param, parentKey);
-            }
-        }
-    };
-
-    if (endpoint.pathParams && endpoint.pathParams.length > 0) {
-        processPathParams(endpoint.pathParams);
-    }
-
-    return pIIData;
-};
-
-
-
-
-// Check for BASIC AUTHENTICATION DETECTED
-const runTestForBasicAuthenticationDetected = async (headers) => {
-
-    const headerEntries = Object.entries(headers);
-
-    const authorizationHeader = headerEntries.find(([key, value]) =>
-        key.toLowerCase() === 'authorization' && value.toLowerCase().startsWith('basic ')
-    );
-
-    if (authorizationHeader) {
-        const [, authCredentials] = authorizationHeader;
-        return !!authCredentials;
-    }
-
-    return false;
-};
-
-
-
-
-// Check for ENDPOINT NOT SECURED BY SSL
-const runTestForEndpointNotSecuredBySSL = async (protocol, host) => {
-
-    try {
-        if (protocol === 'http') {
-            return ['The API host does not have an SSL certificate installed.'];
-        } else {
-            // If the endpoint has HTTPS enabled, do other SSL related checks
-            const issues = await makeDetailedSSLChecks(host);
-            return issues;
-        }
-    } catch (error) {
-        console.log('Error while checking for SSL issues', error);
-        // Return an array containing the error message
-        // return [error.message];
-    }
-};
-
-
-
-function makeDetailedSSLChecks(url) {
-
-    return new Promise((resolve, reject) => {
-
-        const options = {
-            method: 'HEAD',
-            hostname: url,
-            port: 443,
-            rejectUnauthorized: true, // Enable strict certificate validation
-            family: 4, // Use IPv6
-        };
-
-        const req = https.request(options, (res) => {
-
-            const certificate = res.socket.getPeerCertificate();
-
-            // Check certificate validity
-            if (!res.socket.authorized) {
-                reject(new Error('Invalid SSL certificate.'));
-            }
-
-            // Check individual parameters
-            const problems = [];
-
-            // Common Name (CN)
-            if (certificate.subject && !certificate.subject.CN) {
-                problems.push('Missing Common Name (CN).');
-            }
-
-            // Organization (O)
-            if (certificate.subject && !certificate.subject.O) {
-                problems.push('Missing Organization (O).');
-            }
-
-            // Validity dates
-            const validFrom = new Date(certificate.valid_from);
-            const validTo = new Date(certificate.valid_to);
-
-            if (isNaN(validFrom.getTime()) || isNaN(validTo.getTime())) {
-                problems.push('Invalid validity dates.');
-            }
-
-            // Issuer
-            if (!certificate.issuer || !certificate.issuer.O) {
-                problems.push('Missing Issuer information.');
-            }
-
-            // Subject Alternative Names (SANs)
-            if (!certificate.subjectaltname) {
-                problems.push('Missing Subject Alternative Names (SANs).');
-            }
-
-            // Key length
-            if (!certificate.bits || certificate.bits < 2048) {
-                problems.push('Weak key length.');
-            }
-
-            // Signature algorithm
-            if (!certificate.sigalg) {
-                problems.push('Missing signature algorithm.');
-            }
-
-            // Signature hash algorithm
-            if (!certificate.signatureAlgorithm) {
-                problems.push('Missing signature hash algorithm.');
-            }
-
-            // Key usage
-            if (!certificate.keyUsage) {
-                problems.push('Missing key usage information.');
-            }
-
-            // Extended Key Usage (EKU)
-            if (!certificate.ext_key_usage || certificate.ext_key_usage.length === 0) {
-                problems.push('Missing Extended Key Usage (EKU).');
-            }
-
-            // Certificate revocation status
-            if (!certificate.crls || certificate.crls.length === 0) {
-                problems.push('Certificate revocation status unknown.');
-            }
-
-            // Certificate revocation lists (CRLs) retrieval
-            if (!certificate.crls || certificate.crls.length === 0) {
-                problems.push('Failed to retrieve Certificate Revocation Lists (CRLs).');
-            }
-
-            if (problems.length === 0) {
-                resolve([]);
-            } else {
-                resolve(problems);
-            }
-        });
-
-        req.on('error', (error) => {
-
-            console.log('error:', error)
-
-            reject(error);
-        });
-
-        req.end();
-    });
-}
-
-
-
-// Check for HTTP VERB TAMPERTING POSSIBLE
-const runTestForHTTPVerbTamperingPossible = async (protocol, host, method) => {
-
-    const tamperableMethods = [];
-
-    const supportedMethods = [
-        'GET',
-        'POST',
-        'PUT',
-        'DELETE',
-        'PATCH',
-        'OPTIONS',
-        'HEAD',
-        'TRACE',
-        // 'CONNECT',
-        // Add any additional HTTP methods to check here
-    ];
-
-    // Remove the intended method from the supported methods
-    const unauthorizedMethods = supportedMethods.filter((m) => m !== method);
-
-    for (const unauthorizedMethod of unauthorizedMethods) {
-
-        try {
-            const requestUrl = `${protocol}://${host}${path}`;
-            const response = await axios.request({
-                method: unauthorizedMethod,
-                url: requestUrl,
-                validateStatus: (status) => true, // Treat all status codes as valid
-            });
-
-            if (response.status !== 405) {
-                tamperableMethods.push(unauthorizedMethod);
-            }
-        } catch (error) {
-            // Error occurred during the request, consider the method as tamperable
-            tamperableMethods.push(unauthorizedMethod);
-            console.log('Error in runTestForHTTPVerbTamperingPossible:', error);
-        }
-    }
-
-    return tamperableMethods;
-};
-
-
-
-// Check for SECURITY HEADERS NOT ENABLED ON HOST
-const runTestForSecurityHeadersNotEnabledOnHost = async (protocol, host) => {
-
-    const securityHeaders = [
-        'Strict-Transport-Security',
-        'Content-Security-Policy',
-        'X-Content-Type-Options',
-        'X-Frame-Options',
-        'X-XSS-Protection',
-        'Referrer-Policy',
-        'Feature-Policy',
-        'Content-Security-Policy-Report-Only',
-        'Expect-CT',
-        'Public-Key-Pins',
-        'Public-Key-Pins-Report-Only',
-        'Clear-Site-Data',
-    ];
-
-    const missingHeaders = [];
-
-    for (const header of securityHeaders) {
-        try {
-            const url = `${protocol}://${host}`;
-            const response = await axios.head(url);
-
-            if (!response.headers[header.toLowerCase()]) {
-                missingHeaders.push(header);
-            }
-        } catch (error) {
-            // Error occurred during the request, consider the header as missing
-            missingHeaders.push(header);
-        }
-    }
-
-    return missingHeaders;
-
-};
 
 
 
@@ -1232,3 +822,27 @@ module.exports.getInventoryOfProject = asyncHandler(async (req, res) => {
     res.status(200).json(endpoints);
 
 });
+
+function getQueryParameters(urlString) {
+
+    let queryParameters = {};
+
+    // Find the index of the query string in the URL
+    const queryIndex = urlString.indexOf('?');
+    if (queryIndex !== -1) {
+        // Extract the query string part from the URL
+        const queryString = urlString.substring(queryIndex + 1);
+
+        // Split the query string into key-value pairs
+        const pairs = queryString.split('&');
+        pairs.forEach(pair => {
+            const [key, value] = pair.split('=');
+            if (key) {
+                queryParameters[decodeURIComponent(key)] = decodeURIComponent(value || '');
+            }
+        });
+    }
+
+    console.log('queryParameters:', queryParameters);
+    return queryParameters;
+}

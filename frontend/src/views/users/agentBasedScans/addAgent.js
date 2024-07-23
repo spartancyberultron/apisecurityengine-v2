@@ -315,12 +315,108 @@ public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
 <TabPanel style={{ padding: 30, backgroundColor: 'white', borderRadius: 5 }}>  
 
 
+      <p style={{ fontSize: '16px', color: '#555' }}>
+        Follow these steps to clone the project from GitHub and set up the API Security Engine:
+      </p>
+      <ol style={{ fontSize: '16px', color: '#555' }}>
+        <li>
+          <strong>Clone the GitHub Repository:</strong> 
+          <pre style={{ backgroundColor: '#eaeaea', padding: '10px', borderRadius: '5px', overflowX: 'auto' }}>
+            git clone https://github.com/repository-url.git
+          </pre>
+        </li>
+        <li>
+          <strong>Navigate to the Project Directory:</strong>
+          <pre style={{ backgroundColor: '#eaeaea', padding: '10px', borderRadius: '5px', overflowX: 'auto' }}>
+            cd repository-directory
+          </pre>
+        </li>
+        <li>
+          <strong>Install the Required Python Packages:</strong>
+          <pre style={{ backgroundColor: '#eaeaea', padding: '10px', borderRadius: '5px', overflowX: 'auto' }}>
+            pip install -r requirements.txt
+          </pre>
+        </li>
+        <li>
+          <strong>Run the Script:</strong>
+          <pre style={{ backgroundColor: '#eaeaea', padding: '10px', borderRadius: '5px', overflowX: 'auto' }}>
+            python3 apisecengine-cli-agent.py --api_key=8FRAOGSIPHS6KYWFKTY7 --host=localhost --port=5002
+          </pre>
+        </li>
+      </ol>
+      <p style={{ fontSize: '16px', color: '#555' }}>
+        The <code>--api_key</code> parameter is your unique integration key for APISecurityEngine. Replace it with your actual key to authenticate and authorize traffic capture.
+      </p>
+      <p style={{ fontSize: '16px', color: '#555' }}>
+        The <code>--host</code> parameter specifies the hostname or IP address where the traffic is captured from. Use <code>localhost</code> for traffic from the local machine.
+      </p>
+      <p style={{ fontSize: '16px', color: '#555' }}>
+        The <code>--port</code> parameter defines the port number on the host for traffic capture. Set this to the port your application uses, in this case, <code>5002</code>.
+      </p>
+
 
 </TabPanel>
 
 {/* BurpSuite Plugin  */}
 <TabPanel style={{ padding: 30, backgroundColor: 'white', borderRadius: 5 }}>  
 
+<h4 style={{ color: '#333' }}>How to Install and Configure our Burp Suite Plugin</h4>
+
+      <p style={{ fontSize: '16px', color: '#555' }}>
+        Follow these steps to install a Burp Suite plugin from a JAR file and configure it to start analyzing traffic:
+      </p>
+      <ol style={{ fontSize: '16px', color: '#555' }}>
+        <li>
+          <strong>Download the Plugin JAR File:</strong>
+          <p>
+            Obtain the JAR file for the Burp Suite plugin from the provided Git URL. You can download it using the following command:
+          </p>
+          <pre style={{ backgroundColor: '#eaeaea', padding: '10px', borderRadius: '5px', overflowX: 'auto' }}>
+            wget https://github.com/your-repository-url/plugin.jar
+          </pre>
+        </li>
+        <li>
+          <strong>Open Burp Suite:</strong>
+          <p>
+            Launch Burp Suite on your machine. If you don't have Burp Suite installed, download and install it from the official website.
+          </p>
+        </li>
+        <li>
+          <strong>Install the Plugin:</strong>
+          <p>
+            In Burp Suite, go to the <strong>“User Options”</strong> or <strong>“Extensions”</strong> tab, depending on your version.
+          </p>
+          <p>
+            Look for a section related to extensions or plugins. Click on the <strong>“Add”</strong> or <strong>“Load”</strong> button.
+          </p>
+          <p>
+            Choose the <strong>“Java”</strong> extension type and browse to the location where you downloaded the <code>plugin.jar</code> file. Select the file and confirm the installation.
+          </p>
+        </li>
+        <li>
+          <strong>Configure the Plugin:</strong>
+          <p>
+            After installing the plugin, locate it in the list of installed extensions. Click on the plugin to open its configuration settings.
+          </p>
+          <p>
+            Set the following variables in the plugin’s settings:
+          </p>
+          <ul>
+            <li><strong>API_KEY</strong>: Your unique API key for the analysis service. Replace with your actual key.</li>
+            <li><strong>HOST</strong>: The hostname or IP address of the server where traffic is being captured from. Use <code>localhost</code> if the traffic is local.</li>
+            <li><strong>PORT</strong>: The port number on the host where traffic is being captured. Enter the specific port number (e.g., <code>5002</code>).</li>
+          </ul>
+        </li>
+        <li>
+          <strong>Start Traffic Analysis:</strong>
+          <p>
+            With the plugin installed and configured, start capturing traffic in Burp Suite. The plugin will send captured traffic to the analysis service using the provided API key and settings.
+          </p>
+        </li>
+      </ol>
+      <p style={{ fontSize: '16px', color: '#555' }}>
+        Ensure that the plugin is correctly configured with the appropriate API key, host, and port to ensure accurate traffic analysis.
+      </p>
 
 
 </TabPanel>

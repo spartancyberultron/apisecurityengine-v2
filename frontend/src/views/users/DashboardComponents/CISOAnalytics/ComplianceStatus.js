@@ -79,42 +79,64 @@ const ComplianceStatus = () => {
 
                                     <tbody>
                                         <tr>
-                                            <td>GDPR</td>
+                                            <td>ISO 27001</td>
                                             <td>
                                                 <span style={{padding:5, backgroundColor:'#28C76F', fontSize:12, color:'#fff', borderRadius:5 }}>Compliant</span>
                                             </td>
                                         </tr>
 
                                         <tr>
-                                            <td>HIPAA</td>
+                                            <td>NIST CISF</td>
                                             <td>
                                             <span style={{padding:5, backgroundColor:'#ea5455', fontSize:12, color:'#fff', borderRadius:5 }}>Non-Compliant</span>
+                                            </td>
+                                        </tr>
+
+                                        <tr>
+                                            <td>GDPR</td>
+                                            <td>
+                                            <span style={{padding:5, backgroundColor:'#28C76F', fontSize:12, color:'#fff', borderRadius:5 }}>Compliant</span>
                                             </td>
                                         </tr>
 
                                         <tr>
                                             <td>PCI DSS</td>
                                             <td>
+                                            <span style={{padding:5, backgroundColor:'#ea5455', fontSize:12, color:'#fff', borderRadius:5 }}>Non-Compliant</span>
+                                            </td>
+                                        </tr>
+
+                                        <tr>
+                                            <td>HIPAA</td>
+                                            <td>
                                             <span style={{padding:5, backgroundColor:'#28C76F', fontSize:12, color:'#fff', borderRadius:5 }}>Compliant</span>
                                             </td>
                                         </tr>
 
                                         <tr>
-                                            <td>ISO 27001</td>
+                                            <td>MITRE ATT&CK</td>
                                             <td>
                                             <span style={{padding:5, backgroundColor:'#ea5455', fontSize:12, color:'#fff', borderRadius:5 }}>Non-Compliant</span>
                                             </td>
                                         </tr>
 
                                         <tr>
-                                            <td>SOC 2</td>
+                                            <td>NIST 800-53</td>
                                             <td>
                                             <span style={{padding:5, backgroundColor:'#28C76F', fontSize:12, color:'#fff', borderRadius:5 }}>Compliant</span>
                                             </td>
                                         </tr>
 
                                         <tr>
-                                            <td>FERPA</td>
+                                            <td>ASVS</td>
+                                            <td>
+                                            <span style={{padding:5, backgroundColor:'#ea5455', fontSize:12, color:'#fff', borderRadius:5 }}>Non-Compliant</span>
+                                            </td>
+                                        </tr>
+
+
+                                        <tr>
+                                            <td>CMMC</td>
                                             <td>
                                             <span style={{padding:5, backgroundColor:'#ea5455', fontSize:12, color:'#fff', borderRadius:5 }}>Non-Compliant</span>
                                             </td>
@@ -128,22 +150,21 @@ const ComplianceStatus = () => {
                                         </tr>
 
                                         <tr>
+                                            <td>FIPS</td>
+                                            <td>
+                                            <span style={{padding:5, backgroundColor:'#28C76F', fontSize:12, color:'#fff', borderRadius:5 }}>Compliant</span>
+                                            </td>
+                                        </tr>
+
+                                        <tr>
                                             <td>FISMA</td>
                                             <td>
-                                            <span style={{padding:5, backgroundColor:'#ea5455', fontSize:12, color:'#fff', borderRadius:5 }}>Non-Compliant</span>
-                                            </td>
-                                        </tr>
-
-
-                                        <tr>
-                                            <td>NIST</td>
-                                            <td>
-                                            <span style={{padding:5, backgroundColor:'#ea5455', fontSize:12, color:'#fff', borderRadius:5 }}>Non-Compliant</span>
+                                            <span style={{padding:5, backgroundColor:'#28C76F', fontSize:12, color:'#fff', borderRadius:5 }}>Compliant</span>
                                             </td>
                                         </tr>
 
                                         <tr>
-                                            <td>HITECH</td>
+                                            <td>RBI CSF</td>
                                             <td>
                                             <span style={{padding:5, backgroundColor:'#28C76F', fontSize:12, color:'#fff', borderRadius:5 }}>Compliant</span>
                                             </td>

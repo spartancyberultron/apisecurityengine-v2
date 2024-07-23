@@ -345,14 +345,25 @@ module.exports.getOrganizationUsers = asyncHandler(async (req, res) => {
 
 // Get tickets
 module.exports.getTickets = asyncHandler(async (req, res) => {
+    
+    try {
+        // Find the user and populate the organization field
+        const user = await User.findById(req.user._id).populate('organization');
 
-    const user = await User.findById(req.user._id).populate('organization');
+        // Fetch the latest 100 tickets for the user's organization
+        const tickets = await Ticket.find({ organization: user.organization._id })
+            .populate('openedBy')
+            .populate('assignedTo')
+            .sort({ createdAt: -1 }) // Sort by createdAt in descending order
+            .limit(100); // Limit to 100 tickets
 
-    const tickets = await Ticket.find({ organization: user.organization._id }).populate('openedBy').populate('assignedTo')
-
-
-    res.status(200).json({ success: true, tickets });
+        // Return the tickets
+        res.status(200).json({ success: true, tickets });
+    } catch (err) {
+        res.status(500).json({ success: false, message: err.message });
+    }
 });
+
 
 
 // Add a ticket

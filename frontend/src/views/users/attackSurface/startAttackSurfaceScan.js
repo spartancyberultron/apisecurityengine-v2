@@ -184,6 +184,9 @@ const StartAttackSurfaceScan = () => {
                 style={{ width: '100%' }}
               />
 
+              <br/>
+              <span style={{fontSize:12, color:'blue'}}>Please do not include http/https part. Enter the domain like example.com</span>
+
 
             </CInputGroup>            
 

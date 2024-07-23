@@ -21,6 +21,7 @@ import { IoMdArrowRoundBack } from "react-icons/io";
 import { BiExport } from "react-icons/bi";
 import { ShimmerTable, ShimmerTitle, ShimmerCircularImage } from "react-shimmer-effects";
 import { CgNotes } from "react-icons/cg";
+import { CiEdit } from "react-icons/ci";
 
 import Chart from 'react-apexcharts'
 
@@ -35,9 +36,25 @@ const ProjectVulnerabilities = () => {
   const [project, setProject] = useState(null)
   const [onLoading, setOnLoading] = useState(true);
   const [modalIsOpen, setModalIsOpen] = React.useState(false);
+  const [findingsModalIsOpen, setFindingsModalIsOpen] = React.useState(false);
   const [currentVulnerability, setCurrentVulnerability] = React.useState(null);
 
   const [exportingPDF, setExportingPDF] = useState(false);
+
+  const [currentVulnForRiskAcceptance, setCurrentVulnForRiskAcceptance] = React.useState(null);
+
+  const [reasonEmptyError, setReasonEmptyError] = useState(false);
+
+  const [findings, setFindings] = useState([]);
+  const [sslFindings, setSSLFindings] = useState([]);
+
+  const [submittingReason, setSubmittingReason] = useState(false);
+
+  const [acceptanceModalIsOpen, setAcceptanceModalIsOpen] = useState(false);
+  const [riskAcceptance, setRiskAcceptance] = useState("No");
+  const [reason, setReason] = useState('');
+
+  const [costOfBreachModalIsOpen, setCostOfBreachModalIsOpen] = React.useState(false);
 
   const toaster = useRef()
   const exampleToast = (
@@ -46,17 +63,178 @@ const ProjectVulnerabilities = () => {
     </CToast>
   )
 
+  const handleModalOpen = (value) => {
+
+    setCurrentVulnForRiskAcceptance(value);
+
+    if(value.riskAcceptance && value.riskAcceptance == 'Yes'){
+      setRiskAcceptance(value.riskAcceptance);
+    }else{
+      setRiskAcceptance("No")
+    }    
+
+    if(value.riskAcceptanceReason && value.riskAcceptanceReason.length> 0){
+      setReason(value.riskAcceptanceReason);
+    }else{
+      setReason("")
+    }
+
+    setAcceptanceModalIsOpen(true);
+  };
+
+  function convertHeaderString(headerString) {
+    const parts = headerString.split(':');
+    if (parts.length < 2) {
+        return headerString; // No colon found, return the original string
+    }
+
+    const headerName = parts[0];
+    const description = parts.slice(1).join(':');
+
+    const properHeaderName = headerName.split('-').map(word => {
+        if (word.length === 1) {
+            return word.toUpperCase();
+        } else {
+            return word.charAt(0).toUpperCase() + word.slice(1).toLowerCase();
+        }
+    }).join('-');
+
+    return `<strong>${properHeaderName}</strong>:${description.trim()}`;
+}
+
+
+  const handleModalClose = () => {
+    //setShowModal(false);
+  };
+
+  const handleDropdownChange = (event) => {
+
+    console.log('event.target.value:',event.target.value)
+    setRiskAcceptance(event.target.value);
+  };
+
+  const customStyles1 = {
+  overlay: {
+    backgroundColor: 'rgba(0, 0, 0, 0.5)'
+  },
+  content: {
+    top: '50%',
+    left: '50%',
+    right: 'auto',
+    bottom: 'auto',
+    marginRight: '-50%',
+    transform: 'translate(-50%, -50%)',
+    padding: '20px',
+    borderRadius: '10px',
+    maxWidth: '1000px',
+    width: '90%',
+    maxHeight: '80%',
+    overflowY: 'auto'
+  }
+};
+
+const customStyles2 = {
+  content: {
+    top: '10%',
+    left: '20%',
+    width: '70%',
+    right: 'auto',
+    bottom: 'auto',
+    maxHeight: '80%',
+    backgroundColor: '#c2eef4',
+    borderRadius: 15,
+    borderColor: 'yellow',
+    zIndex: 10000
+  },
+};
+
+
+const openCostOfBreachModal = async (value) => {
+
+  setCurrentVulnerability(value);
+
+  setCostOfBreachModalIsOpen(true);
+};
+
+
+
+const closeCostOfBreachModal = async () => {
+
+  setCostOfBreachModalIsOpen(false);
+};
+
+const closeAcceptanceModal = async () => {
+
+  setAcceptanceModalIsOpen(false);
+
+};
+
+  const handleAcceptanceSave = async() => {
+
+    if(reason == ''){
+      setReasonEmptyError(true);
+
+    }else{
+
+      setSubmittingReason(true);    
+
+      const data = {
+        activeScanVulnId: currentVulnForRiskAcceptance._id,
+        riskAcceptance:riskAcceptance,
+        riskAcceptanceReason:reason
+      };
+
+
+      const token = localStorage.getItem('ASIToken');
+      const response = await axios.post('api/v1/users/updateRiskAcceptanceForAnActiveScanVulnerability', data, {
+          headers: { Authorization: `Bearer ${token}` },
+      });
+
+      console.log('response.data.data:',response.data.data)
+
+      if(response.data.data){
+
+        setResult((prevState) => ({
+          ...prevState,
+          vulnerabilities: prevState.vulnerabilities.map((vuln) => {
+            if (vuln._id === currentVulnForRiskAcceptance._id) {
+              return {
+                ...vuln,
+                riskAcceptance: riskAcceptance,
+                riskAcceptanceReason: reason,
+              };
+            }
+            return vuln;
+          }),
+        }));
+
+        setAcceptanceModalIsOpen(false);
+
+        setRiskAcceptance('No');
+        setReason("");
+        setSubmittingReason(false)
+
+      }     
+      
+    }
+    
+
+  };
+
+
+
   const customStyles = {
     content: {
       top: '20%',
-      left: '10%',
-      width: '80%',
+      left: '20%',
+      width: '70%',
       right: 'auto',
       bottom: 'auto',
       height: '70%',
       backgroundColor: '#E1E1E1',
       borderRadius: 15,
-      borderColor: 'yellow'
+      borderColor: 'yellow',
+      zIndex: 10000
     },
   };
 
@@ -65,6 +243,8 @@ const ProjectVulnerabilities = () => {
     margin: "0 auto",
     borderColor: "red",
   };
+
+
 
 
   ChartJS.register(ArcElement, Tooltip, Legend);
@@ -89,6 +269,27 @@ const ProjectVulnerabilities = () => {
   }, [onLoading]);
 
   
+  const openFindingsModal = async (value, currentVuln) => {
+
+    console.log('value:',value)
+    console.log('currentVuln:',currentVuln)
+
+    setFindings(value);
+
+    if(currentVuln.vulnerability.vulnerabilityCode == 4){
+        setSSLFindings(currentVuln.sslFindings);
+    }
+
+    setCurrentVulnerability(currentVuln.vulnerability)
+
+    setFindingsModalIsOpen(true);
+  };
+
+  const closeFindingsModal = async () => {
+
+    setFindingsModalIsOpen(false);
+  };
+
 
   const loadProjectVulnerabilities = async (projectId) => {
 
@@ -136,15 +337,81 @@ const ProjectVulnerabilities = () => {
   }
 
   const columns = [
-    "#",
-    "VULNERABILITY",
-    "ENDPOINT",
-    "DESCRIPTION",
     {
-      label: "SEVERITY",
+      label: "#",
       options: {
         filter: false,
-        download: false,
+      }
+    },
+    {
+      label: "Vulnerability",
+      options: {
+        filter: true,
+      }
+    },
+   
+    {
+      label: "Endpoint",
+      options: {
+        filter: true,
+      }
+    },
+   
+    {
+      label: "Description",
+      options: {
+        filter: false,
+      }
+    },
+    {
+      label: "",
+      options: {
+        filter: true,
+        download: true,
+        customBodyRender: (value, tableMeta, updateValue) => {
+          return (
+            <div style={{
+              display: "flex",
+              flexDirection:'column',
+              alignItems: "center"
+            }} >
+
+
+{value.vulnerability.vulnerabilityCode !== 3 &&
+           
+              <CButton color="primary" variant="outline"
+                onClick={() => openFindingsModal(value.findings, value)}
+                className="primaryButton" style={{ fontSize: 13, color: 'white', width:200 }}>
+
+                  {value.vulnerability.vulnerabilityCode == 10 &&
+                  'View Missing Headers'
+                  }
+
+                  {value.vulnerability.vulnerabilityCode == 4 &&
+                  'View SSL Problems'
+                  }
+
+                  {value.vulnerability.vulnerabilityCode == 8 &&
+                    'View Methods'
+                  } 
+
+                  {value.vulnerability.vulnerabilityCode == 2 || value.vulnerability.vulnerabilityCode == 6  &&
+                    'View PII Data'
+                  }                  
+
+              </CButton>
+        }
+              
+            </div>
+          )
+        }
+      }
+    },
+    {
+      label: "Severity",
+      options: {
+        filter: true,
+        download: true,
         customBodyRender: (value, tableMeta, updateValue) => {
 
           let bgColor;
@@ -152,23 +419,23 @@ const ProjectVulnerabilities = () => {
 
           if (value == 'CRITICAL') {
 
-            bgColor = '#FFA5A5';
-            theColor = '#FF0000';
+            bgColor = '#FF0000';
+            theColor = '#fff';
 
           } else if (value == 'HIGH') {
 
-            bgColor = '#E98590';
-            theColor = '#A6001B';
+            bgColor = '#A6001B';
+            theColor = '#fff';
 
           } else if (value == 'MEDIUM') {
 
-            bgColor = '#FFE99D';
+            bgColor = '#FFC300';
             theColor = 'black';
 
           } else if (value == 'LOW') {
 
             bgColor = '#B3FFB3';
-            theColor = 'green';
+            theColor = 'fff';
           }
 
 
@@ -178,9 +445,10 @@ const ProjectVulnerabilities = () => {
               alignItems: "center"
             }} >
 
-              <span className="blackText" style={{ padding: 5, backgroundColor: bgColor, color: 'black', width: 120,
-                 textAlign: 'center', borderRadius: 10, fontSize: 13 }}>{value}
-              </span>
+              <div style={{
+                padding: 5, backgroundColor: bgColor, color: theColor, width: 120,
+                textAlign: 'center', borderRadius: 10, fontSize: 12, fontWeight: 'normal'
+              }}>{value}</div>
 
             </div>
           )
@@ -188,7 +456,76 @@ const ProjectVulnerabilities = () => {
       }
     },
     {
-      label: "REMEDIATIONS",
+      label: "OWASP",
+      options: {
+        filter: true,
+        download: true,
+        customBodyRender: (value, tableMeta, updateValue) => {
+          return (
+            <div style={{
+              display: "flex",
+              flexDirection:'column',
+              alignItems: "center"
+            }} >
+              {value.map((item, index) => (
+                <>
+                <span key={index} style={{
+                  padding: 5,
+                  width: 120,
+                  textAlign: 'center',
+                  borderRadius: 10,
+                  fontSize: 12,
+                  fontWeight: 'normal',
+                  marginRight: 5,
+                  color:'#000',
+                  backgroundColor: '#b6b0ff',
+                  margin:5
+                }}>
+                  {item}
+                </span>
+                
+                </>
+              ))}
+            </div>
+          )
+        }
+      }
+    },
+    {
+      label: "CWE",
+      options: {
+        filter: true,
+        download: true,
+        customBodyRender: (value, tableMeta, updateValue) => {
+          return (
+            <div style={{
+              display: "flex",
+              alignItems: "center",
+              flexDirection:'column',
+            }} >
+              {value.map((item, index) => (
+                <span key={index} style={{
+                  padding: 5,
+                  width: 120,
+                  textAlign: 'center',
+                  borderRadius: 10,
+                  fontSize: 12,
+                  fontWeight: 'normal',
+                  marginRight: 5,
+                  color:'#000',
+                  backgroundColor: '#80faff',
+                  margin:5
+                }}>
+                  {item}
+                </span>
+              ))}
+            </div>
+          )
+        }
+      }
+    },
+    {
+      label: "Remediations",
       options: {
         filter: false,
         download: false,
@@ -201,7 +538,7 @@ const ProjectVulnerabilities = () => {
 
               <CButton color="primary" variant="outline"
                 onClick={() => openRemediationModal(value)}
-                className="primaryButton" style={{ fontSize: 13, color:'white', }}>Remediations
+                className="primaryButton" style={{ fontSize: 13, color: 'white', width:200 }}>View Remediations
               </CButton>
 
             </div>
@@ -209,8 +546,73 @@ const ProjectVulnerabilities = () => {
         }
       }
     },
+    {
+      label: "Cost of Breach",
+      options: {
+        filter: false,
+        download: false,
+        customBodyRender: (value, tableMeta, updateValue) => {
+          return (
+            <div style={{
+              display: "flex",
+              alignItems: "center",
+              flexDirection:'column'
+            }} >
+             
+
+              <CButton color="primary" variant="outline"
+                onClick={() => openCostOfBreachModal(value)}
+                className="primaryButton" style={{ fontSize: 13, color: 'white', width:200,
+                backgroundColor:'#00bad1', borderColor:'#00bad1' }}>View Cost of Breach
+              </CButton>
+
+            </div>
+          )
+        }
+      }
+    },     
+    {
+      label: "Risk Acceptance",
+      options: {
+        filter: true,
+        download: true,
+        customBodyRender: (value, tableMeta, updateValue) => {
+          return (
+            <div style={{
+              display: "flex",
+              alignItems: "center",
+              flexDirection:'column',
+            }} >
+
+              {value.riskAcceptance && value.riskAcceptance == 'Yes' ?
+
+                <span style={{backgroundColor:'#28c76f', color:'#fff', padding: 5,
+                width: 120,
+                textAlign: 'center',
+                borderRadius: 10,
+                fontSize: 12,
+                fontWeight: 'normal',
+                marginRight: 5,                
+                margin:5}} onClick={() => handleModalOpen(value)}>Yes  &nbsp;&nbsp;&nbsp;<CiEdit size={20}/></span>
+                :
+                <span style={{backgroundColor:'#ea5455', color:'#fff', padding: 5,
+                width: 120,
+                textAlign: 'center',
+                borderRadius: 10,
+                fontSize: 12,
+                fontWeight: 'normal',
+                marginRight: 5,                
+                margin:5}} onClick={() => handleModalOpen(value)}>No  &nbsp;&nbsp;&nbsp;<CiEdit size={20}/></span>
+              }
+              
+            </div>
+          )
+        }
+      }
+    },
 
   ];
+
 
   const getMuiTheme = () => createTheme({
     components: {
@@ -257,6 +659,7 @@ const ProjectVulnerabilities = () => {
 
   var tableData = [];
 
+  /*
   if (result) {
 
     for (var i = 0; i < result.vulnerabilities.length; i++) {
@@ -274,19 +677,67 @@ const ProjectVulnerabilities = () => {
         dataItem.push('---');
       }
 
-      /*if (endpointObject.authorization.type == 'None') {
-
-        dataItem.push('Unauthenticated');
-
-      } else {
-
-        dataItem.push('Authenticated');
-
-      }*/
+      
 
       dataItem.push(result.vulnerabilities[i].description);
       dataItem.push(result.vulnerabilities[i].vulnerability.riskScore);
       dataItem.push(result.vulnerabilities[i].vulnerability);
+
+      tableData.push(dataItem);
+    }
+  }  */
+
+  if (result && result.vulnerabilities) {
+
+    for (var i = 0; i < result.vulnerabilities.length; i++) {
+
+      var dataItem = [];
+
+      dataItem.push(i + 1);
+      dataItem.push(result.vulnerabilities[i].vulnerability.vulnerabilityName);
+
+      var endpointObject = result.vulnerabilities[i].endpoint;
+
+      console.log('endpointObject:',endpointObject)
+
+      if (endpointObject) {
+        dataItem.push(endpointObject);
+      } else {
+        dataItem.push('---');
+      }
+
+
+      /*
+      let isAuthenticated = false;
+
+      // Check if authorization type is 'None' or if any header has key as "Authorization"
+      if (endpointObject.headers.some(header => header.key === 'Authorization')) {
+        isAuthenticated = true;
+      }
+
+      // Push appropriate value based on isAuthenticated
+      if (isAuthenticated) {
+        dataItem.push('Authenticated');
+      } else {
+        dataItem.push('Unauthenticated');
+      }
+      */
+
+
+      dataItem.push(result.vulnerabilities[i].description);
+
+      dataItem.push(result.vulnerabilities[i]);
+
+      dataItem.push(result.vulnerabilities[i].vulnerability.riskScore);
+
+      dataItem.push(result.vulnerabilities[i].vulnerability.owasp);
+      
+      dataItem.push((result.vulnerabilities[i].vulnerability.cwe).concat(result.vulnerabilities[i].additionalCWEs));
+
+      dataItem.push(result.vulnerabilities[i].vulnerability); // for cost of breach
+      dataItem.push(result.vulnerabilities[i].vulnerability); // for remediations
+
+      dataItem.push(result.vulnerabilities[i]); // For risk acceptance
 
       tableData.push(dataItem);
     }
@@ -1297,6 +1748,301 @@ const ProjectVulnerabilities = () => {
           }
 
         </Modal>
+
+        <Modal
+          isOpen={acceptanceModalIsOpen}
+          onRequestClose={closeAcceptanceModal}
+          style={customStyles1}
+          contentLabel="Risk Acceptance"
+          ariaHideApp={false}
+    >
+      <button style={{ float: 'right', backgroundColor: 'transparent', borderWidth: 0 }} onClick={closeAcceptanceModal}>
+        <AiFillCloseCircle size={30} color={'#000'} />
+      </button>
+
+      {currentVulnForRiskAcceptance && (
+        <div className="modalWindow" style={{ backgroundColor: '#fff', padding:10 }}>
+          <h5 style={{ color: '#000' }}>{currentVulnForRiskAcceptance.vulnerability.vulnerabilityName}</h5>
+          <hr/>
+          <span style={{ color: '#000' }}><strong>Endpoint</strong> : {currentVulnForRiskAcceptance.endpoint.url}</span>
+          <div style={{ marginTop: 20 }}>
+            <label>Risk Accepted?</label><br/>
+            <select onChange={handleDropdownChange} style={{ padding:5, width:'100%'}} value={riskAcceptance}>              
+                <option value="No">No</option>
+                <option value="Yes">Yes</option>
+            </select>
+            <textarea
+              value={reason}
+              onChange={(e) => setReason(e.target.value)}
+              placeholder="Please enter a reason"
+              style={{ width: '100%', marginTop: '10px', padding:5 }}
+            />
+
+{reasonEmptyError &&
+            <span style={{color:'red', fontSize:12, display:'flex'}}>Please enter a reason</span>
+}
+
+            <button className="primaryButton" disabled={submittingReason}
+                    onClick={handleAcceptanceSave} 
+                    style={{borderRadius:5, marginTop:10}}>
+                      Save Risk Acceptance
+            </button>
+          </div>
+        </div>
+      )}
+    </Modal>
+
+
+
+    <Modal
+          isOpen={costOfBreachModalIsOpen}
+          onRequestClose={closeCostOfBreachModal}
+          style={customStyles2}
+          contentLabel="Cost of Breach"
+        >
+
+          <button style={{ float: 'right', backgroundColor: 'transparent', borderWidth: 0 }} onClick={closeCostOfBreachModal} >
+            <AiFillCloseCircle size={30} color={'#000'} />
+          </button>
+
+          {currentVulnerability &&
+
+            <div className="modalWindow" style={{ backgroundColor: '#c2eef4', height:'100%' }}>
+
+            <h4>Cost of Breach for <strong>{currentVulnerability.owasp[0]}</strong></h4>
+
+
+        {currentVulnerability.owasp.includes('API1:2023 Broken Object Level Authorization') &&
+            <object type="text/html" data={global.baseUrl + "/breach-cost-html/brokenAuthentication.html"} width="100%" height="100%"
+              style={{ alignSelf: 'center', borderWidth: 0, marginLeft:'0vw' }}>
+            </object>     
+        }   
+
+        {currentVulnerability.owasp.includes('API2:2023 Broken Authentication') &&
+            <object type="text/html" data={global.baseUrl + "/breach-cost-html/brokenAuthentication.html"} width="100%" height="100%"
+              style={{ alignSelf: 'center', borderWidth: 0, marginLeft:'0vw' }}>
+            </object>     
+        }   
+
+
+        {currentVulnerability.owasp.includes('API3:2023 Broken Object Property Level Authorization') &&
+            <object type="text/html" data={global.baseUrl + "/breach-cost-html/brokenAuthentication.html"} width="100%" height="100%"
+              style={{ alignSelf: 'center', borderWidth: 0, marginLeft:'0vw' }}>
+            </object>     
+        }   
+
+
+        {currentVulnerability.owasp.includes('API4:2023 Unrestricted Resource Consumption') &&
+            <object type="text/html" data={global.baseUrl + "/breach-cost-html/brokenAuthentication.html"} width="100%" height="100%"
+              style={{ alignSelf: 'center', borderWidth: 0, marginLeft:'0vw' }}>
+            </object>     
+        }   
+
+
+        {currentVulnerability.owasp.includes('API5:2023 Broken Function Level Authorization') &&
+            <object type="text/html" data={global.baseUrl + "/breach-cost-html/brokenAuthentication.html"} width="100%" height="100%"
+              style={{ alignSelf: 'center', borderWidth: 0, marginLeft:'0vw' }}>
+            </object>     
+        }   
+
+
+        {currentVulnerability.owasp[0] == 'API6:2023 Unrestricted Access to Sensitive Business Flows' &&
+            <object type="text/html" data={global.baseUrl + "/breach-cost-html/brokenAuthentication.html"} width="100%" height="100%"
+              style={{ alignSelf: 'center', borderWidth: 0, marginLeft:'0vw' }}>
+            </object>     
+        }   
+
+
+        {currentVulnerability.owasp.includes('API7:2023 Server Side Request Forgery') &&
+            <object type="text/html" data={global.baseUrl + "/breach-cost-html/brokenAuthentication.html"} width="100%" height="100%"
+              style={{ alignSelf: 'center', borderWidth: 0, marginLeft:'0vw' }}>
+            </object>     
+        }   
+
+
+        {currentVulnerability.owasp.includes('API8:2023 Security Misconfiguration') &&
+            <object type="text/html" data={global.baseUrl + "/breach-cost-html/brokenAuthentication.html"} width="100%" height="100%"
+              style={{ alignSelf: 'center', borderWidth: 0, marginLeft:'0vw' }}>
+            </object>     
+        }   
+
+
+        {currentVulnerability.owasp.includes('API9:2023 Improper Inventory Management') &&
+            <object type="text/html" data={global.baseUrl + "/breach-cost-html/brokenAuthentication.html"} width="100%" height="100%"
+              style={{ alignSelf: 'center', borderWidth: 0, marginLeft:'0vw' }}>
+            </object>     
+        }   
+
+        {currentVulnerability.owasp.includes('API10:2023 Unsafe Consumption of APIs') &&
+            <object type="text/html" data={global.baseUrl + "/breach-cost-html/brokenAuthentication.html"} width="100%" height="100%"
+              style={{ alignSelf: 'center', borderWidth: 0, marginLeft:'0vw' }}>
+            </object>     
+        }                
+
+            </div>
+          }
+
+
+        </Modal>        
+
+
+
+        <Modal
+          isOpen={findingsModalIsOpen}
+          onRequestClose={closeFindingsModal}
+          style={customStyles2}
+          contentLabel="Findings"
+        >
+
+          <button style={{ float: 'right', backgroundColor: 'transparent', borderWidth: 0 }} onClick={closeFindingsModal} >
+            <AiFillCloseCircle size={30} color={'#000'} />
+          </button>
+
+          {/* Security headers not enabled on host */}
+          {currentVulnerability && currentVulnerability.vulnerabilityCode == 10 &&
+          <div style={{display:'flex', flexDirection:'column'}} >
+
+           <h4>Missing Headers</h4>
+           <hr/>
+         
+            {findings && findings.map((item, index) => (
+                <span 
+                    key={index} 
+                    dangerouslySetInnerHTML={{ __html: convertHeaderString(item) }}
+                    style={{
+                        padding: 5,
+                        width: '80%',
+                        textAlign: 'left',
+                        borderRadius: 10,
+                        fontSize: 15,
+                        fontWeight: 'normal',
+                        marginRight: 5,
+                        color: '#000',
+                        backgroundColor: '#fff',
+                        margin: 5
+                    }}
+                />
+            ))}
+        </div>      
+        }
+
+
+        {/* HTTP Verb tampering possible */}
+        {currentVulnerability && currentVulnerability.vulnerabilityCode == 8 &&
+          <div style={{display:'flex', flexDirection:'column'}} >
+
+           <h4>Methods on which HTTP Verb Tampering is possible</h4>
+           <hr/>
+         
+            {findings && findings.map((item, index) => (
+                <span 
+                    key={index} 
+                    dangerouslySetInnerHTML={{ __html: convertHeaderString(item) }}
+                    style={{
+                        padding: 5,
+                        width: '80%',
+                        textAlign: 'left',
+                        borderRadius: 10,
+                        fontSize: 15,
+                        fontWeight: 'normal',
+                        marginRight: 5,
+                        color: '#000',
+                        backgroundColor: '#fff',
+                        margin: 5
+                    }}
+                />
+            ))}
+        </div>      
+        }
+
+
+         {/* Endpoint not secure by SSL */}
+         {currentVulnerability && currentVulnerability.vulnerabilityCode == 4 &&
+          <div style={{display:'flex', flexDirection:'column'}} >
+
+           <h4>SSL related issues on the host</h4>
+           <hr/>
+         
+            {sslFindings && sslFindings.map((item, index) => (
+
+                <div style={{marginTop:20, background:'#fff', padding:10, borderRadius:10}}>
+
+                  <span>
+                    <strong>Description:</strong>{item.description}
+                  </span> <br/><br/>
+                  <span>
+                  <strong>Exploitability:</strong>{item.exploitability}
+                  </span>
+
+                </div>
+            ))}
+        </div>      
+        }
+
+
+        {/* Sensitive data in query params */}
+        {currentVulnerability && currentVulnerability.vulnerabilityCode == 6 &&
+          <div style={{display:'flex', flexDirection:'column'}} >
+
+           <h4>Sensitive data found in query params</h4>
+           <hr/>
+         
+            {findings && findings.map((item, index) => (
+                <span 
+                    key={index} 
+                    dangerouslySetInnerHTML={{ __html: convertHeaderString(item) }}
+                    style={{
+                        padding: 5,
+                        width: '20%',
+                        textAlign: 'left',
+                        borderRadius: 10,
+                        fontSize: 15,
+                        fontWeight: 'normal',
+                        marginRight: 5,
+                        color: '#000',
+                        backgroundColor: '#fff',
+                        margin: 5
+                    }}
+                />
+                
+            ))}
+        </div>      
+        }
+
+
+        {/* Sensitive data in path params */}
+        {currentVulnerability && currentVulnerability.vulnerabilityCode == 2 &&
+          <div style={{display:'flex', flexDirection:'column'}} >
+
+           <h4>Sensitive data found in path params</h4>
+           <hr/>
+         
+            {findings && findings.map((item, index) => (
+                <span 
+                    key={index} 
+                    dangerouslySetInnerHTML={{ __html: convertHeaderString(item) }}
+                    style={{
+                        padding: 5,
+                        width: '20%',
+                        textAlign: 'left',
+                        borderRadius: 10,
+                        fontSize: 15,
+                        fontWeight: 'normal',
+                        marginRight: 5,
+                        color: '#000',
+                        backgroundColor: '#fff',
+                        margin: 5
+                    }}
+                />
+            ))}
+        </div>      
+        }
+
+            
+          
+
+
+        </Modal>    
 
       </>
 

@@ -208,6 +208,8 @@ const Tickets = () => {
   const columns = [
     "ID",
     "Category",
+    "Source",
+    "Related Scan ID",
     "Title",
     "Description",
     "Priority",
@@ -342,6 +344,10 @@ const Tickets = () => {
 
     dataItem.push(tickets[i].ticketId);
     dataItem.push(tickets[i].category);
+
+    dataItem.push(tickets[i].source);
+    dataItem.push(tickets[i].scanId);
+
     dataItem.push(tickets[i].title);
     dataItem.push(tickets[i].description);
     dataItem.push(tickets[i].priority);
