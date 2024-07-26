@@ -44,8 +44,14 @@ const {
   getScanDetailsForReport,
   updateOWASPAndCWEForVulnerabilities,
   updateRiskAcceptanceForAnActiveScanVulnerability,
-  getOrganizationDetails
-
+  getOrganizationDetails,
+  getTimeToResolveVulnerabilities,
+  getNumberOfOpenVulnerabilities,
+  getAuditFindings,
+  getThreatAlerts,
+  getThreatTrends,
+  getRiskScore,
+  getTopRisks,
 } = require('../../controllers/user.controller');
 
 
@@ -73,6 +79,15 @@ router.get('/getTopEndPoints', protectUser, getTopEndPoints);
 router.get('/getLast5DaysVulnerabilityTrends', protectUser, getLast5DaysVulnerabilityTrends);
 router.get('/getMonthlyVulnerabilityTrends', protectUser, getMonthlyVulnerabilityTrends);
 router.get('/getLast10Alerts', protectUser, getLast10Alerts);
+
+router.get('/getTimeToResolveVulnerabilities', protectUser, getTimeToResolveVulnerabilities);
+router.get('/getNumberOfOpenVulnerabilities', protectUser, getNumberOfOpenVulnerabilities);
+router.get('/getAuditFindings', protectUser, getAuditFindings);
+router.get('/getThreatAlerts', protectUser, getThreatAlerts);
+router.get('/getThreatTrends', protectUser, getThreatTrends);
+router.get('/getRiskScore', protectUser, getRiskScore);
+router.get('/getTopRisks', protectUser, getTopRisks);
+
 
 router.get('/getAllEndpoints', protectUser, getAllEndpoints);
 router.get('/getAllVulnerabilitiesFound', protectUser, getAllVulnerabilitiesFound);

@@ -19,32 +19,58 @@ const NumberOfOpenVulnerabilities = () => {
 
     const [loading, setLoading] = useState(false)
 
+    const [vulnerabilities, setVulnerabilities] = useState([]);
 
-    const labelsArray = [
-        'Broken Object Level Authorization',
-        'Sensitive Data in Path Params',
-        'Basic Authentication Detected',
-        'Endpoint Not Secured by SSL',
-        'Unauthenticated Endpoint Returning Sensitive Data',
-        'Sensitive Data in Query Params',
-        'PII Data Detected in Response',
-        'HTTP Verb Tampering Possible',
-        'Content Type Injection Possible',
-        'Security Headers not Enabled on Host',
-        'Resource Deletion Possible',
-        'Broken Authentication',
-        'Excessive Data Exposure',
-        'Injection',
-        'XSS Vulnerability Found',
-        'Wallet Hijacking Possible',
-        'Pre Image Attack Possible',
-        'Lack of Resource & Rate Limiting'
-      ];
+
+
+    useEffect(() => {
+
+      getResponse();
+  
+    }, []);
+  
     
-      const countsArray = [
-        5, 0, 7, 2, 3, 4, 6, 1, 0, 8, 0, 3, 0, 5, 7, 0, 2, 4
-      ];
+  
+  
+    const getResponse = () => {
+  
+      // Set from localStorage cache
+      if (localStorage.getItem('vulnerabilities')) {
+        setVulnerabilities(JSON.parse(localStorage.getItem('vulnerabilities')));
+      } else {
+        setVulnerabilities(true);
+      }
+  
+  
+      const endpoint = 'api/v1/users/getNumberOfOpenVulnerabilities';
+      const token = localStorage.getItem('ASIToken');
+  
+      axios.get(endpoint, {
+        headers: {
+          Authorization: `Bearer ${token}`
+        }
+      })
+        .then(response => {
+  
+  
+          setVulnerabilities(response.data.vulnerabilities);
+  
+          // Save into local storage to show from cache while it loads next time
+          localStorage.setItem('vulnerabilities', JSON.stringify(response.data.vulnerabilities));
+  
+          setLoading(false)
+        })
+        .catch(error => {
+          //console.error('Error fetching dashboard data:', error);
+          setLoading(false)
+        });
+    };
+
+
+
+    const labelsArray = vulnerabilities.map(v => v.title);
     
+    const countsArray = vulnerabilities.map(v => v.count);   
      
     
       const chartOptions = {

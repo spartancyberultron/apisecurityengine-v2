@@ -20,6 +20,59 @@ const TimeToResolveVulnerabilities = () => {
 
     const [loading, setLoading] = useState(false)
 
+    const [averageResolutionTime, setAverageResolutionTime] = useState(0)
+
+  useEffect(() => {
+
+    getTimeToResolveVulnerabilities();
+
+  }, []);
+
+  const formatResolutionTime = (timeString) => {
+
+    const timeNumber = parseFloat(timeString);
+    if (!isNaN(timeNumber)) {
+      return timeNumber.toFixed(1);
+    }
+    return '0.0'; // fallback value if parsing fails
+  };
+
+
+  const getTimeToResolveVulnerabilities = () => {
+
+    // Set from localStorage cache
+    if (localStorage.getItem('averageResolutionTime')) {
+        setAverageResolutionTime(JSON.parse(localStorage.getItem('averageResolutionTime')));
+    } else {
+        setAverageResolutionTime(true);
+    }
+
+
+    const endpoint = 'api/v1/users/getTimeToResolveVulnerabilities';
+    const token = localStorage.getItem('ASIToken');
+
+    axios.get(endpoint, {
+      headers: {
+        Authorization: `Bearer ${token}`
+      }
+    })
+      .then(response => {
+
+
+        setAverageResolutionTime(response.data.averageResolutionTime);
+
+        // Save into local storage to show from cache while it loads next time
+        localStorage.setItem('averageTime', JSON.stringify(response.data.averageResolutionTime));
+
+        setLoading(false)
+      })
+      .catch(error => {
+        //console.error('Error fetching dashboard data:', error);
+        setLoading(false)
+      });
+  };
+
+
     return (
 
 
@@ -88,7 +141,7 @@ const TimeToResolveVulnerabilities = () => {
 
                             </div>
 
-                            <span style={{textAlign:'center', fontSize:20}}>15 mins</span>
+                            <span style={{textAlign:'center', fontSize:20}}>{formatResolutionTime(averageResolutionTime)} mins</span>
 
 
                         </div>

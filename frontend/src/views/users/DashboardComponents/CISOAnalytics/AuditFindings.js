@@ -18,12 +18,64 @@ const AuditFindings = () => {
 
 
     const [loading, setLoading] = useState(false)
+    const [auditFindings, setAuditFindings] = useState([]);
+
+
+
+    useEffect(() => {
+
+      getResponse();
+  
+    }, []);
+  
+    
+  
+  
+    const getResponse = () => {
+  
+      // Set from localStorage cache
+     const storedAuditFindings = localStorage.getItem('auditFindings');
+
+if (storedAuditFindings !== null) {
+  try {
+    setAuditFindings(JSON.parse(storedAuditFindings));
+  } catch (error) {
+    console.error('Error parsing auditFindings:', error);
+    setAuditFindings(true); // Default value if parsing fails
+  }
+} else {
+  setAuditFindings(true);
+}
+  
+      const endpoint = 'api/v1/users/getAuditFindings';
+      const token = localStorage.getItem('ASIToken');
+  
+      axios.get(endpoint, {
+        headers: {
+          Authorization: `Bearer ${token}`
+        }
+      })
+        .then(response => {
+  
+  
+          setAuditFindings(response.data.auditFindings);
+  
+          // Save into local storage to show from cache while it loads next time
+          localStorage.setItem('auditFindings', JSON.stringify(response.data.auditFindings));
+  
+          setLoading(false)
+        })
+        .catch(error => {
+          //console.error('Error fetching dashboard data:', error);
+          setLoading(false)
+        });
+    };
 
     const data = {
-        categories: ['REST', 'SOAP', 'GraphQL', 'LLM'],
-        reportedIssues: [10, 5, 8, 12], 
-        remediatedIssues: [7, 3, 6, 10],
-      };
+      categories: auditFindings.map(finding => finding.category),
+      reportedIssues: auditFindings.map(finding => finding.reportedIssues),
+      remediatedIssues: auditFindings.map(finding => finding.remediatedIssues),
+  };
     
       const chartOptions = {
         chart: {

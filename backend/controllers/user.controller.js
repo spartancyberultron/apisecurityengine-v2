@@ -12,6 +12,16 @@ const Project = require('../models/project.model');
 const ProjectVulnerability = require('../models/projectVulnerability.model');
 const ProtectionHost = require('../models/protectionHost.model');
 const Organization = require('../models/organization.model');
+const Ticket = require('../models/ticket.model');
+
+const SOAPOrGraphQLScanVulnerability = require('../models/soapOrGraphQLScanVulnerability.model');
+
+
+const SBOMScanVulnerability = require('../models/sbomScanVulnerability.model');
+const LLMScanVulnerability = require('../models/llmScanVulnerability.model');
+
+const moment = require('moment');
+
 
 
 // Sign Up 
@@ -1250,3 +1260,401 @@ module.exports.getOrganizationDetails = asyncHandler(async (req, res) => {
 
 
 
+// Get average time to resolve vulnerabilities
+module.exports.getTimeToResolveVulnerabilities = asyncHandler(async (req, res) => {
+
+    const user = req.user;
+    
+    if (!user || !user.organization) {
+        return res.status(400).json({
+            success: false,
+            message: 'User or user organization not found'
+        });
+    }
+
+    const averageResolutionTimeMs = await Ticket.aggregate([
+        {
+            $match: {
+                organization: user.organization,
+                status: 'RESOLVED',
+                resolutionTime: { $exists: true, $ne: null }
+            }
+        },
+        {
+            $group: {
+                _id: null,
+                averageTime: { $avg: '$resolutionTime' }
+            }
+        }
+    ]);
+
+    if (averageResolutionTimeMs.length === 0) {
+        return res.status(200).json({
+            success: true,
+            averageResolutionTime: 0,
+            unit: 'minutes'
+        });
+    }
+
+    // Convert milliseconds to minutes
+    const averageResolutionTimeMinutes = averageResolutionTimeMs[0].averageTime / (1000 * 60);
+    
+    res.status(200).json({
+        averageResolutionTime: averageResolutionTimeMinutes,
+    });
+});
+
+
+
+// Get number of open vulns - by title
+module.exports.getNumberOfOpenVulnerabilities = asyncHandler(async (req, res) => {
+
+    const user = req.user;
+    
+    if (!user || !user.organization) {
+        return res.status(400).json({
+            success: false,
+            message: 'User or user organization not found'
+        });
+    }
+
+    console.log('User organization:', user.organization);
+
+    // First, let's check if there are any open tickets at all
+    const openTicketsCount = await Ticket.countDocuments({
+        organization: user.organization,
+        status: 'OPEN'
+    });
+
+    console.log('Total open tickets:', openTicketsCount);
+
+    const vulnerabilityCounts = await Ticket.aggregate([
+    {
+        $group: {
+            _id: '$title',
+            count: { $sum: 1 }
+        }
+    },
+    {
+        $project: {
+            _id: 0,
+            title: '$_id',
+            count: 1
+        }
+    },
+    {
+        $sort: { count: -1 }
+    }
+]);
+
+    console.log('Vulnerability counts:', vulnerabilityCounts);
+
+    res.status(200).json({
+        success: true,
+        vulnerabilities: vulnerabilityCounts
+    });
+});
+
+
+
+// Get audit findings
+module.exports.getAuditFindings = asyncHandler(async (req, res) => {
+    
+    const user = req.user;
+    
+    if (!user || !user.organization) {
+        return res.status(400).json({
+            success: false,
+            message: 'User or user organization not found'
+        });
+    }
+
+    const categories = ['REST', 'SOAP', 'GraphQL', 'LLM'];
+    
+    const auditFindings = await Promise.all(categories.map(async (category) => {
+        const sourceRegex = new RegExp(category, 'i'); // 'i' flag for case-insensitive
+
+        const reportedIssues = await Ticket.countDocuments({
+            organization: user.organization,
+            source: sourceRegex
+        });
+
+        const remediatedIssues = await Ticket.countDocuments({
+            organization: user.organization,
+            source: sourceRegex,
+            status: 'RESOLVED'
+        });
+
+        return {
+            category,
+            reportedIssues,
+            remediatedIssues
+        };
+    }));
+
+    res.status(200).json({
+        success: true,
+        auditFindings
+    });
+});
+
+
+// Get threat alerts
+module.exports.getThreatAlerts = asyncHandler(async (req, res) => {
+
+    const apiComplianceMap = {
+        'API1:2023 Broken Object Level Authorization': 'API1:2023',
+        'API2:2023 Broken Authentication': 'API2:2023',
+        'API3:2023 Broken Object Property Level Authorization': 'API3:2023',
+        'API4:2023 Unrestricted Resource Consumption': 'API4:2023',
+        'API5:2023 Broken Function Level Authorization': 'API5:2023',
+        'API6:2023 - Unrestricted Access to Sensitive Business Flows': 'API6:2023',
+        'API7:2023 - Server Side Request Forgery': 'API7:2023',
+        'API8:2023 Security Misconfiguration': 'API8:2023',
+        'API9:2023 Improper Inventory Management': 'API9:2023',
+        'API10:2023 Unsafe Consumption of APIs': 'API10:2023'
+    };
+
+    const llmComplianceMap = {
+        'LLM01:2023 - Prompt Injections': 'LLM01:2023',
+        'LLM02:2023 - Data Leakage': 'LLM02:2023',
+        'LLM 03:2023 - Inadequate Sandboxing': 'LLM03:2023',
+        'LLM 04:2023 - Unauthorised Code Execution': 'LLM04:2023',
+        'LLM05:2023 - SSRF Vulnerabilities': 'LLM05:2023',
+        'LLM 06:2023 - Over Reliance on LLM-generated Content': 'LLM06:2023',
+        'LLM 07:2023 - Inadequate AI Alignment': 'LLM07:2023',
+        'LLM 08:2023 - Insufficient Access Controls': 'LLM08:2023',
+        'LLM 09:2023 - Improper Error Handling': 'LLM09:2023',
+        'LLM 10:2023 - Training Data Poisoning': 'LLM10:2023'
+    };
+
+    // Initialize counters
+    const restCounts = {};
+    const soapCounts = {};
+    const graphqlCounts = {};
+
+    // Count vulnerabilities from ActiveScanVulnerability
+    const activeScanVulnerabilities = await ActiveScanVulnerability.find();
+    activeScanVulnerabilities.forEach(vulnerability => {
+        if (vulnerability.vulnerability && vulnerability.vulnerability.owasp) {
+            vulnerability.vulnerability.owasp.forEach(owasp => {
+                if (apiComplianceMap[owasp]) {
+                    restCounts[apiComplianceMap[owasp]] = (restCounts[apiComplianceMap[owasp]] || 0) + 1;
+                }
+                if (llmComplianceMap[owasp]) {
+                    restCounts[llmComplianceMap[owasp]] = (restCounts[llmComplianceMap[owasp]] || 0) + 1;
+                }
+            });
+        }
+    });
+
+    // Count vulnerabilities from SOAPOrGraphQLScanVulnerability
+    const soapGraphQLVulnerabilities = await SOAPOrGraphQLScanVulnerability.find();
+    soapGraphQLVulnerabilities.forEach(vulnerability => {
+        if (vulnerability.owasp) {
+            vulnerability.owasp.forEach(owasp => {
+                if (apiComplianceMap[owasp]) {
+                    if (vulnerability.scanType === 'SOAP') {
+                        soapCounts[apiComplianceMap[owasp]] = (soapCounts[apiComplianceMap[owasp]] || 0) + 1;
+                    } else if (vulnerability.scanType === 'GraphQL') {
+                        graphqlCounts[apiComplianceMap[owasp]] = (graphqlCounts[apiComplianceMap[owasp]] || 0) + 1;
+                    }
+                }
+                if (llmComplianceMap[owasp]) {
+                    if (vulnerability.scanType === 'SOAP') {
+                        soapCounts[llmComplianceMap[owasp]] = (soapCounts[llmComplianceMap[owasp]] || 0) + 1;
+                    } else if (vulnerability.scanType === 'GraphQL') {
+                        graphqlCounts[llmComplianceMap[owasp]] = (graphqlCounts[llmComplianceMap[owasp]] || 0) + 1;
+                    }
+                }
+            });
+        }
+    });
+
+    // Prepare the response
+    const response = {
+        categories: [
+            "ISO 27001", "NIST CISF", "GDPR", "PCI DSS", "HIPAA", "MITRE ATT&CK",
+            "NIST 800-53", "ASVS", "CMMC", "CCPA", "FIPS", "FISMA", "RBI CSF"
+        ],
+        rest: Object.values(restCounts),
+        soap: Object.values(soapCounts),
+        graphql: Object.values(graphqlCounts),
+        sbom: new Array(13).fill(0) // Ignoring SBOM as per instructions
+    };
+
+    res.json(response);
+});
+
+
+// Get threat trends
+module.exports.getThreatTrends = asyncHandler(async (req, res) => {
+
+    const endDate = moment().endOf('day');
+    const startDate = moment(endDate).subtract(9, 'days').startOf('day');
+  
+    const dateRange = [];
+    for (let m = moment(startDate); m.isSameOrBefore(endDate); m.add(1, 'days')) {
+      dateRange.push(m.format('YYYY-MM-DD'));
+    }
+  
+    const [restThreats, soapThreats, graphqlThreats, sbomThreats] = await Promise.all([
+      ActiveScanVulnerability.aggregate([
+        { $match: { createdAt: { $gte: startDate.toDate(), $lte: endDate.toDate() } } },
+        { $group: { _id: { $dateToString: { format: "%Y-%m-%d", date: "$createdAt" } }, count: { $sum: 1 } } },
+        { $sort: { _id: 1 } }
+      ]),
+      SOAPOrGraphQLScanVulnerability.aggregate([
+        { $match: { createdAt: { $gte: startDate.toDate(), $lte: endDate.toDate() }, 'soapOrGraphQLScan.type': 'soap' } },
+        { $group: { _id: { $dateToString: { format: "%Y-%m-%d", date: "$createdAt" } }, count: { $sum: 1 } } },
+        { $sort: { _id: 1 } }
+      ]),
+      SOAPOrGraphQLScanVulnerability.aggregate([
+        { $match: { createdAt: { $gte: startDate.toDate(), $lte: endDate.toDate() }, 'soapOrGraphQLScan.type': 'graphql' } },
+        { $group: { _id: { $dateToString: { format: "%Y-%m-%d", date: "$createdAt" } }, count: { $sum: 1 } } },
+        { $sort: { _id: 1 } }
+      ]),
+      SBOMScanVulnerability.aggregate([
+        { $match: { createdAt: { $gte: startDate.toDate(), $lte: endDate.toDate() } } },
+        { $group: { _id: { $dateToString: { format: "%Y-%m-%d", date: "$createdAt" } }, count: { $sum: 1 } } },
+        { $sort: { _id: 1 } }
+      ])
+    ]);
+  
+    const formatData = (threats) => {
+      const threatMap = new Map(threats.map(t => [t._id, t.count]));
+      return dateRange.map(date => threatMap.get(date) || 0);
+    };
+  
+    const data = {
+      categories: dateRange,
+      rest: formatData(restThreats),
+      soap: formatData(soapThreats),
+      graphql: formatData(graphqlThreats),
+      sbom: formatData(sbomThreats)
+    };
+  
+    res.json(data);
+  });
+
+
+
+// Get risk score
+module.exports.getRiskScore = asyncHandler(async (req, res) => {
+    const [activeScanVulns, sbomScanVulns] = await Promise.all([
+      ActiveScanVulnerability.find(),
+      SBOMScanVulnerability.find()
+    ]);
+  
+    const severityWeights = {
+      CRITICAL: 1,
+      HIGH: 0.75,
+      MEDIUM: 0.5,
+      LOW: 0.25
+    };
+  
+    let totalWeight = 0;
+    let weightedSum = 0;
+  
+    activeScanVulns.forEach(vuln => {
+      const riskScore = vuln.vulnerability && vuln.vulnerability.riskScore;
+      if (riskScore && severityWeights[riskScore.toUpperCase()]) {
+        weightedSum += severityWeights[riskScore.toUpperCase()];
+        totalWeight += 1;
+      }
+    });
+  
+    sbomScanVulns.forEach(vuln => {
+      const severity = vuln.severity;
+      if (severity && severityWeights[severity.toUpperCase()]) {
+        weightedSum += severityWeights[severity.toUpperCase()];
+        totalWeight += 1;
+      }
+    });
+  
+    const averageRiskScore = totalWeight > 0 ? (weightedSum / totalWeight) : 0;
+    const riskScorePercentage = Math.round(averageRiskScore * 100);
+  
+    res.json({
+      riskScore: riskScorePercentage,
+      description: "Risk score calculated as a weighted average of vulnerability severities, normalized to a percentage."
+    });
+  });
+  
+
+
+  
+// Get top risks
+module.exports.getTopRisks = asyncHandler(async (req, res) => {
+    try {
+        // Aggregation for ActiveScanVulnerability
+        const activeScanAgg = ActiveScanVulnerability.aggregate([
+            { $unwind: "$vulnerability" },
+            { $group: { _id: "$vulnerability.vulnerabilityName", count: { $sum: 1 }, riskScore: { $first: "$vulnerability.riskScore" } } },
+            { $project: { title: "$_id", count: 1, riskScore: { $ifNull: ["$riskScore", "UNKNOWN"] }, _id: 0 } }
+        ]);
+
+        // Aggregation for LLMScanVulnerability
+        const llmScanAgg = LLMScanVulnerability.aggregate([
+            { $group: { _id: "$vulnerabilityName", count: { $sum: 1 } } },
+            { $addFields: { riskScore: "HIGH" } },
+            { $project: { title: "$_id", count: 1, riskScore: 1, _id: 0 } }
+        ]);
+
+        // Aggregation for SBOMScanVulnerability
+        const sbomScanAgg = SBOMScanVulnerability.aggregate([
+            { $group: { _id: "$title", count: { $sum: 1 } } },
+            { $addFields: { riskScore: "HIGH" } },
+            { $project: { title: "$_id", count: 1, riskScore: 1, _id: 0 } }
+        ]);
+
+        // Aggregation for SOAPOrGraphQLScanVulnerability
+        const soapOrGraphQLScanAgg = SOAPOrGraphQLScanVulnerability.aggregate([
+            { $group: { _id: "$testCaseName", count: { $sum: 1 } } },
+            { $addFields: { riskScore: "HIGH" } },
+            { $project: { title: "$_id", count: 1, riskScore: 1, _id: 0 } }
+        ]);
+        
+
+        // Execute all aggregations in parallel
+        const [activeScanResults, llmScanResults, sbomScanResults, soapOrGraphQLScanResults] = await Promise.all([
+            activeScanAgg.exec(),
+            llmScanAgg.exec(),
+            sbomScanAgg.exec(),
+            soapOrGraphQLScanAgg.exec()
+        ]);
+
+        // Combine all results
+        const combinedResults = [
+            ...activeScanResults,
+            ...llmScanResults,
+            ...sbomScanResults,
+            ...soapOrGraphQLScanResults
+        ];
+
+        // Filter out invalid entries (e.g., null titles or counts less than 1)
+        const validResults = combinedResults.filter(result => result.title && result.count > 0);
+
+        // Log for debugging
+        console.log('Filtered Valid Results:', validResults);
+
+        // Sort combined results by count in descending order
+        validResults.sort((a, b) => b.count - a.count);
+
+        // Log sorted results
+        console.log('Sorted Valid Results:', validResults);
+
+        // Get top 10 results
+        const topRisks = validResults.slice(0, 10);
+
+        // Log top risks
+        console.log('Top Risks:', topRisks);
+
+        // Send the response
+        res.json(topRisks);
+    } catch (error) {
+        // Log the error for debugging
+        console.error('Error in getTopRisks:', error);
+        res.status(500).json({ message: error.message });
+    }
+});

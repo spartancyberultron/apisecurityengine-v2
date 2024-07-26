@@ -18,6 +18,50 @@ const ThreatTrends = () => {
 
 
     const [loading, setLoading] = useState(false)
+    const [threatTrends, setThreatTrends] = useState({})
+
+    useEffect(() => {
+
+      getResponse();
+  
+    }, []);
+  
+    
+  
+  
+    const getResponse = () => {
+  
+      // Set from localStorage cache
+      if (localStorage.getItem('threatTrends')) {
+          setThreatTrends(JSON.parse(localStorage.getItem('threatTrends')));
+      } else {
+          setThreatTrends(true);
+      }
+  
+  
+      const endpoint = 'api/v1/users/getThreatTrends';
+      const token = localStorage.getItem('ASIToken');
+  
+      axios.get(endpoint, {
+        headers: {
+          Authorization: `Bearer ${token}`
+        }
+      })
+        .then(response => {
+  
+  
+          setThreatTrends(response.data);
+  
+          // Save into local storage to show from cache while it loads next time
+          localStorage.setItem('threatTrends', JSON.stringify(response.data));
+  
+          setLoading(false)
+        })
+        .catch(error => {
+          //console.error('Error fetching dashboard data:', error);
+          setLoading(false)
+        });
+    };
 
     const data = {
         categories: ['2024-07-02', '2024-07-03', '2024-07-04', '2024-07-05', '2024-07-06', '2024-07-07', '2024-07-08', '2024-07-09', '2024-07-10', '2024-07-11'],
@@ -42,7 +86,7 @@ const ThreatTrends = () => {
           curve: 'smooth',
         },
         xaxis: {
-          categories: data.categories,
+          categories: threatTrends.categories,
           labels: {
             show: true,
             
@@ -74,19 +118,19 @@ const ThreatTrends = () => {
       const chartSeries = [
         {
           name: 'REST',
-          data: data.rest,
+          data: threatTrends.rest,
         },
         {
           name: 'SOAP',
-          data: data.soap,
+          data: threatTrends.soap,
         },
         {
           name: 'GraphQL',
-          data: data.graphql,
+          data: threatTrends.graphql,
         },
         {
           name: 'SBOM',
-          data: data.sbom,
+          data: threatTrends.sbom,
         },
       ];
 

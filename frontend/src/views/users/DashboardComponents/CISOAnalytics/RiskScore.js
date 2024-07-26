@@ -19,6 +19,52 @@ const RiskScore = () => {
 
 
     const [loading, setLoading] = useState(false)
+    const [riskScore, setRiskScore] = useState(false)
+
+
+    useEffect(() => {
+
+        getResponse();
+    
+      }, []);
+    
+      
+    
+    
+      const getResponse = () => {
+    
+        // Set from localStorage cache
+        if (localStorage.getItem('riskScore')) {
+            setRiskScore(JSON.parse(localStorage.getItem('riskScore')));
+        } else {
+            setRiskScore(true);
+        }
+    
+    
+        const endpoint = 'api/v1/users/getRiskScore';
+        const token = localStorage.getItem('ASIToken');
+    
+        axios.get(endpoint, {
+          headers: {
+            Authorization: `Bearer ${token}`
+          }
+        })
+          .then(response => {
+    
+    
+            setRiskScore(response.data);
+    
+            // Save into local storage to show from cache while it loads next time
+            localStorage.setItem('riskScore', JSON.stringify(response.data));
+    
+            setLoading(false)
+          })
+          .catch(error => {
+            //console.error('Error fetching dashboard data:', error);
+            setLoading(false)
+          });
+      };
+  
 
     return (
 
@@ -33,7 +79,7 @@ const RiskScore = () => {
 
                 <span style={{ color: '#5D596C', textAlign: 'left', marginTop: 10, fontSize: 18, display: 'block' }}>Risk Score</span>
                 <span style={{ fontSize: 13, textAlign: 'left', alignSelf: 'left', color: 'rgb(165, 163, 174', display: 'block' }}>
-                     Overall risk score based on current vulnerabilities, threats, and incidents</span>
+                     Overall risk score based on current vulnerabilities, threats, and incidents. {riskScore.description}</span>
                 <hr style={{ borderColor: 'white' }} />
 
 
@@ -76,7 +122,7 @@ const RiskScore = () => {
                         nrOfLevels={3}
                         colors={['#28c76f','#fd7e14', '#ea5455', ]}
                         arcWidth={0.2}
-                        percent={0.33}
+                        percent={riskScore.riskScore/100}
                         hideText={true}  
                         width='100%'
                         />       
@@ -84,10 +130,8 @@ const RiskScore = () => {
 
                             </div>
 
-<span style={{fontSize:30}}>33%</span>
+                                <span style={{fontSize:30}}>{riskScore.riskScore}%</span>
                         </div>
-
-
 
                     </>
                 }

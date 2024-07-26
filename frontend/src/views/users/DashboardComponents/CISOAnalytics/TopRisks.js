@@ -18,6 +18,60 @@ const TopRisks = () => {
 
 
     const [loading, setLoading] = useState(false)
+    const [topRisks, setTopRisks] = useState([])
+
+
+
+    useEffect(() => {
+
+        getResponse();
+    
+      }, []);
+    
+      
+    
+    
+      const getResponse = () => {
+    
+        // Set from localStorage cache
+        const storedTopRisks = localStorage.getItem('topRisks');
+        if (storedTopRisks && storedTopRisks !== "undefined") {
+            try {
+                setTopRisks(JSON.parse(storedTopRisks));
+            } catch (e) {
+                console.error("Failed to parse top risks from localStorage:", e);
+                setTopRisks([]); // or any appropriate default value
+            }
+        } else {
+            setTopRisks([]); // or any appropriate default value
+        }
+    
+    
+        const endpoint = 'api/v1/users/getTopRisks';
+        const token = localStorage.getItem('ASIToken');
+    
+        axios.get(endpoint, {
+          headers: {
+            Authorization: `Bearer ${token}`
+          }
+        })
+          .then(response => {    
+    
+            setTopRisks(response.data);
+    
+            // Save into local storage to show from cache while it loads next time
+            localStorage.setItem('topRisks', JSON.stringify(response.data));
+    
+            setLoading(false)
+          })
+          .catch(error => {
+            //console.error('Error fetching dashboard data:', error);
+            setLoading(false)
+          });
+      };
+  
+
+      console.log('topRisks:',topRisks)
 
     return (
 
@@ -77,51 +131,28 @@ const TopRisks = () => {
 <thead>
     <th style={{padding:10, width:'70%'}}>Risk</th>
     <th style={{padding:10}}>Impact</th>
-    <th style={{padding:10}}>Likelihood</th>
+    <th style={{padding:10}}>Occurences</th>
 </thead>
 
 <tbody>
-    <tr>
-        <td>Risk 1</td>
-        <td>
-            <span style={{padding:5, backgroundColor:'#ea5455', fontSize:12, color:'#fff', borderRadius:5 }}>HIGH</span>
-        </td>
-        <td>
-            <span style={{padding:5, backgroundColor:'#28c76f', fontSize:12, color:'#fff', borderRadius:5 }}>LOW</span>
-        </td>
-    </tr>
+{topRisks && topRisks.map((risk, index) => (
 
-    <tr>
-        <td>Risk 2</td>
-        <td>
-            <span style={{padding:5, backgroundColor:'#ea5455', fontSize:12, color:'#fff', borderRadius:5 }}>HIGH</span>
-        </td>
-        <td>
-            <span style={{padding:5, backgroundColor:'#28c76f', fontSize:12, color:'#fff', borderRadius:5 }}>LOW</span>
-        </td>
-    </tr>
+    <>
 
+    {risk.riskScore &&
+                    <tr key={index}>
+                        <td>{risk.title}</td>
+                        <td>
+                            <span style={{padding: 5, backgroundColor: '#ea5455', fontSize: 12, color: '#fff', borderRadius: 5 }}>
+                                {risk.riskScore}
+                            </span>
+                        </td>
+                        <td>{risk.count}</td>
+                    </tr>
+}
 
-    <tr>
-        <td>Risk 3</td>
-        <td>
-            <span style={{padding:5, backgroundColor:'#ea5455', fontSize:12, color:'#fff', borderRadius:5 }}>HIGH</span>
-        </td>
-        <td>
-            <span style={{padding:5, backgroundColor:'#28c76f', fontSize:12, color:'#fff', borderRadius:5 }}>LOW</span>
-        </td>
-    </tr>
-
-
-    <tr>
-        <td>Risk 4</td>
-        <td>
-            <span style={{padding:5, backgroundColor:'#ea5455', fontSize:12, color:'#fff', borderRadius:5 }}>HIGH</span>
-        </td>
-        <td>
-            <span style={{padding:5, backgroundColor:'#28c76f', fontSize:12, color:'#fff', borderRadius:5 }}>LOW</span>
-        </td>
-    </tr>
+                    </>
+                ))}
 
    
 

@@ -41,11 +41,21 @@ const ticketSchema = mongoose.Schema({
   },
   source: {
     type: String,
+    default: 'Manual'
   },
   scanId: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: 'ActiveScan',
+    type: String,
+  },
+  openedAt: {
+    type: Date
+  },
+  resolvedAt: {
+    type: Date
+  },
+  resolutionTime: {
+    type: Number  // Store resolution time in milliseconds
   }
+  
 }, {
   timestamps: true,
 });
@@ -58,7 +68,6 @@ const counterSchema = new mongoose.Schema({
 
 const Counter = mongoose.model('Counter', counterSchema);
 
-// Pre-save hook to auto-increment ticketId
 ticketSchema.pre('save', async function(next) {
   if (this.isNew) {
     try {
@@ -68,11 +77,22 @@ ticketSchema.pre('save', async function(next) {
         { new: true, upsert: true }
       );
       this.ticketId = counter.sequence_value;
+      
+      // Set openedAt when the ticket is first created with "OPEN" status
+      if (this.status === 'OPEN') {
+        this.openedAt = new Date();
+      }
+      
       next();
     } catch (err) {
       next(err);
     }
   } else {
+    // If the status is changing to "RESOLVED", set resolvedAt and calculate resolutionTime
+    if (this.isModified('status') && this.status === 'RESOLVED' && this.openedAt) {
+      this.resolvedAt = new Date();
+      this.resolutionTime = this.resolvedAt - this.openedAt;
+    }
     next();
   }
 });
