@@ -273,9 +273,14 @@ public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
                                CLI Agent
                             </Tab>
 
-                            <Tab style={{ width: 150, borderWidth: 0, textAlign:'center' }}>
+                            <Tab style={{ width: 200, borderWidth: 0, textAlign:'center' }}>
 
                                Burpsuite Extension
+                            </Tab>
+
+                            <Tab style={{ width: 150, borderWidth: 0, textAlign:'center' }}>
+
+                               Jenkins Job
                             </Tab>
 
                             <Tab style={{ width: 150, borderWidth: 0, textAlign:'center' }}>
@@ -420,6 +425,106 @@ public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
 
 
 </TabPanel>
+
+
+{/* Jenkins Job  */}
+<TabPanel style={{ padding: 30, backgroundColor: 'white', borderRadius: 5 }}>
+      <h4 style={{ color: '#333' }}>Creating a Jenkins Job to Zip and sending project to APISecurityEngine for scan</h4>
+
+      <p style={{ fontSize: 16, color: '#555' }}>
+        Follow these steps to create a Jenkins job that zips your project (excluding .gitignore files), sends it to an API, and displays the response:
+      </p>
+
+      <ol style={{ fontSize: 16, color: '#555' }}>
+        <li>
+          <strong>Create a New Jenkins Job:</strong>
+          <p>
+            In Jenkins, click on "New Item", choose "Freestyle project", and give it a name.
+          </p>
+        </li>
+
+        <li>
+          <strong>Configure Source Code Management:</strong>
+          <p>
+            Set up your source code repository in the "Source Code Management" section.
+          </p>
+        </li>
+
+        <li>
+          <strong>Add Build Step:</strong>
+          <p>
+            In the "Build" section, add an "Execute shell" build step with the following script:
+          </p>
+          <pre style={{ backgroundColor: '#eaeaea', padding: 10, borderRadius: 5, overflowX: 'auto' }}>
+{`#!/bin/bash
+
+# Zip the project, excluding .gitignore files
+zip -r project.zip . -x @.gitignore
+
+# Send to API and capture response
+response=$(curl -X POST \\
+  https://appnew-backend.apisecurityengine.com/api/v1/mirroredScans/sendRequestInfo \\
+  -H 'Content-Type: application/json' \\
+  -d "{
+  \\"api_key\\": \\"YOUR_API_KEY\\",
+  \\"the_request\\": \\"$(base64 -w 0 project.zip)\\"
+}")
+
+# Save response to file
+echo "$response" > api_response.json
+
+# Clean up zip file
+rm project.zip
+
+# Create HTML file
+cat << EOT > api_response.html
+<!DOCTYPE html>
+<html>
+<head>
+    <title>API Response</title>
+    <style>
+        body { font-family: Arial, sans-serif; }
+        pre { background-color: #f4f4f4; padding: 10px; border-radius: 5px; }
+    </style>
+</head>
+<body>
+    <h1>API Response</h1>
+    <pre id="json"></pre>
+    <script>
+        var json = \$(cat api_response.json);
+        document.getElementById('json').textContent = JSON.stringify(JSON.parse(json), null, 2);
+    </script>
+</body>
+</html>
+EOT`}
+          </pre>
+        </li>
+
+        <li>
+          <strong>Install HTML Publisher Plugin:</strong>
+          <p>
+            If not already installed, go to "Manage Jenkins" &gt; "Manage Plugins" and install the HTML Publisher plugin.
+          </p>
+        </li>
+
+        <li>
+          <strong>Add Post-build Action:</strong>
+          <p>
+            In the "Post-build Actions" section, add "Publish HTML reports" and configure it:
+          </p>
+          <ul>
+            <li>HTML directory to archive: <code>.</code></li>
+            <li>Index page[s]: <code>api_response.html</code></li>
+            <li>Report title: "API Response"</li>
+          </ul>
+        </li>
+      </ol>
+
+      <p style={{ fontSize: 16, color: '#555' }}>
+        After configuring the job, run it to zip your project, send it to the API, and view the response in the published HTML report.
+      </p>
+    </TabPanel>
+
 
 
                         {/* Node JS Instructions  */}
