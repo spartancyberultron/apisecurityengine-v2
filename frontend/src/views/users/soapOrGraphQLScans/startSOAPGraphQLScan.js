@@ -21,11 +21,14 @@ import { useParams, useNavigate } from 'react-router-dom'
 import { IoMdArrowRoundBack } from "react-icons/io";
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
+import axios from 'axios';
 
 const StartSOAPGraphQLScan = () => {
 
   const navigate = useNavigate()
 
+  const [projects, setProjects] = useState([]);
+  const [selectedProjectId, setSelectedProjectId] = useState("");
   const [scanName, setScanName] = useState("")
   const [file, setFile] = useState(null);
   const [type, setType] = useState('soap');
@@ -60,6 +63,24 @@ const StartSOAPGraphQLScan = () => {
     setType(event.target.value);
   }
 
+  useEffect(() => {
+    fetchProjects();
+}, []);
+
+const fetchProjects = async () => {
+    try {
+        const token = localStorage.getItem('ASIToken');
+        const response = await axios.get(`/api/v1/organizations/getProjects`, {
+            headers: {
+                Authorization: `Bearer ${token}`
+            }
+        });
+        setProjects(response.data.projects);
+    } catch (error) {
+        console.error('Error fetching projects:', error);
+    }
+};
+
   const startScan = () => {
 
     if (scanName === '') {
@@ -90,6 +111,7 @@ const StartSOAPGraphQLScan = () => {
       formData.append('scanName', scanName);
       formData.append('collectionUrl', collectionUrl);
       formData.append('type', type);
+      formData.append('projectId', selectedProjectId); // Include selected projectId
 
       // Make the API call
       fetch(global.backendUrl + '/api/v1/soapOrGraphQLScans/startSOAPOrGraphQLScan', {
@@ -278,6 +300,20 @@ const StartSOAPGraphQLScan = () => {
                 <span style={{ color: 'red', paddingTop: 15 }}>{errorText}</span>
               }
 
+
+<CFormLabel htmlFor="formFileSm" style={{ marginTop: 30, color: '#000' }}>Select Project</CFormLabel>
+                      <CInputGroup className="" style={{ flexDirection: 'column', }}>
+                                <CFormSelect
+                                    onChange={(e) => setSelectedProjectId(e.target.value)}
+                                    value={selectedProjectId}
+                                    style={{ width: '100%' }}
+                                >
+                                    <option value="">Select Project</option>
+                                    {projects.map(project => (
+                                        <option style={{color:'#000'}} key={project._id} value={project._id}>{project.name}</option>
+                                    ))}
+                                </CFormSelect>
+                            </CInputGroup>
 
               <CButton
                 style={{

@@ -18,7 +18,7 @@ module.exports.getAllSBOMScans = asyncHandler(async (req, res) => {
     // Calculate the skip value based on the pageNumber and pageSize
     const skip = (pageNumber - 1) * pageSize;
 
-    const sbomScans = await SBOMScan.find({ user: req.user._id })
+    const sbomScans = await SBOMScan.find({ user: req.user._id }).populate('orgProject')
         .sort({ createdAt: -1 })
         .skip(skip)
         .limit(pageSize)
@@ -64,7 +64,7 @@ module.exports.startSBOMScan = asyncHandler(async (req, res) => {
 
     const user = await User.findById(req.user._id);
 
-    const { scanName } = req.body;
+    const { scanName, projectId } = req.body;
 
     const originalname = req.file.originalname
     const fileformat = originalname.split('.').pop();
@@ -77,7 +77,9 @@ module.exports.startSBOMScan = asyncHandler(async (req, res) => {
         const newScan = new SBOMScan({
             scanName: scanName,
             user: user._id,
-            sbomFilePath: filePath
+            sbomFilePath: filePath,
+            status:'in progress',
+            orgProject:projectId
         });
         newScan.save();
 
@@ -89,7 +91,7 @@ module.exports.startSBOMScan = asyncHandler(async (req, res) => {
         // Change directory to the target directory
         process.chdir(targetDirectory);
 
-        const toolCommand = 'bomber scan '+filePath+' --output=json > '+newScan._id+'_result.json';
+        const toolCommand = '/usr/bin/bomber scan '+filePath+' --output=json > '+newScan._id+'_result.json';
         //exec(toolCommand);
 
         const resultFilePath = path.join(__dirname, "..", "uploads", "sbom-files", "sbom-scan-result-files", `${newScan._id}_result.json`);       

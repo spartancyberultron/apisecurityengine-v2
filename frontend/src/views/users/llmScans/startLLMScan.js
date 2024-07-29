@@ -14,12 +14,14 @@ import {
   CFormInput,
   CInputGroup,
   CRow,
+  CFormSelect,
   CFormLabel
 } from '@coreui/react'
 import { useParams, useNavigate } from 'react-router-dom'
 import { IoMdArrowRoundBack } from "react-icons/io";
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
+import axios from 'axios';
 
 const StartLLMScan = () => {
 
@@ -47,6 +49,8 @@ const StartLLMScan = () => {
     'xss'])
 
 
+    const [projects, setProjects] = useState([]);
+  const [selectedProjectId, setSelectedProjectId] = useState("");
   const [modelHubKey, setModelHubKey] = useState('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')
   const [modelName, setModelName] = useState('Vartul/t2')
 
@@ -68,6 +72,24 @@ const StartLLMScan = () => {
   const [modelNameHasError, setModelNameHasError] = useState(false);
 
   const toaster = useRef();
+
+  useEffect(() => {
+    fetchProjects();
+}, []);
+
+const fetchProjects = async () => {
+    try {
+        const token = localStorage.getItem('ASIToken');
+        const response = await axios.get(`/api/v1/organizations/getProjects`, {
+            headers: {
+                Authorization: `Bearer ${token}`
+            }
+        });
+        setProjects(response.data.projects);
+    } catch (error) {
+        console.error('Error fetching projects:', error);
+    }
+};
 
   const startScan = () => {
 
@@ -107,12 +129,15 @@ const StartLLMScan = () => {
       formData.append('selectedProbes', selectedProbes);
       formData.append('modelHubKey', modelHubKey);
       formData.append('modelName', modelName);
+      formData.append('projectId', selectedProjectId);
+
 
       const body = {
         "scanName": scanName,
         "selectedProbes": selectedProbes,
         "modelHubKey": modelHubKey,
-        "modelName": modelName
+        "modelName": modelName,
+        "projectId":selectedProjectId
       }
 
       // Make the API call
@@ -362,7 +387,6 @@ const StartLLMScan = () => {
                 }
 
 
-
               </CInputGroup>
 
 
@@ -384,6 +408,21 @@ const StartLLMScan = () => {
 
 
               </CInputGroup>
+
+
+              <CFormLabel htmlFor="formFileSm" style={{ marginTop: 30, color: '#000' }}>Select Project</CFormLabel>
+                      <CInputGroup className="" style={{ flexDirection: 'column', }}>
+                                <CFormSelect
+                                    onChange={(e) => setSelectedProjectId(e.target.value)}
+                                    value={selectedProjectId}
+                                    style={{ width: '100%' }}
+                                >
+                                    <option value="">Select Project</option>
+                                    {projects.map(project => (
+                                        <option style={{color:'#000'}} key={project._id} value={project._id}>{project.name}</option>
+                                    ))}
+                                </CFormSelect>
+                            </CInputGroup>
 
 
               <CButton

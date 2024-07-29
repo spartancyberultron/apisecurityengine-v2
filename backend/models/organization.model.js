@@ -14,6 +14,9 @@ const organizationSchema = mongoose.Schema({
   clientSecret: {
     type: String,
   },  
+  logoURL:{
+    type: String,
+  },
   vulnSeverityAndPriority: [{
     vulnId: {
       type: Number,

@@ -1,0 +1,35 @@
+<html>
+
+<body>
+
+   <p> To analyze the risk of sensitive information disclosure in OWASP LLM06, we use the STRIDE and DREAD threat modeling models. This scenario focuses on the risk of sensitive information being revealed through an LLM application's outputs.</p>
+    
+    <p>Here’s a breakdown of the STRIDE and DREAD analysis:</p>
+
+<h3>STRIDE</h3>
+<ul>
+<li>Spoofing: (Low) An attacker might try to spoof their identity to gain access to sensitive information, but this is less likely with LLMs compared to traditional systems.</li>
+<li>Tampering: (Medium) Malicious prompts or inputs could potentially trick the LLM into revealing sensitive details.</li>
+<li>Repudiation: (Low) Not a major concern for LLM06.</li>
+<li>Information Disclosure: (Critical) This is the core risk of LLM06. The LLM itself might unintentionally leak sensitive information through its responses.</li>
+<li>Denial-of-Service (DoS): (Low) Not directly applicable to LLM06.</li>
+<li>Elevation of Privilege: (Low) Not directly applicable to LLM06.</li>
+</ul>
+
+<h3>DREAD</h3>
+<ul>
+<li>Damage: (High) Leaking sensitive information can cause significant reputational damage, financial loss, and legal issues.</li>
+<li>Reproducibility: (Medium) Crafting prompts or inputs to exploit LLM06 might require some effort, but successful techniques could be reused.</li>
+<li>Exploitability: (Medium) The success rate of exploiting LLM06 may depend on the specific LLM and the attacker's skill.</li>
+<li>Affected Users: (High) Depending on the information leaked, a large number of users or organizations could be impacted.</li>
+<li>Discoverability: (Medium) Anomalies in LLM outputs might raise suspicion, but identifying the exact cause could be challenging.</li>
+</ul>
+
+<h3>Risk Category</h3>
+<ul>
+<li>Based on the STRIDE and DREAD analysis, LLM06 falls into the High risk category. The potential damage and impact on users are significant, even if the exploitability might not be trivial.</li>
+</ul>
+
+</body>
+
+</html>

@@ -33,6 +33,7 @@ const LLMCompliances = () => {
   const [modalIsOpen, setModalIsOpen] = React.useState(false);
 
   const [itemOffset, setItemOffset] = useState(0);
+  const [showAll, setShowAll] = React.useState(false);
 
   const customStyles = {
     content: {
@@ -444,6 +445,55 @@ const LLMCompliances = () => {
           filter: true,           
       }
     },    
+    {
+      label: "Affected Probes",
+      options: {
+        filter: true,
+        download: true,
+        customBodyRender: (value, tableMeta, updateValue) => {
+          
+          const displayCount = showAll ? value.length : 2;
+    
+          return (
+            <div style={{
+              display: "flex",
+              flexDirection: 'column',
+              alignItems: "center"
+            }}>
+              {value.slice(0, displayCount).map((item, index) => (
+                <span key={index} style={{
+                  padding: 5,
+                  width: 200,
+                  textAlign: 'center',
+                  borderRadius: 10,
+                  fontSize: 12,
+                  fontWeight: 'normal',
+                  marginRight: 5,
+                  color: '#000',
+                  backgroundColor: '#f7e7ce',
+                  margin: 5
+                }}>
+                  {item}
+                </span>
+              ))}
+              {value.length > 2 && (
+                <button 
+                  onClick={() => setShowAll(!showAll)}
+                  style={{
+                    margin: '5px',
+                    padding: '5px 10px',
+                    fontSize: '12px',
+                    cursor: 'pointer'
+                  }}
+                >
+                  {showAll ? 'View Less' : `View ${value.length - 2} More`}
+                </button>
+              )}
+            </div>
+          )
+        }
+      }
+    },
     {
       label: "CWE",
       options: {
@@ -1005,6 +1055,7 @@ const LLMCompliances = () => {
     }
   };
 
+  console.log('llmScanVulns:',llmScanVulns)
 
   var uniqueOWASPCats = [];
 
@@ -1014,8 +1065,10 @@ const LLMCompliances = () => {
 
     console.log('cat:',cat)
 
+    console.log('llmScanVulns[i]',llmScanVulns[i])
+
     if(!(uniqueOWASPCats.includes(cat))){
-      uniqueOWASPCats.push(cat);
+      uniqueOWASPCats.push({category:cat, affectedProbes:[llmScanVulns[i]]});
     }
   }
 
@@ -1030,11 +1083,11 @@ const LLMCompliances = () => {
 
     dataItem.push(i+1);
 
-    dataItem.push(uniqueOWASPCats[i]); 
-    
-    var compliances = getComplianceMappings(uniqueOWASPCats[i])
+    dataItem.push(uniqueOWASPCats[i].category); 
 
-   
+    dataItem.push(uniqueOWASPCats[i].affectedProbes); 
+    
+    var compliances = getComplianceMappings(uniqueOWASPCats[i].category)   
 
     dataItem.push(compliances.cwe); // Description
 

@@ -34,6 +34,8 @@ const APICompliances = () => {
 
   const [itemOffset, setItemOffset] = useState(0);
 
+  const [showAll, setShowAll] = React.useState(false);
+
   const customStyles = {
     content: {
       top: '30%',
@@ -334,8 +336,6 @@ const APICompliances = () => {
   }, []);
 
 
-
-
   const columns = [
     {
       label: "",
@@ -347,6 +347,56 @@ const APICompliances = () => {
       label: "OWASP Category",
       options: {
         filter: true,
+      }
+    },
+    {
+      label: "Affected Endpoints",
+      options: {
+        filter: true,
+        download: true,
+        customBodyRender: (value, tableMeta, updateValue) => {
+          
+          const displayCount = showAll ? value.length : 2;
+
+    
+          return (
+            <div style={{
+              display: "flex",
+              flexDirection: 'column',
+              alignItems: "center"
+            }}>
+              {value.slice(0, displayCount).map((item, index) => (
+                <span key={index} style={{
+                  padding: 5,
+                  width: 600,
+                  textAlign: 'left',
+                  borderRadius: 10,
+                  fontSize: 12,
+                  fontWeight: 'normal',
+                  marginRight: 5,
+                  color: '#000',
+                  backgroundColor: '#f7e7ce',
+                  margin: 5
+                }}>
+                  {item}
+                </span>
+              ))}
+              {value.length > 2 && (
+                <button 
+                  onClick={() => setShowAll(!showAll)}
+                  style={{
+                    margin: '5px',
+                    padding: '5px 10px',
+                    fontSize: '12px',
+                    cursor: 'pointer'
+                  }}
+                >
+                  {showAll ? 'View Less' : `View ${value.length - 2} More`}
+                </button>
+              )}
+            </div>
+          )
+        }
       }
     },
     {
@@ -920,8 +970,9 @@ const APICompliances = () => {
 
     console.log('cat:', cat)
 
-    if (!(uniqueOWASPCats.includes(cat))) {
-      uniqueOWASPCats.push(cat);
+    if (!(uniqueOWASPCats.includes(cat.category))) {
+      uniqueOWASPCats.push({category:cat.category, endpoints:cat.endpoints});
+      
     }
   }
 
@@ -938,9 +989,13 @@ const APICompliances = () => {
 
     dataItem.push(i + 1);
 
-    dataItem.push(uniqueOWASPCats[i]);
+    dataItem.push(uniqueOWASPCats[i].category);
 
-    var compliances = getComplianceMappings(uniqueOWASPCats[i])
+    var compliances = getComplianceMappings(uniqueOWASPCats[i].category)
+
+    console.log('uniqueOWASPCats[i]:', uniqueOWASPCats[i])
+
+    dataItem.push(uniqueOWASPCats[i].endpoints);
 
 
     dataItem.push(compliances.cwe); // Description

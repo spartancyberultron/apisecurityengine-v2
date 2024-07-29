@@ -107,7 +107,7 @@ module.exports.getAllLLMScans = asyncHandler(async (req, res) => {
     // Calculate the skip value based on the pageNumber and pageSize
     const skip = (pageNumber - 1) * pageSize;
 
-    const llmScans = await LLMScan.find({ user: req.user._id })
+    const llmScans = await LLMScan.find({ user: req.user._id }).populate('orgProject')
         .sort({ createdAt: -1 })
         .skip(skip)
         .limit(pageSize)
@@ -153,14 +153,16 @@ module.exports.startLLMScan = asyncHandler(async (req, res) => {
 
     const user = await User.findById(req.user._id);
 
-    const { scanName, selectedProbes, modelHubKey, modelName } = req.body;   
+    const { scanName, selectedProbes, modelHubKey, modelName, projectId } = req.body;   
 
     const newScan = new LLMScan({
         scanName: scanName,
         user: user._id,
         probes:selectedProbes,
         modelHubKey:modelHubKey,
-        modelName:modelName,        
+        modelName:modelName,
+        orgProject:projectId,
+        status:'in progress'        
     });
 
     await newScan.save();        

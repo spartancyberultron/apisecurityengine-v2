@@ -1,0 +1,38 @@
+<html>
+
+<body>
+
+   <p> To analyze the cost and impact of a data breach specifically for the LLM01: Prompt Injection scenario, we use the STRIDE and DREAD threat modeling models. This scenario involves manipulating a Large Language Model (LLM) through crafted inputs to perform unintended actions.</p>
+    
+    <p>Here’s a breakdown of the STRIDE and DREAD analysis:</p>
+
+<h3>STRIDE</h3>
+<ul>
+<li>Spoofing: (Medium) A malicious prompt could be crafted to impersonate a legitimate user or system, potentially leading to unauthorized access.</li>
+<li>Tampering: (Critical) Prompt injection directly tampers with the intended behavior of the LLM, causing it to generate outputs or perform actions not originally designed.</li>
+<li>Repudiation: (Low) Repudiating an action caused by prompt injection might be difficult, as the malicious prompt could be easily hidden.</li>
+<li>Information Disclosure: (High) Prompt injection could be used to trick the LLM into revealing sensitive information it shouldn't, such as user data or internal system details.</li>
+<li>Denial of Service: (Medium) In some cases, a large number of malicious prompts could overload the LLM and prevent legitimate users from accessing it (DoS).</li>
+<li>Elevation of Privilege: (Low) Prompt injection itself doesn't directly elevate privileges, but it could be used to gain unauthorized access to privileged information (indirect privilege escalation).</li>
+</ul>
+
+<h3>DREAD</h3>
+<ul>
+<li>Damage: (High) Prompt injection can lead to significant damage depending on the attacker's goals. Leaked data, compromised systems, and manipulated outputs can cause severe consequences.</li>
+<li>Reproducibility: (High) Crafting malicious prompts is often relatively easy, making this vulnerability highly reproducible.</li>
+<li>Exploitability: (Medium) The exploitability depends on the specific implementation of the LLM and the security measures in place. However, the potential benefits for attackers make it a likely target.</li>
+<li>Affected Users: (High) Any user interacting with the LLM could be impacted by a successful prompt injection attack.</li>
+<li>Discoverability: (Medium) Prompt injection might be difficult to detect automatically, but security monitoring and code reviews can help identify suspicious activity.</li>
+</ul>
+
+<h3>Criticality by Category</h3>
+<ul>
+<li>Critical: Information Disclosure (STRIDE), Damage (DREAD)</li>
+<li>High: Spoofing (STRIDE), Tampering (STRIDE), Reproducibility (DREAD), Exploitability (DREAD), Affected Users (DREAD)</li>
+<li>Medium: Tampering (STRIDE), Denial of Service (STRIDE), Elevation of Privilege (STRIDE), Denial of Service (DREAD)</li>
+<li>Low: Repudiation (STRIDE), Discoverability (DREAD)</li>
+</ul>
+
+</body>
+
+</html>

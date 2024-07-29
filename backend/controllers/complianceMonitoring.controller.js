@@ -10,6 +10,7 @@ const LLMScan = require('../models/llmScan.model');
 const ActiveScanVulnerability = require('../models/activescanvulnerability.model');
 
 const Vulnerability = require('../models/vulnerability.model');
+const ApiEndpoint = require('../models/apiendpoint.model');
 
 
 module.exports.getLLMCompliances = asyncHandler(async (req, res) => {
@@ -59,13 +60,36 @@ module.exports.getAPICompliances = asyncHandler(async (req, res) => {
   }).exec();
 
 
-
   var owaspCategories = [];
 
   for(var i=0;i<uniqueVulnerabilities.length;i++){
 
     for(var j=0;j<uniqueVulnerabilities[i].owasp.length;j++){
-        owaspCategories.push(uniqueVulnerabilities[i].owasp[j])
+
+        var obj = {};
+        obj.category = uniqueVulnerabilities[i].owasp[j];
+
+        const relevantEndpoints = await ApiEndpoint.find({
+          _id: {
+            $in: await ActiveScanVulnerability.distinct('endpoint', {
+              vulnerability: {
+                $in: await Vulnerability.find({
+                  'owasp': { $regex: uniqueVulnerabilities[i].owasp[j], $options: 'i' }
+                }).distinct('_id')
+              }
+            })
+          }
+        }).exec();
+
+        console.log('relevantEndpoints:',relevantEndpoints)
+
+
+        const endpointUrls = relevantEndpoints.map(endpoint => endpoint.url);
+
+
+        obj.endpoints = endpointUrls;
+        
+        owaspCategories.push(obj)
     }
   }
 

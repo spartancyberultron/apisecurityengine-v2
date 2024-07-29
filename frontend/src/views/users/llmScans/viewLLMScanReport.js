@@ -37,14 +37,67 @@ const ViewLLMScanReport = () => {
   const [llmScan, setLLMScan] = useState(null)
   const [onLoading, setOnLoading] = useState(true); 
 
-  const [exportingPDF, setExportingPDF] = useState(false);
+  const [modalIsOpen, setModalIsOpen] = React.useState(false);
+  const [currentVulnerability, setCurrentVulnerability] = React.useState(null);
+  const [costOfBreachModalIsOpen, setCostOfBreachModalIsOpen] = React.useState(false);
+  const [reasonEmptyError, setReasonEmptyError] = useState(false);
 
+  const [currentVulnForRiskAcceptance, setCurrentVulnForRiskAcceptance] = React.useState(null);
+  const [submittingReason, setSubmittingReason] = useState(false);
+
+  const [exportingPDF, setExportingPDF] = useState(false);
+  const [acceptanceModalIsOpen, setAcceptanceModalIsOpen] = useState(false);
+  const [riskAcceptance, setRiskAcceptance] = useState("No");
+  const [reason, setReason] = useState('');
   const toaster = useRef()
   const exampleToast = (
     <CToast>
       <CToastBody>Success</CToastBody>
     </CToast>
   ) 
+
+
+  const customStyles1 = {
+    overlay: {
+      backgroundColor: 'rgba(0, 0, 0, 0.5)'
+    },
+    content: {
+      top: '50%',
+      left: '50%',
+      right: 'auto',
+      bottom: 'auto',
+      marginRight: '-50%',
+      transform: 'translate(-50%, -50%)',
+      padding: '20px',
+      borderRadius: '10px',
+      maxWidth: '1000px',
+      width: '90%',
+      maxHeight: '80%',
+      overflowY: 'auto'
+    }
+  };
+
+  const customStyles2 = {
+    content: {
+      top: '10%',
+      left: '20%',
+      width: '70%',
+      right: 'auto',
+      bottom: 'auto',
+      maxHeight: '80%',
+      height: '80%',
+      backgroundColor: '#c2eef4',
+      borderRadius: 15,
+      borderColor: 'yellow',
+      zIndex: 10000
+    },
+  };
+
+  const closeAcceptanceModal = async () => {
+
+    setAcceptanceModalIsOpen(false);
+
+  };
 
 
   function getVulnerabilityDetails(probe) {
@@ -169,93 +222,107 @@ const ViewLLMScanReport = () => {
     return vulnerabilities[probe] || null;
 }
 
+const handleDropdownChange = (event) => {
+
+  console.log('event.target.value:',event.target.value)
+  setRiskAcceptance(event.target.value);
+};
 
 
- function getComplianceMappings(owaspCategory){
+const openCostOfBreachModal = async (value) => {
 
-    switch (owaspCategory) {
-      case 'LLM01:2023 - Prompt Injections':
-        return {
-          iso27001: ["A.14.2.1 Secure Development Policy", "A.14.2.5 System Security Testing"],
-          nistCSF: ["ID.AM-1: Physical devices and systems within the organisation are inventoried.", "PR.PT-3: The principle of least functionality is incorporated by configuring systems to provide only essential capabilities."],
-          gdpr: ["Article 32: Security of processing - This article requires the implementation of appropriate technical and organisational measures to ensure a level of security appropriate to the risk, including protection against unauthorised or unlawful processing."],
-          pciDSS: ["PCI DSS Requirement 6.5: Protect all systems against common coding vulnerabilities by following secure coding guidelines to prevent injection flaws."],
-          hipaa: ["164.312(a)(1) Access Control: Implement technical policies and procedures for electronic information systems that maintain electronic protected health information to allow access only to those persons or software programs that have been granted access rights."],
-          mitreATTACK: ["Technique ID T1193: Spear Phishing Attachment - Attackers could use prompt injections to craft inputs designed to produce malicious outputs from an LLM."],
-          nist80053: ["SI-10 (Information Input Validation): Check information for accuracy, completeness, and validity.", "SC-18 (Mobile Code): Control and monitor the use of mobile code."],
-          asvs: ["V5: Validation, Sanitization, and Encoding - Requirements for input validation to prevent injection attacks."],
-          cmmc: ["CMMC Level 3, Access Control (AC.3.012): Employ the principle of least privilege, including for specific security functions and privileged accounts."],
-          ccpa: ["CCPA Section 1798.81.5 - Duty to implement and maintain reasonable security procedures and practices."],
-          fips: ["FIPS 140-2 or FIPS 140-3 (pertaining to the security requirements for cryptographic modules that could be used to protect against injection attacks)."],
-          fisma: ["SI-10 (Information Input Validation): Validates user input to prevent malicious data from impacting the system."],
-          rbiCSF: ["Cyber Security Policy - A mandate for comprehensive cybersecurity policies covering prompt injection risk and mitigation."]
-        };
-      case 'LLM02:2023 - Data Leakage':
-        return {
-          iso27001: ["A.8.2.1 Classification of Information", "A.9.4.1 Control of Privileged Access Rights"],
-          nistCSF: ["PR.DS-1: Data-at-rest is protected.", "PR.DS-2: Data-in-transit is protected."],
-          gdpr: ["Article 5(1)(f): Integrity and confidentiality - Personal data must be processed in a manner that ensures appropriate security, including protection against unauthorised or unlawful processing and against accidental loss, destruction, or damage."],
-          pciDSS: ["PCI DSS Requirement 3: Protect stored cardholder data and encrypt transmission of cardholder data across open, public networks."],
-          hipaa: ["164.312(e)(1) Transmission Security: Implement technical security measures to guard against unauthorised access to electronic protected health information that is being transmitted over an electronic communications network."],
-          mitreATTACK: ["Technique ID T1530: Data from Cloud Storage Object - Unintentional or unauthorised data leakage might involve improper access to cloud-stored data."],
-          nist80053: ["AC-3 (Access Enforcement): Enforce approved authorizations for logical access to information and system resources.", "SC-8 (Transmission Confidentiality and Integrity): Protect the confidentiality and integrity of transmitted information."],
-          asvs: ["V9: Data Protection - Requirements for protecting data at rest and in transit."],
-          cmmc: ["CMMC Level 3, System and Communication Protection (SC.3.177): Monitor, control, and protect organisational communications at external boundaries and key internal boundaries of information systems."],
-          ccpa: ["CCPA Section 1798.150 - Civil damages for unauthorised access and exfiltration, theft, or disclosure due to a business's violation of the duty to implement and maintain reasonable security procedures and practices."],
-          fips: ["FIPS 199 and FIPS 200 (establishing security categories and specifying security requirements for federal information and information systems)."],
-          fisma: ["AC-4 (Information Flow Enforcement): Enforces approved authorizations for controlling the flow of information within the system and between interconnected systems."],
-          rbiCSF: ["Data Leak Prevention - Guidelines for preventing unauthorised disclosure of sensitive financial data."]
-        };
-      case 'LLM 03:2023 - Inadequate Sandboxing':
-        return {
-          iso27001: ["A.12.1.4 Protection of Test Data", "A.13.1.1 Network Controls"],
-          nistCSF: ["PR.PT-4: Communications and control networks are protected.", "DE.CM-7: Monitoring for unauthorised personnel, connections, devices, and software is performed."],
-          gdpr: ["Article 25: Data protection by design and by default - This article requires the implementation of appropriate technical and organisational measures, such as pseudonymization, which are designed to implement data-protection principles."],
-          pciDSS: ["PCI DSS Requirement 2.2: Develop configuration standards for all system components. Assure that these standards address all known security vulnerabilities and are consistent with industry-accepted system hardening standards."],
-          hipaa: ["164.306(a) Security Standards: General Rules: Ensure the confidentiality, integrity, and availability of all electronic protected health information the covered entity creates, receives, maintains, or transmits."],
-          mitreATTACK: ["Technique ID T1562.001: Impair Defences: Disable or Modify Tools - If sandboxing mechanisms are inadequate, an attacker might disable or bypass them."],
-          nist80053: ["SC-39 (Process Isolation): Isolate security-critical processes by implementing sandboxing."],
-          asvs: ["V14: Configuration - Requirements for secure application configuration, including sandboxing environments."],
-          cmmc: ["CMMC Level 3, System and Information Integrity (SI.3.218): Employ sandboxing to detect or block potentially malicious email."],
-          ccpa: ["CCPA Section 1798.81.5 - Duty to implement and maintain reasonable security procedures and practices appropriate to the nature of the information to protect the personal information."],
-          fips: ["FIPS 140-2 or FIPS 140-3 (which might address aspects of secure execution in environments that could include sandboxing)."],
-          fisma: ["SC-39 (Process Isolation): Provides security by isolating and sandboxing operations."],
-          rbiCSF: ["Application Security - Requirements for application-level security controls, including effective sandboxing."]
-        };
-      case 'LLM 04:2023 - Unauthorised Code Execution':
-        return {
-          iso27001: ["A.12.5.1 Installation of Software on Operational Systems", "A.13.2.1 Information Transfer Policies and Procedures"],
-          nistCSF: ["PR.IP-1: A baseline configuration of information technology/industrial control systems is created and maintained.", "DE.AE-2: Detected events are analysed to understand attack targets and methods."],
-          gdpr: ["Article 32: Security of processing - Measures should be taken to prevent unauthorised processing, access, disclosure, alteration, or destruction of personal data."],
-          pciDSS: ["PCI DSS Requirement 6.2: Ensure that all system components and software are protected from known vulnerabilities by installing applicable vendor-supplied security patches."],
-          hipaa: ["164.308(a)(5)(ii)(B) Protection from Malicious Software: Procedures for guarding against, detecting, and reporting malicious software."],
-          mitreATTACK: ["Technique ID T1203: Exploitation for Client Execution - An attacker could exploit vulnerabilities to execute unauthorised code on a client’s system."],
-          nist80053: ["SI-3 (Malicious Code Protection): Implement measures to detect and prevent malicious code execution."],
-          asvs: ["V1: Architecture, Design and Threat Modeling - Requirements for secure design to prevent unauthorised code execution."],
-          cmmc: ["CMMC Level 3, System and Information Integrity (SI.3.220): Employ spam protection mechanisms at information system access points."],
-          ccpa: ["CCPA Section 1798.81.5 - Duty to implement and maintain reasonable security procedures and practices against unauthorised access to, or unauthorised disclosure of, personal information."],
-          fips: ["FIPS 140-2 or FIPS 140-3 (security requirements for cryptographic modules, which may prevent unauthorised code execution if properly implemented)."],
-          fisma: ["SI-7 (Software, Firmware, and Information Integrity): Ensures software and information integrity to prevent unauthorised code execution."],
-          rbiCSF: ["Malware Protection - Measures to protect against malware and unauthorised code execution."]
-        };
-      default:
-        return {
-          iso27001: [],
-          nistCSF: [],
-          gdpr: [],
-          pciDSS: [],
-          hipaa: [],
-          mitreATTACK: [],
-          nist80053: [],
-          asvs: [],
-          cmmc: [],
-          ccpa: [],
-          fips: [],
-          fisma: [],
-          rbiCSF: []
-        };
+  setCurrentVulnerability(value);
+
+  setCostOfBreachModalIsOpen(true);
+};
+
+
+
+const closeCostOfBreachModal = async () => {
+
+  setCostOfBreachModalIsOpen(false);
+};
+
+
+  const handleAcceptanceSave = async() => {
+
+    /*
+
+    if(reason == ''){
+      setReasonEmptyError(true);
+
+    }else{
+
+      setSubmittingReason(true);    
+
+      const data = {
+        activeScanVulnId: currentVulnForRiskAcceptance._id,
+        riskAcceptance:riskAcceptance,
+        riskAcceptanceReason:reason
+      };
+
+
+      const token = localStorage.getItem('ASIToken');
+      const response = await axios.post('api/v1/users/updateRiskAcceptanceForAnActiveScanVulnerability', data, {
+          headers: { Authorization: `Bearer ${token}` },
+      });
+
+      console.log('response.data.data:',response.data.data)
+
+      if(response.data.data){
+
+        setActiveScan((prevState) => ({
+          ...prevState,
+          vulnerabilities: prevState.vulnerabilities.map((vuln) => {
+            if (vuln._id === currentVulnForRiskAcceptance._id) {
+              return {
+                ...vuln,
+                riskAcceptance: riskAcceptance,
+                riskAcceptanceReason: reason,
+              };
+            }
+            return vuln;
+          }),
+        }));
+
+        setAcceptanceModalIsOpen(false);
+
+        setRiskAcceptance('No');
+        setReason("");
+        setSubmittingReason(false)
+
+      }     
+      
     }
- }
+
+    */
+
+    setAcceptanceModalIsOpen(false);
+
+    setRiskAcceptance('No');
+    setReason("");
+    setSubmittingReason(false)
+    
+
+  };
+  const handleModalOpen = (value) => {
+
+    setCurrentVulnForRiskAcceptance(value);
+
+    if(value.riskAcceptance && value.riskAcceptance == 'Yes'){
+      setRiskAcceptance(value.riskAcceptance);
+    }else{
+      setRiskAcceptance("No")
+    }    
+
+    if(value.riskAcceptanceReason && value.riskAcceptanceReason.length> 0){
+      setReason(value.riskAcceptanceReason);
+    }else{
+      setReason("")
+    }
+
+    setAcceptanceModalIsOpen(true);
+  };
 
 
   useEffect(() => {
@@ -277,6 +344,14 @@ const ViewLLMScanReport = () => {
   useEffect(() => {
 
   }, [onLoading]);
+
+  const openRemediationModal = async (value) => {
+
+    setCurrentVulnerability(value);
+
+    setModalIsOpen(true);
+  };
+
 
 
   const loadScanDetails = async (theScanId) => {
@@ -407,6 +482,93 @@ const ViewLLMScanReport = () => {
         }
       }
     },
+    {
+      label: "Remediations",
+      options: {
+        filter: false,
+        download: false,
+        customBodyRender: (value, tableMeta, updateValue) => {
+          return (
+            <div style={{
+              display: "flex",
+              alignItems: "center"
+            }} >
+
+              <CButton color="primary" variant="outline"
+                onClick={() => openRemediationModal(value)}
+                className="primaryButton" style={{ fontSize: 13, color: 'white', width:200 }}>View Remediations
+              </CButton>
+
+            </div>
+          )
+        }
+      }
+    },
+    {
+      label: "Cost of Breach",
+      options: {
+        filter: false,
+        download: false,
+        customBodyRender: (value, tableMeta, updateValue) => {
+          return (
+            <div style={{
+              display: "flex",
+              alignItems: "center",
+              flexDirection:'column'
+            }} >
+
+             
+
+              <CButton color="primary" variant="outline"
+                onClick={() => openCostOfBreachModal(value)}
+                className="primaryButton" style={{ fontSize: 13, color: 'white', width:200,
+                backgroundColor:'#00bad1', borderColor:'#00bad1' }}>View Cost of Breach
+              </CButton>
+
+            </div>
+          )
+        }
+      }
+    },     
+    {
+      label: "Risk Acceptance",
+      options: {
+        filter: true,
+        download: true,
+        customBodyRender: (value, tableMeta, updateValue) => {
+          return (
+            <div style={{
+              display: "flex",
+              alignItems: "center",
+              flexDirection:'column',
+            }} >
+
+              {value.riskAcceptance && value.riskAcceptance == 'Yes' ?
+
+                <span style={{backgroundColor:'#28c76f', color:'#fff', padding: 5,
+                width: 120,
+                textAlign: 'center',
+                borderRadius: 10,
+                fontSize: 12,
+                fontWeight: 'normal',
+                marginRight: 5,                
+                margin:5}} onClick={() => handleModalOpen(value)}>Yes  &nbsp;&nbsp;&nbsp;<CiEdit size={20}/></span>
+                :
+                <span style={{backgroundColor:'#ea5455', color:'#fff', padding: 5,
+                width: 120,
+                textAlign: 'center',
+                borderRadius: 10,
+                fontSize: 12,
+                fontWeight: 'normal',
+                marginRight: 5,                
+                margin:5}} onClick={() => handleModalOpen(value)}>No  &nbsp;&nbsp;&nbsp;<CiEdit size={20}/></span>
+              }
+              
+            </div>
+          )
+        }
+      }
+    },
     
 
   ];
@@ -480,6 +642,10 @@ const ViewLLMScanReport = () => {
       dataItem.push([vulnDetails.owasp]); // OWASP
       dataItem.push(vulnDetails.cwe); // CWE
 
+      dataItem.push(vulnDetails); // for cost of breach
+      dataItem.push(vulnDetails); // for remediations
+
+      dataItem.push(vulnDetails); // For risk acceptance
       
 
       tableData.push(dataItem);
@@ -738,6 +904,144 @@ const ViewLLMScanReport = () => {
        
 
       </>
+
+      <Modal
+          isOpen={costOfBreachModalIsOpen}
+          onRequestClose={closeCostOfBreachModal}
+          style={customStyles2}
+          contentLabel="Cost of Breach"
+        >
+
+          <button style={{ float: 'right', backgroundColor: 'transparent', borderWidth: 0 }} onClick={closeCostOfBreachModal} >
+            <AiFillCloseCircle size={30} color={'#000'} />
+          </button>
+
+         
+
+          {currentVulnerability &&
+
+            <div className="modalWindow" style={{ backgroundColor: '#c2eef4', height:'100%' }}>
+
+            <h4>Cost of Breach for <strong>{currentVulnerability.owasp}</strong></h4>
+
+
+
+            {JSON.stringify(currentVulnerability.owasp).includes('01') || JSON.stringify(currentVulnerability.owasp).includes('01') && (
+   <object type="text/html" data={global.baseUrl + "/breach-cost-html-llm/llm01.html"} width="100%" height="100%"
+   style={{ alignSelf: 'center', borderWidth: 0, marginLeft:'0vw' }}>
+ </object>     
+)}
+
+{(JSON.stringify(currentVulnerability.owasp).includes('02') || JSON.stringify(currentVulnerability.owasp).includes('02')) && ( 
+            <object type="text/html" data={global.baseUrl + "/breach-cost-html-llm/llm02.html"} width="100%" height="100%"
+              style={{ alignSelf: 'center', borderWidth: 0, marginLeft:'0vw' }}>
+            </object>     
+       ) }   
+
+{(JSON.stringify(currentVulnerability.owasp).includes('03') || JSON.stringify(currentVulnerability.owasp).includes('03')) && (       
+       <object type="text/html" data={global.baseUrl + "/breach-cost-html-llm/llm03.html"} width="100%" height="100%"
+              style={{ alignSelf: 'center', borderWidth: 0, marginLeft:'0vw' }}>
+            </object>     
+        )}   
+
+{(JSON.stringify(currentVulnerability.owasp).includes('04') || JSON.stringify(currentVulnerability.owasp).includes('04')) && (       
+
+            <object type="text/html" data={global.baseUrl + "/breach-cost-html-llm/llm04.html"} width="100%" height="100%"
+              style={{ alignSelf: 'center', borderWidth: 0, marginLeft:'0vw' }}>
+            </object>     
+       ) }   
+
+{(JSON.stringify(currentVulnerability.owasp).includes('05') || JSON.stringify(currentVulnerability.owasp).includes('05')) && (       
+
+            <object type="text/html" data={global.baseUrl + "/breach-cost-html-llm/llm05.html"} width="100%" height="100%"
+              style={{ alignSelf: 'center', borderWidth: 0, marginLeft:'0vw' }}>
+            </object>     
+       ) }   
+
+{(JSON.stringify(currentVulnerability.owasp).includes('06') || JSON.stringify(currentVulnerability.owasp).includes('06')) && (       
+
+            <object type="text/html" data={global.baseUrl + "/breach-cost-html-llm/llm06.html"} width="100%" height="100%"
+              style={{ alignSelf: 'center', borderWidth: 0, marginLeft:'0vw' }}>
+            </object>     
+        )}   
+
+{(JSON.stringify(currentVulnerability.owasp).includes('07') || JSON.stringify(currentVulnerability.owasp).includes('07')) && (       
+            <object type="text/html" data={global.baseUrl + "/breach-cost-html-llm/llm07.html"} width="100%" height="100%"
+              style={{ alignSelf: 'center', borderWidth: 0, marginLeft:'0vw' }}>
+            </object>     
+        )}   
+
+{(JSON.stringify(currentVulnerability.owasp).includes('08') || JSON.stringify(currentVulnerability.owasp).includes('08')) && (       
+            <object type="text/html" data={global.baseUrl + "/breach-cost-html-llm/llm08.html"} width="100%" height="100%"
+              style={{ alignSelf: 'center', borderWidth: 0, marginLeft:'0vw' }}>
+            </object>     
+        )}   
+
+{(JSON.stringify(currentVulnerability.owasp).includes('09') || JSON.stringify(currentVulnerability.owasp).includes('09')) && (       
+
+            <object type="text/html" data={global.baseUrl + "/breach-cost-html-llm/llm09.html"} width="100%" height="100%"
+              style={{ alignSelf: 'center', borderWidth: 0, marginLeft:'0vw' }}>
+            </object>     
+        )}   
+
+{(JSON.stringify(currentVulnerability.owasp).includes('10') || JSON.stringify(currentVulnerability.owasp).includes('10')) && (       
+
+            <object type="text/html" data={global.baseUrl + "/breach-cost-html-llm/llm10.html"} width="100%" height="100%"
+              style={{ alignSelf: 'center', borderWidth: 0, marginLeft:'0vw' }}>
+            </object>     
+       ) }    
+
+ 
+
+            </div>
+          }
+
+
+        </Modal>    
+
+         <Modal
+          isOpen={acceptanceModalIsOpen}
+          onRequestClose={closeAcceptanceModal}
+          style={customStyles1}
+          contentLabel="Risk Acceptance"
+          ariaHideApp={false}
+    >
+      <button style={{ float: 'right', backgroundColor: 'transparent', borderWidth: 0 }} onClick={closeAcceptanceModal}>
+        <AiFillCloseCircle size={30} color={'#000'} />
+      </button>
+
+      {currentVulnForRiskAcceptance && (
+        <div className="modalWindow" style={{ backgroundColor: '#fff', padding:10 }}>
+          <h5 style={{ color: '#000' }}>{currentVulnForRiskAcceptance.vulnerability}</h5>
+          <p style={{ color: '#000' }}>{currentVulnForRiskAcceptance.description}</p>
+          <hr/>
+          <div style={{ marginTop: 20 }}>
+            <label>Risk Accepted?</label><br/>
+            <select onChange={handleDropdownChange} style={{ padding:5, width:'100%'}} value={riskAcceptance}>              
+                <option value="No">No</option>
+                <option value="Yes">Yes</option>
+            </select>
+            <textarea
+              value={reason}
+              onChange={(e) => setReason(e.target.value)}
+              placeholder="Please enter a reason"
+              style={{ width: '100%', marginTop: '10px', padding:5 }}
+            />
+
+{reasonEmptyError &&
+            <span style={{color:'red', fontSize:12, display:'flex'}}>Please enter a reason</span>
+}
+
+            <button className="primaryButton" disabled={submittingReason}
+                    onClick={handleAcceptanceSave} 
+                    style={{borderRadius:5, marginTop:10}}>
+                      Save Risk Acceptance
+            </button>
+          </div>
+        </div>
+      )}
+    </Modal>    
+
 
     </div>
   )

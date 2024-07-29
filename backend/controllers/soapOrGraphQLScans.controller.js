@@ -25,13 +25,11 @@ module.exports.getAllSOAPOrGraphQLScans = asyncHandler(async (req, res) => {
     // Calculate the skip value based on the pageNumber and pageSize
     const skip = (pageNumber - 1) * pageSize;
 
-    const soapOrGraphQLScans = await SOAPOrGraphQLScan.find({ user: req.user._id })
+    const soapOrGraphQLScans = await SOAPOrGraphQLScan.find({ user: req.user._id }).populate('orgProject')
         .sort({ createdAt: -1 })
         .skip(skip)
         .limit(pageSize)
         .lean();
-
-
 
 
     for (var i = 0; i < soapOrGraphQLScans.length; i++) {
@@ -534,7 +532,7 @@ module.exports.startSOAPOrGraphQLScan = asyncHandler(async (req, res) => {
 
     const user = await User.findById(req.user._id);
 
-    const { scanName, type, collectionUrl } = req.body;
+    const { scanName, type, collectionUrl, projectId } = req.body;
 
     console.log('req.body:', req.body);
 
@@ -546,7 +544,8 @@ module.exports.startSOAPOrGraphQLScan = asyncHandler(async (req, res) => {
         user: user._id,
         collectionUrl: collectionUrl,
         type: type,
-        status: 'in progress'
+        status: 'in progress',
+        orgProject:projectId
     });
     newScan.save();
 

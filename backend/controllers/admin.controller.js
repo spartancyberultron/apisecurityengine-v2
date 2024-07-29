@@ -6,6 +6,7 @@ const ApiEndpoint = require("../models/apiendpoint.model")
 const ApiCollection = require("../models/apicollection.model")
 const ActiveScanVulnerability = require("../models/activescanvulnerability.model")
 const ActiveScan = require("../models/activescan.model")
+const Organization = require("../models/organization.model")
 
 
 const { User } = require('../models/user.model');
@@ -14,92 +15,87 @@ const bcrypt = require('bcryptjs');
 // Controller function to add a new user
 module.exports.addUser = asyncHandler(async (req, res) => {
 
-    const { firstName, lastName, userName, email, phoneNumber, password } = req.body;
+    const { firstName, lastName, userName, email, phoneNumber, password, organizationName, logoURL } = req.body;
 
-    const userWithEmail = await User.findOne({ email: email });
+    const userWithEmail = await User.findOne({ email });
 
     if (userWithEmail) {
-        res.json({ error: 'This email is already taken' });
-
-    } else {
-
-
-        const hashedPassword = await bcrypt.hash(password, 10); // Encrypt the password using bcrypt
-        const user = new User({
-            firstName,
-            lastName,
-            userName,
-            email,
-            phoneNumber,
-            userType: 'user',
-            status: 'active',
-            password: hashedPassword, // Save the hashed password
-        });
-        await user.save();
-        res.status(201).json(user);
+        return res.status(400).json({ error: 'This email is already taken' });
     }
 
+    const hashedPassword = await bcrypt.hash(password, 10); // Encrypt the password using bcrypt
+    const user = new User({
+        firstName,
+        lastName,
+        userName,
+        email,
+        phoneNumber,
+        userType: 'user',
+        status: 'active',
+        password: hashedPassword, // Save the hashed password
+    });
+
+    const organization = new Organization({
+        name: organizationName,
+        primaryUser: user._id,
+        logoURL: logoURL,  // Set the logo URL
+    });
+
+    user.organization = organization._id;
+
+    await organization.save();
+    await user.save();
+
+    res.status(201).json(user);
 });
+
 
 
 // Controller function to update a user
 module.exports.updateUser = asyncHandler(async (req, res) => {
 
-    const { id, firstName, lastName, email, password } = req.body;
+    const { id, firstName, lastName, email, password, organizationName, logoURL } = req.body;
 
-    let user;
-
-    const userWithEmail = await User.findOne({ email: email });
-    const thisUser = await User.findById(id);    
-
-    if (userWithEmail && thisUser.email !== email) {
-        res.json({ error: 'This email is already taken' });
-    } else {
-
-        if (password !== '') {
-
-            const hashedPassword = await bcrypt.hash(password, 10); // Encrypt the password using bcrypt
-
-            user = await User.findByIdAndUpdate(id, {
-                firstName,
-                lastName,
-                email,
-                userType: 'user',
-                status: 'active',
-                hashedPassword
-            }, { new: true });
-
-        } else {
-
-            const hashedPassword = await bcrypt.hash(password, 10); // Encrypt the password using bcrypt
-
-
-            user = await User.findByIdAndUpdate(id, {
-                firstName,
-                lastName,
-                email,
-                userType: 'user',
-                status: 'active',
-            }, { new: true });
-
-        }
-
-
-        if (!user) {
-            return res.status(404).json({ error: 'User not found.' });
-        }
-        res.json(user);
-
+    let user = await User.findById(id);
+    if (!user) {
+        return res.status(404).json({ error: 'User not found.' });
     }
 
+    const userWithEmail = await User.findOne({ email });
+    if (userWithEmail && userWithEmail.id !== id) {
+        return res.status(400).json({ error: 'This email is already taken' });
+    }
+
+    if (password) {
+        user.password = await bcrypt.hash(password, 10); // Encrypt the password using bcrypt
+    }
+
+    user.firstName = firstName;
+    user.lastName = lastName;
+    user.email = email;
+
+    const organization = await Organization.findById(user.organization);
+    if (organization) {
+        organization.name = organizationName;
+        organization.logoURL = logoURL;
+        await organization.save();
+    }
+
+    await user.save();
+
+    res.json(user);
 });
 
 // Controller function to load a user
 module.exports.loadUser = asyncHandler(async (req, res) => {
 
-    const { id } = req.body;    
+    const { id } = req.body;   
+    
+    console.log('id:',id)
 
-    const user = await User.findById(id);
+    const user = await User.findById(id).populate('organization');
+
+    console.log('user:',user)
   
     res.json(user);
 
@@ -128,7 +124,7 @@ module.exports.listAllUsers = asyncHandler(async (req, res) => {
 
 
    // try {
-        const users = await User.find();
+        const users = await User.find().populate('organization');
         res.json(users);
     //} catch (error) {
         //res.status(500).json({ error: error });

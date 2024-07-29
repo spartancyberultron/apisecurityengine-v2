@@ -7,11 +7,13 @@ import {  useNavigate } from 'react-router-dom'
 
 import axios from 'axios';
 
+import { CiEdit } from "react-icons/ci";
 
 
 import { IoMdArrowRoundBack } from "react-icons/io";
 import { ShimmerTable, ShimmerTitle, ShimmerCircularImage } from "react-shimmer-effects";
-
+import Modal from 'react-modal';
+import { AiFillCloseCircle } from "react-icons/ai";
 
 const ViewSOAPGraphQLScanReport = () => {
 
@@ -23,9 +25,17 @@ const ViewSOAPGraphQLScanReport = () => {
   const [userId, setUserId] = useState('')
   const [soapOrGraphQLScan, setSoapOrGraphQLScan] = useState(null)
   const [onLoading, setOnLoading] = useState(true); 
+  const [modalIsOpen, setModalIsOpen] = React.useState(false);
+  const [currentVulnerability, setCurrentVulnerability] = React.useState(null);
+  const [costOfBreachModalIsOpen, setCostOfBreachModalIsOpen] = React.useState(false);
+  const [reasonEmptyError, setReasonEmptyError] = useState(false);
 
+  const [currentVulnForRiskAcceptance, setCurrentVulnForRiskAcceptance] = React.useState(null);
+  const [submittingReason, setSubmittingReason] = useState(false);
   const [exportingPDF, setExportingPDF] = useState(false);
-
+  const [acceptanceModalIsOpen, setAcceptanceModalIsOpen] = useState(false);
+  const [riskAcceptance, setRiskAcceptance] = useState("No");
+  const [reason, setReason] = useState('');
   const toaster = useRef()
   const exampleToast = (
     <CToast>
@@ -49,9 +59,76 @@ const ViewSOAPGraphQLScanReport = () => {
 
   }, []);
 
+  const handleDropdownChange = (event) => {
+
+    console.log('event.target.value:',event.target.value)
+    setRiskAcceptance(event.target.value);
+  };
+
+  const closeAcceptanceModal = async () => {
+
+    setAcceptanceModalIsOpen(false);
+
+  };
+
+  const customStyles1 = {
+    overlay: {
+      backgroundColor: 'rgba(0, 0, 0, 0.5)'
+    },
+    content: {
+      top: '50%',
+      left: '50%',
+      right: 'auto',
+      bottom: 'auto',
+      marginRight: '-50%',
+      transform: 'translate(-50%, -50%)',
+      padding: '20px',
+      borderRadius: '10px',
+      maxWidth: '1000px',
+      width: '90%',
+      maxHeight: '80%',
+      overflowY: 'auto'
+    }
+  };
+
+  const customStyles2 = {
+    content: {
+      top: '10%',
+      left: '20%',
+      width: '70%',
+      right: 'auto',
+      bottom: 'auto',
+      maxHeight: '80%',
+      height: '80%',
+      backgroundColor: '#c2eef4',
+      borderRadius: 15,
+      borderColor: 'yellow',
+      zIndex: 10000
+    },
+  };
+
   useEffect(() => {
 
   }, [onLoading]);
+
+  const handleModalOpen = (value) => {
+
+    setCurrentVulnForRiskAcceptance(value);
+
+    if(value.riskAcceptance && value.riskAcceptance == 'Yes'){
+      setRiskAcceptance(value.riskAcceptance);
+    }else{
+      setRiskAcceptance("No")
+    }    
+
+    if(value.riskAcceptanceReason && value.riskAcceptanceReason.length> 0){
+      setReason(value.riskAcceptanceReason);
+    }else{
+      setReason("")
+    }
+
+    setAcceptanceModalIsOpen(true);
+  };
 
 
   const loadScanDetails = async (theScanId) => {
@@ -70,12 +147,97 @@ const ViewSOAPGraphQLScanReport = () => {
     setOnLoading(false);
 
   };  
+
+  const openRemediationModal = async (value) => {
+
+    setCurrentVulnerability(value);
+
+    setModalIsOpen(true);
+  };
   
 
   const goBack = async () => {
 
     navigate('/soap-graphql-scans')
   }
+
+  const openCostOfBreachModal = async (value) => {
+
+    setCurrentVulnerability(value);
+  
+    setCostOfBreachModalIsOpen(true);
+  };
+  
+  
+  
+  const closeCostOfBreachModal = async () => {
+  
+    setCostOfBreachModalIsOpen(false);
+  };
+  
+  
+    const handleAcceptanceSave = async() => {
+
+      /*
+  
+      if(reason == ''){
+        setReasonEmptyError(true);
+  
+      }else{
+  
+        setSubmittingReason(true);    
+  
+        const data = {
+          activeScanVulnId: currentVulnForRiskAcceptance._id,
+          riskAcceptance:riskAcceptance,
+          riskAcceptanceReason:reason
+        };
+  
+  
+        const token = localStorage.getItem('ASIToken');
+        const response = await axios.post('api/v1/users/updateRiskAcceptanceForAnActiveScanVulnerability', data, {
+            headers: { Authorization: `Bearer ${token}` },
+        });
+  
+        console.log('response.data.data:',response.data.data)
+  
+        if(response.data.data){
+  
+          setActiveScan((prevState) => ({
+            ...prevState,
+            vulnerabilities: prevState.vulnerabilities.map((vuln) => {
+              if (vuln._id === currentVulnForRiskAcceptance._id) {
+                return {
+                  ...vuln,
+                  riskAcceptance: riskAcceptance,
+                  riskAcceptanceReason: reason,
+                };
+              }
+              return vuln;
+            }),
+          }));
+  
+          setAcceptanceModalIsOpen(false);
+  
+          setRiskAcceptance('No');
+          setReason("");
+          setSubmittingReason(false)
+  
+        }     
+        
+      }
+
+      */
+
+      setAcceptanceModalIsOpen(false);
+  
+          setRiskAcceptance('No');
+          setReason("");
+          setSubmittingReason(false)
+      
+  
+    };
+  
 
   const columns = [
     {
@@ -174,6 +336,93 @@ const ViewSOAPGraphQLScanReport = () => {
         }
       }
     },
+    {
+      label: "Remediations",
+      options: {
+        filter: false,
+        download: false,
+        customBodyRender: (value, tableMeta, updateValue) => {
+          return (
+            <div style={{
+              display: "flex",
+              alignItems: "center"
+            }} >
+
+              <CButton color="primary" variant="outline"
+                onClick={() => openRemediationModal(value)}
+                className="primaryButton" style={{ fontSize: 13, color: 'white', width:200 }}>View Remediations
+              </CButton>
+
+            </div>
+          )
+        }
+      }
+    },
+    {
+      label: "Cost of Breach",
+      options: {
+        filter: false,
+        download: false,
+        customBodyRender: (value, tableMeta, updateValue) => {
+          return (
+            <div style={{
+              display: "flex",
+              alignItems: "center",
+              flexDirection:'column'
+            }} >
+
+             
+
+              <CButton color="primary" variant="outline"
+                onClick={() => openCostOfBreachModal(value)}
+                className="primaryButton" style={{ fontSize: 13, color: 'white', width:200,
+                backgroundColor:'#00bad1', borderColor:'#00bad1' }}>View Cost of Breach
+              </CButton>
+
+            </div>
+          )
+        }
+      }
+    },     
+    {
+      label: "Risk Acceptance",
+      options: {
+        filter: true,
+        download: true,
+        customBodyRender: (value, tableMeta, updateValue) => {
+          return (
+            <div style={{
+              display: "flex",
+              alignItems: "center",
+              flexDirection:'column',
+            }} >
+
+              {value.riskAcceptance && value.riskAcceptance == 'Yes' ?
+
+                <span style={{backgroundColor:'#28c76f', color:'#fff', padding: 5,
+                width: 120,
+                textAlign: 'center',
+                borderRadius: 10,
+                fontSize: 12,
+                fontWeight: 'normal',
+                marginRight: 5,                
+                margin:5}} onClick={() => handleModalOpen(value)}>Yes  &nbsp;&nbsp;&nbsp;<CiEdit size={20}/></span>
+                :
+                <span style={{backgroundColor:'#ea5455', color:'#fff', padding: 5,
+                width: 120,
+                textAlign: 'center',
+                borderRadius: 10,
+                fontSize: 12,
+                fontWeight: 'normal',
+                marginRight: 5,                
+                margin:5}} onClick={() => handleModalOpen(value)}>No  &nbsp;&nbsp;&nbsp;<CiEdit size={20}/></span>
+              }
+              
+            </div>
+          )
+        }
+      }
+    },
       
 
   ];
@@ -244,6 +493,11 @@ const ViewSOAPGraphQLScanReport = () => {
 
       dataItem.push(soapOrGraphQLScan.vulnerabilities[i].owasp);
       dataItem.push(soapOrGraphQLScan.vulnerabilities[i].cwe);
+
+      dataItem.push(soapOrGraphQLScan.vulnerabilities[i]); // for cost of breach
+      dataItem.push(soapOrGraphQLScan.vulnerabilities[i]); // for remediations
+
+      dataItem.push(soapOrGraphQLScan.vulnerabilities[i]); // For risk acceptance
 
 
       tableData.push(dataItem);
@@ -484,6 +738,144 @@ const ViewSOAPGraphQLScanReport = () => {
 
         </div>   
       </>
+
+      <Modal
+          isOpen={costOfBreachModalIsOpen}
+          onRequestClose={closeCostOfBreachModal}
+          style={customStyles2}
+          contentLabel="Cost of Breach"
+        >
+
+          <button style={{ float: 'right', backgroundColor: 'transparent', borderWidth: 0 }} onClick={closeCostOfBreachModal} >
+            <AiFillCloseCircle size={30} color={'#000'} />
+          </button>
+
+         
+
+          {currentVulnerability &&
+
+            <div className="modalWindow" style={{ backgroundColor: '#c2eef4', height:'100%' }}>
+
+            <h4>Cost of Breach for <strong>{currentVulnerability.owasp[0]}</strong></h4>
+
+
+
+            {JSON.stringify(currentVulnerability.owasp).includes('API1') || JSON.stringify(currentVulnerability.owasp).includes('A1') && (
+   <object type="text/html" data={global.baseUrl + "/breach-cost-html/brokenObjectLevelAuthorization.html"} width="100%" height="100%"
+   style={{ alignSelf: 'center', borderWidth: 0, marginLeft:'0vw' }}>
+ </object>     
+)}
+
+{(JSON.stringify(currentVulnerability.owasp).includes('API2') || JSON.stringify(currentVulnerability.owasp).includes('A2')) && ( 
+            <object type="text/html" data={global.baseUrl + "/breach-cost-html/brokenAuthentication.html"} width="100%" height="100%"
+              style={{ alignSelf: 'center', borderWidth: 0, marginLeft:'0vw' }}>
+            </object>     
+       ) }   
+
+{(JSON.stringify(currentVulnerability.owasp).includes('API3') || JSON.stringify(currentVulnerability.owasp).includes('A3')) && (       
+       <object type="text/html" data={global.baseUrl + "/breach-cost-html/brokenObjectPropertyLevelAuthorization.html"} width="100%" height="100%"
+              style={{ alignSelf: 'center', borderWidth: 0, marginLeft:'0vw' }}>
+            </object>     
+        )}   
+
+{(JSON.stringify(currentVulnerability.owasp).includes('API4') || JSON.stringify(currentVulnerability.owasp).includes('A4')) && (       
+
+            <object type="text/html" data={global.baseUrl + "/breach-cost-html/unrestrictedResourceConsumption.html"} width="100%" height="100%"
+              style={{ alignSelf: 'center', borderWidth: 0, marginLeft:'0vw' }}>
+            </object>     
+       ) }   
+
+{(JSON.stringify(currentVulnerability.owasp).includes('API5') || JSON.stringify(currentVulnerability.owasp).includes('A5')) && (       
+
+            <object type="text/html" data={global.baseUrl + "/breach-cost-html/brokenFunctionLevelAuthorization.html"} width="100%" height="100%"
+              style={{ alignSelf: 'center', borderWidth: 0, marginLeft:'0vw' }}>
+            </object>     
+       ) }   
+
+{(JSON.stringify(currentVulnerability.owasp).includes('API6') || JSON.stringify(currentVulnerability.owasp).includes('A6')) && (       
+
+            <object type="text/html" data={global.baseUrl + "/breach-cost-html/unrestrictedAccessToSensitiveBusinessFlows.html"} width="100%" height="100%"
+              style={{ alignSelf: 'center', borderWidth: 0, marginLeft:'0vw' }}>
+            </object>     
+        )}   
+
+{(JSON.stringify(currentVulnerability.owasp).includes('API7') || JSON.stringify(currentVulnerability.owasp).includes('A7')) && (       
+            <object type="text/html" data={global.baseUrl + "/breach-cost-html/serverSideRequestForgery.html"} width="100%" height="100%"
+              style={{ alignSelf: 'center', borderWidth: 0, marginLeft:'0vw' }}>
+            </object>     
+        )}   
+
+{(JSON.stringify(currentVulnerability.owasp).includes('API8') || JSON.stringify(currentVulnerability.owasp).includes('A8')) && (       
+            <object type="text/html" data={global.baseUrl + "/breach-cost-html/securityMisconfiguration.html"} width="100%" height="100%"
+              style={{ alignSelf: 'center', borderWidth: 0, marginLeft:'0vw' }}>
+            </object>     
+        )}   
+
+{(JSON.stringify(currentVulnerability.owasp).includes('API9') || JSON.stringify(currentVulnerability.owasp).includes('A9')) && (       
+
+            <object type="text/html" data={global.baseUrl + "/breach-cost-html/improperInventoryManagement.html"} width="100%" height="100%"
+              style={{ alignSelf: 'center', borderWidth: 0, marginLeft:'0vw' }}>
+            </object>     
+        )}   
+
+{(JSON.stringify(currentVulnerability.owasp).includes('API10') || JSON.stringify(currentVulnerability.owasp).includes('A10')) && (       
+
+            <object type="text/html" data={global.baseUrl + "/breach-cost-html/unsafeConsumptionOfAPIs.html"} width="100%" height="100%"
+              style={{ alignSelf: 'center', borderWidth: 0, marginLeft:'0vw' }}>
+            </object>     
+       ) }    
+
+ 
+
+            </div>
+          }
+
+
+        </Modal>    
+
+         <Modal
+          isOpen={acceptanceModalIsOpen}
+          onRequestClose={closeAcceptanceModal}
+          style={customStyles1}
+          contentLabel="Risk Acceptance"
+          ariaHideApp={false}
+    >
+      <button style={{ float: 'right', backgroundColor: 'transparent', borderWidth: 0 }} onClick={closeAcceptanceModal}>
+        <AiFillCloseCircle size={30} color={'#000'} />
+      </button>
+
+      {currentVulnForRiskAcceptance && (
+        <div className="modalWindow" style={{ backgroundColor: '#fff', padding:10 }}>
+          <h5 style={{ color: '#000' }}>{currentVulnForRiskAcceptance.testCaseName}</h5>
+          <hr/>
+          <span style={{ color: '#000' }}><strong>Endpoints</strong> : {currentVulnForRiskAcceptance.endpoints.join(',')}</span>
+          <div style={{ marginTop: 20 }}>
+            <label>Risk Accepted?</label><br/>
+            <select onChange={handleDropdownChange} style={{ padding:5, width:'100%'}} value={riskAcceptance}>              
+                <option value="No">No</option>
+                <option value="Yes">Yes</option>
+            </select>
+            <textarea
+              value={reason}
+              onChange={(e) => setReason(e.target.value)}
+              placeholder="Please enter a reason"
+              style={{ width: '100%', marginTop: '10px', padding:5 }}
+            />
+
+{reasonEmptyError &&
+            <span style={{color:'red', fontSize:12, display:'flex'}}>Please enter a reason</span>
+}
+
+            <button className="primaryButton" disabled={submittingReason}
+                    onClick={handleAcceptanceSave} 
+                    style={{borderRadius:5, marginTop:10}}>
+                      Save Risk Acceptance
+            </button>
+          </div>
+        </div>
+      )}
+    </Modal>    
+
     </div>
   )
 }

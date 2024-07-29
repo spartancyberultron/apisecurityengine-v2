@@ -240,6 +240,12 @@ const SOAPGraphQLScans = () => {
       }
     },  
     {
+      label: "Project",
+      options: {
+          filter: true,           
+      }
+    },  
+    {
       label: "Type",
       options: {
           filter: true,           
@@ -424,6 +430,7 @@ const SOAPGraphQLScans = () => {
 
     dataItem.push(i+1);
     dataItem.push(soapOrGraphQLScans[i].scanName);
+    dataItem.push(soapOrGraphQLScans[i].orgProject?soapOrGraphQLScans[i].orgProject.name:'---');
     dataItem.push((soapOrGraphQLScans[i].type).toUpperCase());
 
 

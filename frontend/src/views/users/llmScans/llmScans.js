@@ -237,6 +237,12 @@ const LLMScans = () => {
       options: {
           filter: true,           
       }
+    },  
+    {
+      label: "Project",
+      options: {
+          filter: true,           
+      }
     },   
     {
       label: "Started At",
@@ -414,7 +420,7 @@ const LLMScans = () => {
 
     dataItem.push(i+1);
     dataItem.push(llmScans[i].scanName);
-
+    dataItem.push(llmScans[i].orgProject?llmScans[i].orgProject.name:'---');
 
 
     dataItem.push((new Date(llmScans[i].createdAt)).toLocaleDateString('en-US') + ' - ' + (new Date(llmScans[i].createdAt)).toLocaleTimeString('en-US'));

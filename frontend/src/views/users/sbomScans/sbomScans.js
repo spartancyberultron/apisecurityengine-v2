@@ -238,6 +238,12 @@ const SBOMScans = () => {
       options: {
           filter: true,           
       }
+    },   
+    {
+      label: "Project Name",
+      options: {
+          filter: true,           
+      }
     },      
     {
       label: "Started At",
@@ -419,6 +425,8 @@ const SBOMScans = () => {
 
     dataItem.push(sbomScans[i].index);
     dataItem.push(sbomScans[i].scanName);
+    dataItem.push(sbomScans[i].orgProject?sbomScans[i].orgProject.name:'---');
+
 
     dataItem.push((new Date(sbomScans[i].createdAt)).toLocaleDateString('en-US') 
       + ' - ' + (new Date(sbomScans[i].createdAt)).toLocaleTimeString('en-US'));

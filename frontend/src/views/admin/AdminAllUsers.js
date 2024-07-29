@@ -181,9 +181,10 @@ const AdminAllUsers = () => {
 
   const columns = [
     '',
-    "FIRST NAME",
-    "LAST NAME",
-    "EMAIL",    
+    "Organization",
+    "First Name",
+    "Last Name",
+    "Email",    
     {
       label: "ACTIONS",
       options: {
@@ -200,18 +201,17 @@ const AdminAllUsers = () => {
 
               <CButton color="primary" variant="outline"
                 onClick={() => goToEditUser(value)}
-                className="m-2" style={{width:'25%', fontSize:12, fontWeight:'bold', borderColor:'white', color:'white'}}>Edit</CButton>
+                className="m-2" style={{width:'25%', fontSize:12, fontWeight:'bold', borderColor:'blue', color:'blue'}}>Edit</CButton>
 
              <CButton color="primary" variant="outline"
                 onClick={() => handleClick(value)}
-                className="m-2" style={{width:'25%', fontSize:12, fontWeight:'bold', borderColor:'white', color:'white'}}>Delete</CButton>
+                className="m-2" style={{width:'25%', fontSize:12, fontWeight:'bold', borderColor:'red', color:'red'}}>Delete</CButton>
 
             </div>
           )
         }
       }
-    },
-    
+    },    
 
   ];
 
@@ -299,6 +299,7 @@ const AdminAllUsers = () => {
     var dataItem = [];
 
     dataItem.push(i+1);
+    dataItem.push(users[i].organization?users[i].organization.name:'---');
     dataItem.push(users[i].firstName);
     dataItem.push(users[i].lastName);
     dataItem.push(users[i].email);   
@@ -339,7 +340,7 @@ const AdminAllUsers = () => {
                 marginBottom: '2%',
                 borderWidth: 0,
                 fontSize: 20,
-                background: 'linear-gradient(to right, #241c98, #00bdc1)',
+                background: '#5141e0',
                 paddingTop:15,
                 paddingBottom:10,
                 display:'flex',
@@ -353,7 +354,7 @@ const AdminAllUsers = () => {
               
               <BsPlusCircleFill size={25} style={{ color: '#ffffff', marginRight: 10 }} />
 
-              <span style={{marginLeft:10, fontSize:20}}>ADD USER</span>
+              <span style={{marginLeft:10, fontSize:20, color:'#fff'}}>ADD USER</span>
             </CButton>    
 
           </div>

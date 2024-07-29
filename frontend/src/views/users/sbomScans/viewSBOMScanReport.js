@@ -258,7 +258,8 @@ const ViewSBOMScanReport = () => {
           )
         }
       }
-    },   
+    },  
+     
 
   ];
 
