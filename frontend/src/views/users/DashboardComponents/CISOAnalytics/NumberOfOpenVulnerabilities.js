@@ -38,7 +38,7 @@ const NumberOfOpenVulnerabilities = () => {
       if (localStorage.getItem('vulnerabilities')) {
         setVulnerabilities(JSON.parse(localStorage.getItem('vulnerabilities')));
       } else {
-        setVulnerabilities(true);
+        setVulnerabilities([]);
       }
   
   

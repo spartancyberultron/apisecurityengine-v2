@@ -323,9 +323,8 @@ const Tickets = () => {
     searchOpen: true,
     viewColumns: true,
     selectableRows: false, // <===== will turn off checkboxes in rows
-    rowsPerPage: 20,
-    rowsPerPageOptions: [],
-    pagination: false,
+    rowsPerPageOptions: [20,40,60,100],
+    pagination: true,
     textLabels: {
       body: {
         noMatch: 'No tickets found',

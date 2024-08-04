@@ -68,6 +68,10 @@ module.exports.getTeams = asyncHandler(async (req, res) => {
     const user = await User.findById(req.user._id).populate('organization');
 
     const teams = await Team.find({ organization: user.organization._id })
+  .populate({
+    path: 'users', // The field in the Team schema that references User documents
+    select: 'firstName lastName email' // Optional: specify which fields to return
+  });
 
     res.status(200).json({ success: true, teams });
 });
@@ -109,10 +113,11 @@ module.exports.editTeam = asyncHandler(async (req, res) => {
 
     try {
 
-        const { id, name } = req.body;
+        const { id, name, users } = req.body;
 
         const team = await Team.findById(id);
         team.name = name;
+        team.users = users;
         team.save();
 
         res.status(200).json({ success: true, team });
@@ -157,6 +162,11 @@ module.exports.getWorkspaces = asyncHandler(async (req, res) => {
     const user = await User.findById(req.user._id).populate('organization');
 
     const workspaces = await Workspace.find({ organization: user.organization._id })
+    .populate({
+        path: 'teams', 
+        select: 'name' 
+      });
+
 
 
     res.status(200).json({ success: true, workspaces });
@@ -199,10 +209,11 @@ module.exports.editWorkspace = asyncHandler(async (req, res) => {
 
     try {
 
-        const { id, name } = req.body;
+        const { id, name, teams } = req.body;
 
         const workspace = await Workspace.findById(id);
         workspace.name = name;
+        workspace.teams = teams;
         workspace.save();
 
         res.status(200).json({ success: true, workspace });
@@ -846,4 +857,69 @@ module.exports.getTicketDetails = asyncHandler(async (req, res) => {
     }
 
 
+});
+
+
+// Save organization settings
+module.exports.saveOrganizationSettings = asyncHandler(async (req, res) => {
+
+    const { settings, piiSettings } = req.body;
+
+    const org = await Organization.findOne({ primaryUser: req.user._id });
+    const orgId = org._id;
+
+    console.log('orgId:', orgId);
+
+    console.log('piiSettings:',piiSettings)
+
+    try {
+        // Update the organization settings
+       /* const updatedOrganization = await Organization.findByIdAndUpdate(
+            orgId,
+            {
+                $set: {
+                    'vulnSeverityAndPriority': Object.entries(settings).map(([key, { vulnId, severity, priority }]) => ({
+                        vulnId: Number(vulnId), // Ensure this is a Number as per schema
+                        severity,
+                        priority,
+                    })),
+                    'piiField': piiSettings.map(piiField => ({
+                        piiField,
+                        enabled: true
+                    }))
+                },
+            },
+            { new: true, runValidators: true }
+        ); */
+
+        const updatedOrganization = await Organization.findByIdAndUpdate(
+            orgId,
+            {
+              $set: {
+                'vulnSeverityAndPriority': Object.entries(settings).map(([key, { vulnId, severity, priority }]) => ({
+                  vulnId: Number(vulnId), // Ensure this is a Number as per schema
+                  severity,
+                  priority,
+                })),
+                'piiField': piiSettings.map(piiField => ({
+                  piiField: piiField.piiField, // Assuming this is the correct field name
+                  enabled: piiField.enabled // Ensure this is a Boolean
+                }))
+              }
+            },
+            { new: true, runValidators: true }
+          );
+
+        // Check if organization was found
+        if (!updatedOrganization) {
+            return res.status(404).json({ message: 'Organization not found' });
+        }
+
+        // Send the updated organization data as response
+        res.status(200).json(updatedOrganization);
+    } catch (error) {
+        // Handle errors
+        console.error(error);
+        res.status(500).json({ message: 'Server error' });
+    }
 });

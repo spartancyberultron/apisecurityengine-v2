@@ -242,7 +242,7 @@ const fetchProjects = async () => {
 
               <CFormLabel htmlFor="formFileSm" style={{ marginTop: 30, color: '#000' }}>Collection File URL (Raw)</CFormLabel>
               <br />
-              <span style={{ color: 'blue', fontSize: 13 }}>Please ensure the URL contains only XML/ESDL documents</span><br />
+              <span style={{ color: 'blue', fontSize: 13 }}>Please ensure the URL contains only .xml/.gql/.graphql documents</span><br />
 
               <CInputGroup className="" style={{ flexDirection: 'column' }}>
                 <CFormInput
@@ -259,7 +259,7 @@ const fetchProjects = async () => {
 
 
               <CFormLabel htmlFor="formFileSm" style={{ marginTop: 30, color: '#000', display:'none' }}>Upload a SOAP/GraphQL collection file</CFormLabel><br />
-              <span style={{ color: 'blue', fontSize: 13, display:'none' }}>Please upload only XML/ESDL documents</span><br />
+              <span style={{ color: 'blue', fontSize: 13, display:'none' }}>Please upload only .xml/.gql/.graphql documents</span><br />
 
               <CInputGroup className="" style={{ flexDirection: 'column',display:'none' }}>
                 <CFormInput

@@ -228,7 +228,7 @@ const QuickScans = () => {
 
   const columns = [
     {
-      label: "",
+      label: "#",
       options: {
           filter: false,           
       }
@@ -242,7 +242,7 @@ const QuickScans = () => {
     {
       label: "Collection",
       options: {
-          filter: false,           
+          filter: true,           
       }
     },
     {
@@ -272,7 +272,14 @@ const QuickScans = () => {
     {
       label: "Status",
       options: {
-        filter: true,
+          filter: true,   
+          display:false        
+      }
+    },
+    {
+      label: "Status",
+      options: {
+        filter: false,
         download: true,
         customBodyRender: (value, tableMeta, updateValue) => {
 
@@ -485,11 +492,11 @@ const QuickScans = () => {
     var dataItem = [];
 
     dataItem.push(i+1);
-    dataItem.push(activeScans[i].projectName?activeScans[i].projectName:'---');
+    dataItem.push(activeScans[i].theCollectionVersion.apiCollection.orgProject?activeScans[i].theCollectionVersion.apiCollection.orgProject.name:'---');
 
     dataItem.push(activeScans[i].theCollectionVersion.apiCollection.collectionName?activeScans[i].theCollectionVersion.apiCollection.collectionName:'<Name not found>');
 
-    dataItem.push(activeScans[i].endpointsCount);
+    dataItem.push(activeScans[i].endpointsScanned);
 
     dataItem.push((new Date(activeScans[i].createdAt)).toLocaleDateString('en-US') + ' - ' + (new Date(activeScans[i].createdAt)).toLocaleTimeString('en-US'));
 
@@ -508,6 +515,8 @@ const QuickScans = () => {
     }else{
       dataItem.push("PROCESSING"); 
     }*/
+
+    dataItem.push((activeScans[i].status).toUpperCase());
 
     if(activeScans[i].status){
       dataItem.push({status:activeScans[i].status.toUpperCase(), scanScheduleType:activeScans[i].scanScheduleType, 

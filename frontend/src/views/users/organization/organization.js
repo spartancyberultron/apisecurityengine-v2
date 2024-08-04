@@ -99,7 +99,7 @@ const Organization = () => {
             </div>
 
 
-            <div  style={{ display: 'flex', flexDirection: 'row', marginBottom: 30, justifyContent:'space-between', margin:20 }}>
+            <div  style={{ display: 'none', flexDirection: 'row', marginBottom: 30, justifyContent:'space-between', margin:20 }}>
 
               <div className="theCards" style={{ width: '49%' }}>
 

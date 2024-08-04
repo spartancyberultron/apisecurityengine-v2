@@ -434,7 +434,7 @@ const LLMCompliances = () => {
 
   const columns = [
     {
-      label: "",
+      label: "#",
       options: {
           filter: false,           
       }
@@ -444,56 +444,14 @@ const LLMCompliances = () => {
       options: {
           filter: true,           
       }
-    },    
+    }, 
     {
-      label: "Affected Probes",
+      label: "Projects",
       options: {
-        filter: true,
-        download: true,
-        customBodyRender: (value, tableMeta, updateValue) => {
-          
-          const displayCount = showAll ? value.length : 2;
-    
-          return (
-            <div style={{
-              display: "flex",
-              flexDirection: 'column',
-              alignItems: "center"
-            }}>
-              {value.slice(0, displayCount).map((item, index) => (
-                <span key={index} style={{
-                  padding: 5,
-                  width: 200,
-                  textAlign: 'center',
-                  borderRadius: 10,
-                  fontSize: 12,
-                  fontWeight: 'normal',
-                  marginRight: 5,
-                  color: '#000',
-                  backgroundColor: '#f7e7ce',
-                  margin: 5
-                }}>
-                  {item}
-                </span>
-              ))}
-              {value.length > 2 && (
-                <button 
-                  onClick={() => setShowAll(!showAll)}
-                  style={{
-                    margin: '5px',
-                    padding: '5px 10px',
-                    fontSize: '12px',
-                    cursor: 'pointer'
-                  }}
-                >
-                  {showAll ? 'View Less' : `View ${value.length - 2} More`}
-                </button>
-              )}
-            </div>
-          )
-        }
+          filter: true,           
       }
-    },
+    },    
+    
     {
       label: "CWE",
       options: {
@@ -1059,18 +1017,40 @@ const LLMCompliances = () => {
 
   var uniqueOWASPCats = [];
 
-  for(var i=0;i<llmScanVulns.length;i++){
+  
 
-    var cat = getVulnerabilityDetails(llmScanVulns[i]).owasp;
+  for (var i = 0; i < llmScanVulns.length; i++) {
 
-    console.log('cat:',cat)
+    var cat = getVulnerabilityDetails(llmScanVulns[i].probe).owasp;
 
-    console.log('llmScanVulns[i]',llmScanVulns[i])
+    console.log('llmScanVulns[i]:',llmScanVulns[i])
+    var projectName = llmScanVulns[i].project;
 
-    if(!(uniqueOWASPCats.includes(cat))){
-      uniqueOWASPCats.push({category:cat, affectedProbes:[llmScanVulns[i]]});
+    console.log('cat:', cat);
+    console.log('llmScanVulns[i]', llmScanVulns[i].probe);
+
+    // Find the index of the category in the uniqueOWASPCats array
+    var index = uniqueOWASPCats.findIndex(item => item.category === cat);
+
+    if (index !== -1) {
+        // If the category already exists, append the project name
+        if (!uniqueOWASPCats[index].affectedProjects.includes(projectName)) {
+            uniqueOWASPCats[index].affectedProjects.push(projectName);
+        }
+    } else {
+        // If the category does not exist, add a new entry
+        uniqueOWASPCats.push({
+            category: cat,
+            affectedProjects: [projectName]
+        });
     }
-  }
+}
+
+// Convert affectedProjects arrays to comma-separated strings
+uniqueOWASPCats = uniqueOWASPCats.map(item => ({
+    category: item.category,
+    affectedProjects: item.affectedProjects.join(', ') // Join project names with commas
+}));
 
   console.log('uniqueOWASPCats:',uniqueOWASPCats)
 
@@ -1085,7 +1065,7 @@ const LLMCompliances = () => {
 
     dataItem.push(uniqueOWASPCats[i].category); 
 
-    dataItem.push(uniqueOWASPCats[i].affectedProbes); 
+    dataItem.push(uniqueOWASPCats[i].affectedProjects); 
     
     var compliances = getComplianceMappings(uniqueOWASPCats[i].category)   
 

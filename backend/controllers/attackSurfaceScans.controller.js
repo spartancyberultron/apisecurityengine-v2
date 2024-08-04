@@ -83,8 +83,8 @@ module.exports.getAllAttackSurfaceScans = asyncHandler(async (req, res) => {
         .sort({ createdAt: -1 })
         .skip(skip)
         .limit(pageSize)
-        .lean();
-
+        .lean()
+        .populate('orgProject');
 
     for (var i = 0; i < attackSurfaceScans.length; i++) {
 
@@ -212,12 +212,15 @@ module.exports.startAttackSurfaceScan = asyncHandler(async (req, res) => {
 
     const user = await User.findById(req.user._id);
 
-    const { domain } = req.body;  
+    const { domain, projectId } = req.body;  
+
+console.log('projectId:',projectId)
 
 
     const attackSurfaceScan = new AttackSurfaceScan;
     attackSurfaceScan.user = req.user._id;
     attackSurfaceScan.projectName = '';
+    attackSurfaceScan.orgProject = projectId;
     attackSurfaceScan.domain = domain;
     attackSurfaceScan.status = 'in progress';
     attackSurfaceScan.save();
@@ -749,7 +752,7 @@ async function runAttackSurfaceScan(user, theAttackSurfaceScan, theEndpoints) {
                 if (matchingFindings.length > 0) {
                     // Populate the findings array with appropriate strings
                     matchingFindings.forEach(finding => {
-                        if (finding.severity !== "NONE") {
+                        if (finding.severity !== "NONE" && finding.severity !== "ERROR") {
                             findings.push(finding.header + ':' + finding.description);
                         }
                     });

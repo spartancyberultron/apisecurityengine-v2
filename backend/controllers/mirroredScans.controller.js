@@ -73,6 +73,7 @@ module.exports.getProjectVulnerabilities = asyncHandler(async (req, res) => {
         vulnerabilities: projectVulnerabilities,
         projectName: project.projectName,
         piiFields: project.piiFields,
+        projectId:project._id
     };
 
     res.status(200).json(result);
@@ -674,7 +675,7 @@ module.exports.sendRequestInfo = asyncHandler(async (req, res) => {
                 if (matchingFindings.length > 0) {
                     // Populate the findings array with appropriate strings
                     matchingFindings.forEach(finding => {
-                        if (finding.severity !== "NONE") {
+                        if (finding.severity !== "NONE" && finding.severity !== "ERROR") {
                             findings.push(finding.header + ':' + finding.description);
                         }
                     });

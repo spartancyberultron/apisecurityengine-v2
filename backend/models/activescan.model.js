@@ -20,6 +20,9 @@ const activeScanSchema = new mongoose.Schema({
   projectName: {
     type: String,
   },
+  endpointsScanned: {
+    type: Number,
+  },
   scanCompletedAt: {
     type: Date,
   },

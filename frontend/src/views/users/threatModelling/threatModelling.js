@@ -42,7 +42,6 @@ const ThreatModelling = () => {
       width: '50%',
       right: 'auto',
       bottom: 'auto',
-      height: '15%',
       backgroundColor: '#ffffff',
       borderRadius: 15,
       borderColor: 'ffffff'
@@ -225,7 +224,7 @@ const ThreatModelling = () => {
 
   const columns = [
     {
-      label: "",
+      label: "#",
       options: {
           filter: false,           
       }

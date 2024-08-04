@@ -107,6 +107,7 @@ const ThreatModellingScanDetail = () => {
     maxWidth: '1000px',
     width: '90%',
     maxHeight: '80%',
+    height:'80%',
     overflowY: 'auto'
   }
 };
@@ -188,6 +189,7 @@ const ThreatModellingScanDetail = () => {
       right: 'auto',
       bottom: 'auto',
       maxHeight: '80%',
+      height: '80%',
       backgroundColor: '#c2eef4',
       borderRadius: 15,
       borderColor: 'yellow',
@@ -1812,7 +1814,7 @@ const ThreatModellingScanDetail = () => {
 
 
         {currentVulnerability.owasp.includes('API1:2023 Broken Object Level Authorization') &&
-            <object type="text/html" data={global.baseUrl + "/threat-modelling-html/brokenAuthentication.html"} width="100%" height="100%"
+            <object type="text/html" data={global.baseUrl + "/threat-modelling-html/brokenObjectLevelAuthorization.html"} width="100%" height="100%"
               style={{ alignSelf: 'center', borderWidth: 0, marginLeft:'0vw' }}>
             </object>     
         }   
@@ -1825,55 +1827,55 @@ const ThreatModellingScanDetail = () => {
 
 
         {currentVulnerability.owasp.includes('API3:2023 Broken Object Property Level Authorization') &&
-            <object type="text/html" data={global.baseUrl + "/threat-modelling-html/brokenAuthentication.html"} width="100%" height="100%"
+            <object type="text/html" data={global.baseUrl + "/threat-modelling-html/brokenObjectPropertyLevelAuthorization.html"} width="100%" height="100%"
               style={{ alignSelf: 'center', borderWidth: 0, marginLeft:'0vw' }}>
             </object>     
         }   
 
 
         {currentVulnerability.owasp.includes('API4:2023 Unrestricted Resource Consumption') &&
-            <object type="text/html" data={global.baseUrl + "/threat-modelling-html/brokenAuthentication.html"} width="100%" height="100%"
+            <object type="text/html" data={global.baseUrl + "/threat-modelling-html/unrestrictedResourceConsumption.html"} width="100%" height="100%"
               style={{ alignSelf: 'center', borderWidth: 0, marginLeft:'0vw' }}>
             </object>     
         }   
 
 
         {currentVulnerability.owasp.includes('API5:2023 Broken Function Level Authorization') &&
-            <object type="text/html" data={global.baseUrl + "/threat-modelling-html/brokenAuthentication.html"} width="100%" height="100%"
+            <object type="text/html" data={global.baseUrl + "/threat-modelling-html/brokenFunctionLevelAuthorization.html"} width="100%" height="100%"
               style={{ alignSelf: 'center', borderWidth: 0, marginLeft:'0vw' }}>
             </object>     
         }   
 
 
         {currentVulnerability.owasp[0] == 'API6:2023 Unrestricted Access to Sensitive Business Flows' &&
-            <object type="text/html" data={global.baseUrl + "/threat-modelling-html/brokenAuthentication.html"} width="100%" height="100%"
+            <object type="text/html" data={global.baseUrl + "/threat-modelling-html/unrestrictedAccessToSensitiveBusinessFlows.html"} width="100%" height="100%"
               style={{ alignSelf: 'center', borderWidth: 0, marginLeft:'0vw' }}>
             </object>     
         }   
 
 
         {currentVulnerability.owasp.includes('API7:2023 Server Side Request Forgery') &&
-            <object type="text/html" data={global.baseUrl + "/threat-modelling-html/brokenAuthentication.html"} width="100%" height="100%"
+            <object type="text/html" data={global.baseUrl + "/threat-modelling-html/serverSideRequestForgery.html"} width="100%" height="100%"
               style={{ alignSelf: 'center', borderWidth: 0, marginLeft:'0vw' }}>
             </object>     
         }   
 
 
         {currentVulnerability.owasp.includes('API8:2023 Security Misconfiguration') &&
-            <object type="text/html" data={global.baseUrl + "/threat-modelling-html/brokenAuthentication.html"} width="100%" height="100%"
+            <object type="text/html" data={global.baseUrl + "/threat-modelling-html/securityMisconfiguration.html"} width="100%" height="100%"
               style={{ alignSelf: 'center', borderWidth: 0, marginLeft:'0vw' }}>
             </object>     
         }   
 
 
         {currentVulnerability.owasp.includes('API9:2023 Improper Inventory Management') &&
-            <object type="text/html" data={global.baseUrl + "/threat-modelling-html/brokenAuthentication.html"} width="100%" height="100%"
+            <object type="text/html" data={global.baseUrl + "/threat-modelling-html/improperInventoryManagement.html"} width="100%" height="100%"
               style={{ alignSelf: 'center', borderWidth: 0, marginLeft:'0vw' }}>
             </object>     
         }   
 
         {currentVulnerability.owasp.includes('API10:2023 Unsafe Consumption of APIs') &&
-            <object type="text/html" data={global.baseUrl + "/threat-modelling-html/brokenAuthentication.html"} width="100%" height="100%"
+            <object type="text/html" data={global.baseUrl + "/threat-modelling-html/unsafeConsumptionOfAPIs.html"} width="100%" height="100%"
               style={{ alignSelf: 'center', borderWidth: 0, marginLeft:'0vw' }}>
             </object>     
         }                
@@ -1905,7 +1907,7 @@ const ThreatModellingScanDetail = () => {
 
 
         {currentVulnerability.owasp.includes('API1:2023 Broken Object Level Authorization') &&
-            <object type="text/html" data={global.baseUrl + "/breach-cost-html/brokenAuthentication.html"} width="100%" height="100%"
+            <object type="text/html" data={global.baseUrl + "/breach-cost-html/brokenObjectLevelAuthorization.html"} width="100%" height="100%"
               style={{ alignSelf: 'center', borderWidth: 0, marginLeft:'0vw' }}>
             </object>     
         }   
@@ -1918,55 +1920,55 @@ const ThreatModellingScanDetail = () => {
 
 
         {currentVulnerability.owasp.includes('API3:2023 Broken Object Property Level Authorization') &&
-            <object type="text/html" data={global.baseUrl + "/breach-cost-html/brokenAuthentication.html"} width="100%" height="100%"
+            <object type="text/html" data={global.baseUrl + "/breach-cost-html/brokenObjectPropertyLevelAuthorization.html"} width="100%" height="100%"
               style={{ alignSelf: 'center', borderWidth: 0, marginLeft:'0vw' }}>
             </object>     
         }   
 
 
         {currentVulnerability.owasp.includes('API4:2023 Unrestricted Resource Consumption') &&
-            <object type="text/html" data={global.baseUrl + "/breach-cost-html/brokenAuthentication.html"} width="100%" height="100%"
+            <object type="text/html" data={global.baseUrl + "/breach-cost-html/unrestrictedResourceConsumption.html"} width="100%" height="100%"
               style={{ alignSelf: 'center', borderWidth: 0, marginLeft:'0vw' }}>
             </object>     
         }   
 
 
         {currentVulnerability.owasp.includes('API5:2023 Broken Function Level Authorization') &&
-            <object type="text/html" data={global.baseUrl + "/breach-cost-html/brokenAuthentication.html"} width="100%" height="100%"
+            <object type="text/html" data={global.baseUrl + "/breach-cost-html/brokenFunctionLevelAuthorization.html"} width="100%" height="100%"
               style={{ alignSelf: 'center', borderWidth: 0, marginLeft:'0vw' }}>
             </object>     
         }   
 
 
         {currentVulnerability.owasp[0] == 'API6:2023 Unrestricted Access to Sensitive Business Flows' &&
-            <object type="text/html" data={global.baseUrl + "/breach-cost-html/brokenAuthentication.html"} width="100%" height="100%"
+            <object type="text/html" data={global.baseUrl + "/breach-cost-html/unrestrictedAccessToSensitiveBusinessFlows.html"} width="100%" height="100%"
               style={{ alignSelf: 'center', borderWidth: 0, marginLeft:'0vw' }}>
             </object>     
         }   
 
 
         {currentVulnerability.owasp.includes('API7:2023 Server Side Request Forgery') &&
-            <object type="text/html" data={global.baseUrl + "/breach-cost-html/brokenAuthentication.html"} width="100%" height="100%"
+            <object type="text/html" data={global.baseUrl + "/breach-cost-html/serverSideRequestForgery.html"} width="100%" height="100%"
               style={{ alignSelf: 'center', borderWidth: 0, marginLeft:'0vw' }}>
             </object>     
         }   
 
 
         {currentVulnerability.owasp.includes('API8:2023 Security Misconfiguration') &&
-            <object type="text/html" data={global.baseUrl + "/breach-cost-html/brokenAuthentication.html"} width="100%" height="100%"
+            <object type="text/html" data={global.baseUrl + "/breach-cost-html/securityMisconfiguration.html"} width="100%" height="100%"
               style={{ alignSelf: 'center', borderWidth: 0, marginLeft:'0vw' }}>
             </object>     
         }   
 
 
         {currentVulnerability.owasp.includes('API9:2023 Improper Inventory Management') &&
-            <object type="text/html" data={global.baseUrl + "/breach-cost-html/brokenAuthentication.html"} width="100%" height="100%"
+            <object type="text/html" data={global.baseUrl + "/breach-cost-html/improperInventoryManagement.html"} width="100%" height="100%"
               style={{ alignSelf: 'center', borderWidth: 0, marginLeft:'0vw' }}>
             </object>     
         }   
 
         {currentVulnerability.owasp.includes('API10:2023 Unsafe Consumption of APIs') &&
-            <object type="text/html" data={global.baseUrl + "/breach-cost-html/brokenAuthentication.html"} width="100%" height="100%"
+            <object type="text/html" data={global.baseUrl + "/breach-cost-html/unsafeConsumptionOfAPIs.html"} width="100%" height="100%"
               style={{ alignSelf: 'center', borderWidth: 0, marginLeft:'0vw' }}>
             </object>     
         }                

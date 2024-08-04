@@ -78,17 +78,21 @@ module.exports.getAllActiveScans = asyncHandler(async (req, res) => {
     const skip = (pageNumber - 1) * pageSize;
 
     const activeScans = await ActiveScan.find({ user: req.user._id })
-        .populate({
-            path: 'theCollectionVersion',
+    .populate({
+        path: 'theCollectionVersion',
+        populate: {
+            path: 'apiCollection',
+            model: 'APICollection',
             populate: {
-                path: 'apiCollection',
-                model: 'APICollection'
+                path: 'orgProject',  // Add this line to populate orgProject
+                model: 'OrgProject'  // Ensure you use the correct model name for orgProject
             }
-        })
-        .sort({ createdAt: -1 })
-        .skip(skip)
-        .limit(pageSize)
-        .lean();
+        }
+    })
+    .sort({ createdAt: -1 })
+    .skip(skip)
+    .limit(pageSize)
+    .lean();
 
     //console.log('activeScans-', activeScans)
 
@@ -106,6 +110,7 @@ module.exports.getAllActiveScans = asyncHandler(async (req, res) => {
     // Retrieve the IDs of the active scans
     const activeScanIds = activeScans.map((scan) => scan.theCollectionVersion._id);
 
+    /*
     // Fetch counts of endpoints for each active scan
     const endpointsCountsPromises = activeScanIds.map(async (scanId) => {
         const count = await ApiEndpoint.countDocuments({ theCollectionVersion: scanId }).exec();
@@ -118,15 +123,16 @@ module.exports.getAllActiveScans = asyncHandler(async (req, res) => {
     const endpointsCountMap = new Map();
     endpointsCounts.forEach((countObj) => {
         endpointsCountMap.set(countObj.scanId.toString(), countObj.count);
-    });
+    });*/
 
     // Add the endpointsCount property to each active scan
-    activeScans.forEach((scan, index) => {
+   /* activeScans.forEach((scan, index) => {
         const endpointsCount = endpointsCountMap.get(scan.theCollectionVersion._id.toString()) || 0;
         scan.endpointsCount = endpointsCount;
         const globalIndex = skip + index + 1;
         scan.index = globalIndex; // Numeric index starting from 1 for all records
     });
+    */
 
     // Return the active scans, currentPage, totalRecords, and totalPages in the response
     res.status(200).json({
@@ -1725,9 +1731,16 @@ module.exports.startActiveScan = asyncHandler(async (req, res) => {
 
     const user = await User.findById(req.user._id);
 
-    const { theCollectionVersion, endpoints, scanScheduleType,
+    const { theCollectionVersion, scanScheduleType,
         specificDateTime,
-        recurringSchedule, } = req.body;
+        recurringSchedule,selectedEndpointIdsToScan } = req.body;
+
+        const endpoints = await ApiEndpoint.find({
+            _id: { $in: selectedEndpointIdsToScan }
+        });
+
+        console.log('selectedEndpointIdsToScan:',selectedEndpointIdsToScan)
+        console.log('endpoints:',endpoints)
 
     const newScan = new ActiveScan({
             user: user._id,
@@ -1735,7 +1748,8 @@ module.exports.startActiveScan = asyncHandler(async (req, res) => {
             scanScheduleType,
             specificDateTime: scanScheduleType === 'specificTime' ? new Date(specificDateTime) : undefined,
             recurringSchedule: scanScheduleType === 'recurring' ? recurringSchedule : undefined,
-            status: scanScheduleType=='now'?'in progress':'scheduled'
+            status: scanScheduleType=='now'?'in progress':'scheduled',
+            endpointsScanned:selectedEndpointIdsToScan.length
     });  
     
     await newScan.save();
@@ -2424,7 +2438,7 @@ async function runActiveScan(user, theCollectionVersion, endpoints, scanId) {
                 if (matchingFindings.length > 0) {
                     // Populate the findings array with appropriate strings
                     matchingFindings.forEach(finding => {
-                        if (finding.severity !== "NONE") {
+                        if (finding.severity !== "NONE" && finding.severity !== "ERROR") {
                             findings.push(finding.header + ':' + finding.description);
                         }
                     });

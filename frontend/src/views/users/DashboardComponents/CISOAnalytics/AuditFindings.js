@@ -41,10 +41,10 @@ if (storedAuditFindings !== null) {
     setAuditFindings(JSON.parse(storedAuditFindings));
   } catch (error) {
     console.error('Error parsing auditFindings:', error);
-    setAuditFindings(true); // Default value if parsing fails
+    setAuditFindings([]); // Default value if parsing fails
   }
 } else {
-  setAuditFindings(true);
+  setAuditFindings([]);
 }
   
       const endpoint = 'api/v1/users/getAuditFindings';

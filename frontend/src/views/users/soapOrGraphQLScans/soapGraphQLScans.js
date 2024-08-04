@@ -228,7 +228,7 @@ const SOAPGraphQLScans = () => {
 
   const columns = [
     {
-      label: "",
+      label: "#",
       options: {
           filter: false,           
       }

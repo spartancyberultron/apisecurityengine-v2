@@ -1,4 +1,4 @@
-import React, { useState, } from 'react'
+import React, { useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
 import { useParams, useNavigate } from 'react-router-dom'
 import lightLogo from '../../../assets/images/apisec-light-logo.png'
@@ -79,6 +79,20 @@ const VendorLogin = () => {
     e.preventDefault();
     navigate('/')
   }
+
+
+  useEffect(() => {
+    // Check localStorage for user data
+    const user = localStorage.getItem('ASIUser');
+    if (user) {
+      const parsedUser = JSON.parse(user);
+      if (parsedUser.userType === 'user') {
+        window.location.replace('/user-dashboard');
+      } else if (parsedUser.userType === 'admin') {
+        window.location.replace('/admin-all-users');
+      }
+    }
+  }, []);
 
 
   function validateEmail(input) {

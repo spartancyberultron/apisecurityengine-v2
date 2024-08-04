@@ -13,6 +13,10 @@ const attackSurfaceScanSchema = new mongoose.Schema({
       ref: 'AttackSurfaceScanVulnerability',
     },
   ],  
+  orgProject: { 
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'OrgProject',
+  },
   projectName: {
     type: String,
   },

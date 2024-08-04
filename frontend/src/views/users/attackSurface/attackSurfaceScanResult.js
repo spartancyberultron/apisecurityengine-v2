@@ -158,6 +158,24 @@ const openCostOfBreachModal = async (value) => {
   setCostOfBreachModalIsOpen(true);
 };
 
+function separateHostAndEndpoint(url) {
+  try {
+    // Create a new URL object
+    const urlObj = new URL(url);
+    
+    // Extract host and endpoint
+    const host = urlObj.hostname;
+    const endpoint = urlObj.pathname + urlObj.search + urlObj.hash;
+
+    // Return the result
+    return { host, endpoint };
+  } catch (error) {
+    // Handle invalid URLs
+    console.error("Invalid URL", error);
+    return null;
+  }
+}
+
 
 
 const closeCostOfBreachModal = async () => {
@@ -348,13 +366,25 @@ const closeCostOfBreachModal = async () => {
         filter: true,
       }
     },
-    
+    {
+      label: "Type",
+      options: {
+        filter: true,
+      }
+    },  
+    {
+      label: "Host",
+      options: {
+        filter: true,
+      }
+    },     
     {
       label: "Endpoint",
       options: {
         filter: true,
       }
-    },    
+    },   
+     
     {
       label: "Description",
       options: {
@@ -665,16 +695,50 @@ const closeCostOfBreachModal = async () => {
 
     for (var i = 0; i < attackSurfaceScan.vulnerabilities.length; i++) {
 
+      
+
       var dataItem = [];
 
       dataItem.push(i + 1);
       dataItem.push(attackSurfaceScan.vulnerabilities[i].vulnerability.vulnerabilityName);
 
+      dataItem.push("Internet (Non Intrusive)");
+
+
       var endpointObject = attackSurfaceScan.vulnerabilities[i].endpoint;
 
+      console.log('endpointObject:',endpointObject)
     
 
 
+
+      if (endpointObject && endpointObject.url) {
+        const result = separateHostAndEndpoint(endpointObject.url);
+
+        if(result){
+          dataItem.push(result.host);
+        }else{
+          dataItem.push('---');
+        }
+      }else{
+        dataItem.push('---');
+      }
+
+      if (endpointObject && endpointObject.url) {
+        const result = separateHostAndEndpoint(endpointObject.url);
+
+        if(result){
+          dataItem.push(result.endpoint);
+        }else{
+          dataItem.push('---');
+        }
+      }else{
+        dataItem.push('---');
+      }
+    
+
+      
+/*
       if (endpointObject) {
         if (endpointObject.url) {
           dataItem.push(endpointObject.url);
@@ -684,7 +748,7 @@ const closeCostOfBreachModal = async () => {
       } else {
         dataItem.push('---');
       }
-
+*/
      
 
       dataItem.push(attackSurfaceScan.vulnerabilities[i].description);

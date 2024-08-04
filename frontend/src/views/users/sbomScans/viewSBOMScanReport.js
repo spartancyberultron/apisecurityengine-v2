@@ -121,10 +121,20 @@ const ViewSBOMScanReport = () => {
               alignItems: "center"
             }} >
 
-              <div style={{
-                padding: 5,  width: 120,
-                textAlign: 'center', borderRadius: 10, fontSize: 13, fontWeight: 'normal'
-              }}>{value}</div>
+<div style={{
+  padding: 5,
+  width: 400,
+  textAlign: 'center',
+  borderRadius: 10,
+  fontSize: 13,
+  fontWeight: 'normal',
+  overflowWrap: 'break-word',  // Ensures long words or URLs break and wrap within the container
+  wordWrap: 'break-word',      // Legacy support for older browsers
+  whiteSpace: 'normal',        // Allows text to wrap onto multiple lines
+  textOverflow: 'ellipsis',    // Adds ellipsis (...) if text overflows (optional)
+}}>
+  {value}
+</div>
 
             </div>
           )
@@ -258,8 +268,7 @@ const ViewSBOMScanReport = () => {
           )
         }
       }
-    },  
-     
+    },       
 
   ];
 
@@ -312,6 +321,11 @@ const ViewSBOMScanReport = () => {
 
   var tableData = [];
 
+  var criticalCount = 0;
+  var highCount = 0;
+  var mediumCount = 0;
+  var lowCount = 0;
+
   if (sbomScan && sbomScan.vulnerabilities) {
 
     for (var i = 0; i < sbomScan.vulnerabilities.length; i++) {
@@ -329,9 +343,22 @@ const ViewSBOMScanReport = () => {
 
       dataItem.push(sbomScan.vulnerabilities[i].severity);   
 
+      if(sbomScan.vulnerabilities[i].severity == 'CRITICAL'){
+        criticalCount++;
+      }else if(sbomScan.vulnerabilities[i].severity == 'HIGH'){
+        highCount++;
+      }else if(sbomScan.vulnerabilities[i].severity == 'MODERATE'){
+        mediumCount++;
+      }else if(sbomScan.vulnerabilities[i].severity == 'LOW'){
+        lowCount++;
+      }
+
       tableData.push(dataItem);
     }
   }
+
+
+
 
 
 
@@ -339,6 +366,16 @@ const ViewSBOMScanReport = () => {
     <div style={{ overflow: "scroll", position: 'relative', overflowY: 'hidden', }}>
 
       <>
+
+      <CButton
+    onClick={goBack}
+    className="darkButton"                
+    color="primary"
+  >
+    <IoMdArrowRoundBack size={25} style={{ color: '#fff', marginRight:10 }} />
+    Back to Scans List
+  </CButton>
+  
 
         {onLoading ?
 
@@ -499,10 +536,10 @@ const ViewSBOMScanReport = () => {
               <tbody>
 
                 <th style={{ padding: 20, borderWidth: 2, borderColor: '#fff' }}># of Issues</th>
-                <th style={{ padding: 20, borderWidth: 2, borderColor: '#fff' }}>0</th>
-                <th style={{ padding: 20, borderWidth: 2, borderColor: '#fff' }}>0</th>
-                <th style={{ padding: 20, borderWidth: 2, borderColor: '#fff' }}>0</th>
-                <th style={{ padding: 20, borderWidth: 2, borderColor: '#fff' }}>0</th>
+                <th style={{ padding: 20, borderWidth: 2, borderColor: '#fff' }}>{criticalCount}</th>
+                <th style={{ padding: 20, borderWidth: 2, borderColor: '#fff' }}>{highCount}</th>
+                <th style={{ padding: 20, borderWidth: 2, borderColor: '#fff' }}>{mediumCount}</th>
+                <th style={{ padding: 20, borderWidth: 2, borderColor: '#fff' }}>{lowCount}</th>
 
               </tbody>
             </table>
@@ -538,7 +575,7 @@ const ViewSBOMScanReport = () => {
 
 
         <div style={{
-          width: '96%', marginLeft: '2%', marginRight: '2%', display: 'flex', flexDirection: 'column',
+          maxWidth: '96%', marginLeft: '2%', marginRight: '2%', display: 'flex', flexDirection: 'column',
           marginTop: '2%'
         }}>
 

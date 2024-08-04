@@ -11,6 +11,7 @@ const ActiveScanVulnerability = require('../models/activescanvulnerability.model
 
 const Vulnerability = require('../models/vulnerability.model');
 const ApiEndpoint = require('../models/apiendpoint.model');
+const OrgProject = require('../models/orgproject.model');
 
 
 module.exports.getLLMCompliances = asyncHandler(async (req, res) => {
@@ -21,10 +22,19 @@ module.exports.getLLMCompliances = asyncHandler(async (req, res) => {
 
     for(var i=0;i<llmScans.length;i++){
 
+      console.log('llmScans[i].orgProject:',llmScans[i].orgProject)
+
+      const orgProj = await OrgProject.findById(llmScans[i].orgProject);
+
+      console.log('orgProj',orgProj)
+
+
         for(var j=0;j<llmScans[i].resultFileContents.length;j++){
-            llmScanVulns.push(extractProbeName(llmScans[i].resultFileContents[j].file_name))
+            llmScanVulns.push({probe:extractProbeName(llmScans[i].resultFileContents[j].file_name), project:orgProj.name})
         }       
     }
+
+    console.log('llmScanVulns:',llmScanVulns)
     
     // Return the sbom scans, currentPage, totalRecords, and totalPages in the response
     res.status(200).json({
@@ -81,7 +91,6 @@ module.exports.getAPICompliances = asyncHandler(async (req, res) => {
           }
         }).exec();
 
-        console.log('relevantEndpoints:',relevantEndpoints)
 
 
         const endpointUrls = relevantEndpoints.map(endpoint => endpoint.url);

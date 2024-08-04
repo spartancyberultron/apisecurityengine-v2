@@ -356,11 +356,14 @@ const OpenTicket = () => {
                 value={assignedTo}
                 style={{ width: '100%' }}
               >
-                {users.map(user => (
-                  <option key={user._id} value={user._id}>
-                    {user.firstName} {user.lastName}  ({user.email})
-                  </option>
-                ))}
+               {users
+  .filter(user => user.status !== "Suspended") // Filter out users with "Suspended" status
+  .map(user => (
+    <option key={user._id} value={user._id}>
+      {user.firstName} {user.lastName} ({user.email})
+    </option>
+  ))
+}
               </CFormSelect>
             </CInputGroup>
 

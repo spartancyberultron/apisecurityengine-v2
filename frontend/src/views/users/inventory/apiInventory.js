@@ -227,15 +227,9 @@ const APIInventory = () => {
 
   const columns = [
     {
-      label: "",
+      label: "#",
       options: {
           filter: false,           
-      }
-    },
-    {
-      label: "Collection Name",
-      options: {
-          filter: true,           
       }
     },
     {
@@ -244,6 +238,12 @@ const APIInventory = () => {
           filter: true,           
       }
     },
+    {
+      label: "Collection Name",
+      options: {
+          filter: true,           
+      }
+    },    
     {
       label: "Version",
       options: {
@@ -372,7 +372,7 @@ const APIInventory = () => {
 
     var dataItem = [];
 
-    dataItem.push(apiCollections[i].index);
+    dataItem.push(i+1);
     dataItem.push(apiCollections[i].orgProject?apiCollections[i].orgProject.name:'---');
     dataItem.push(apiCollections[i].collectionName);
 

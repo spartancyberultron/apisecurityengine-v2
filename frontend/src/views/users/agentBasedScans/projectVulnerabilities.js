@@ -349,14 +349,24 @@ const closeAcceptanceModal = async () => {
         filter: true,
       }
     },
-   
+    {
+      label: "Host",
+      options: {
+        filter: true,
+      }
+    },
     {
       label: "Endpoint",
       options: {
         filter: true,
       }
-    },
-   
+    },   
+    {
+      label: "Auth Type",
+      options: {
+        filter: true,
+      }
+    },   
     {
       label: "Description",
       options: {
@@ -658,34 +668,8 @@ const closeAcceptanceModal = async () => {
 
 
   var tableData = [];
-
-  /*
-  if (result) {
-
-    for (var i = 0; i < result.vulnerabilities.length; i++) {
-
-      var dataItem = [];
-
-      dataItem.push(i + 1);
-      dataItem.push(result.vulnerabilities[i].vulnerability.vulnerabilityName);
-
-      var endpointObject = result.vulnerabilities[i].endpoint;
-
-      if (endpointObject) {
-        dataItem.push(endpointObject);
-      } else {
-        dataItem.push('---');
-      }
-
-      
-
-      dataItem.push(result.vulnerabilities[i].description);
-      dataItem.push(result.vulnerabilities[i].vulnerability.riskScore);
-      dataItem.push(result.vulnerabilities[i].vulnerability);
-
-      tableData.push(dataItem);
-    }
-  }  */
+  
+  var uniqueEndpoints = [];
 
   if (result && result.vulnerabilities) {
 
@@ -700,19 +684,32 @@ const closeAcceptanceModal = async () => {
 
       console.log('endpointObject:',endpointObject)
 
+      var tmp = separateHostAndEndpoint(endpointObject);
+
+      const endpointPart = tmp.endpoint.split('?')[0]; // Get the part before the '?'
+if (!uniqueEndpoints.includes(endpointPart)) {
+  uniqueEndpoints.push(endpointPart);
+}
+
+      console.log('tmp:',tmp)
+
       if (endpointObject) {
-        dataItem.push(endpointObject);
+        dataItem.push(tmp.host);
+        dataItem.push(tmp.endpoint);
       } else {
+        dataItem.push('---');
         dataItem.push('---');
       }
 
 
-      /*
+      
       let isAuthenticated = false;
 
       // Check if authorization type is 'None' or if any header has key as "Authorization"
-      if (endpointObject.headers.some(header => header.key === 'Authorization')) {
+      if (endpointObject.headers && endpointObject.headers.some(header => header.key === 'Authorization')) {
         isAuthenticated = true;
+      }else{
+        isAuthenticated = false;
       }
 
       // Push appropriate value based on isAuthenticated
@@ -721,7 +718,7 @@ const closeAcceptanceModal = async () => {
       } else {
         dataItem.push('Unauthenticated');
       }
-      */
+      
 
 
       dataItem.push(result.vulnerabilities[i].description);
@@ -746,6 +743,9 @@ const closeAcceptanceModal = async () => {
 
   var numOfHighVulns = 0
   var numOfMediumVulns = 0;
+  var numOfLowVulns = 0
+  var numOfCriticalVulns = 0;
+
 
   if (result) {
 
@@ -757,6 +757,14 @@ const closeAcceptanceModal = async () => {
 
       if (result.vulnerabilities[i].vulnerability.riskScore == 'MEDIUM') {
         numOfMediumVulns++;
+      }
+
+      if (result.vulnerabilities[i].vulnerability.riskScore == 'LOW') {
+        numOfLowVulns++;
+      }
+
+      if (result.vulnerabilities[i].vulnerability.riskScore == 'CRITICAL') {
+        numOfCriticalVulns++;
       }
     }
   }
@@ -1019,7 +1027,7 @@ const closeAcceptanceModal = async () => {
     labels: labelsArray,
     colors: bgColorArray,
     legend: {
-      position: 'right',
+      position: 'bottom',
       verticalAlign: 'middle',
     },
     chart: {
@@ -1072,13 +1080,17 @@ const closeAcceptanceModal = async () => {
 
     for (var i = 0; i < result.vulnerabilities.length; i++) {
 
-      if (result.vulnerabilities[i].vulnerability.vulnerabilityCode == 6) {
+      if (result.vulnerabilities[i].vulnerability.vulnerabilityCode == 6 || result.vulnerabilities[i].vulnerability.vulnerabilityCode == 2) {
 
-        var piiFields = result.piiFields;
+        var piiFields = result.vulnerabilities[i].findings;
 
-        //console.log('endpoint', endpoint.piiFields)      
+        console.log('piiFields', piiFields)      
 
         if (piiFields.includes("Name")) {
+          nameCount++;
+        }
+
+        if (piiFields.includes("Email")) {
           nameCount++;
         }
 
@@ -1465,7 +1477,7 @@ const closeAcceptanceModal = async () => {
     labels: piiLabelsArray,
     colors: piiBgColorsArray,
     legend: {
-      position: 'right',
+      position: 'bottom',
       verticalAlign: 'middle',
     },
     chart: {
@@ -1475,17 +1487,38 @@ const closeAcceptanceModal = async () => {
   };
 
   const piiChartSeries = piiDataArray;   
+
+  console.log('piiChartSeries:',piiChartSeries)
+
+
+  function separateHostAndEndpoint(url) {
+    try {
+      // Create a new URL object
+      const urlObj = new URL(url);
+      
+      // Extract host and endpoint
+      const host = urlObj.hostname;
+      const endpoint = urlObj.pathname + urlObj.search + urlObj.hash;
+  
+      // Return the result
+      return { host, endpoint };
+    } catch (error) {
+      // Handle invalid URLs
+      console.error("Invalid URL", error);
+      return null;
+    }
+  }
  
 
   return (
-    <div style={{ overflow: "scroll", position: 'relative', overflowY: 'hidden', }}>
+    <div style={{ overflow: "scroll", position: 'relative', overflowY: 'hidden', overflowX: 'hidden', }}>
 
       <>
 
         {onLoading ?
 
           <div style={{
-            width: '80%', marginLeft: '10%', marginRight: '10%', marginTop: '2%'
+            width: '90%', marginLeft: '5%', marginRight: '5%', marginTop: '2%'
           }}>
 
             <ShimmerTitle line={6} gap={10} variant="primary" />
@@ -1494,7 +1527,7 @@ const closeAcceptanceModal = async () => {
           :
 
           <div style={{
-            width: '80%', marginLeft: '10%', marginRight: '10%', display: 'flex', flexDirection: 'row', justifyContent: 'space-between',
+            width: '90%', marginLeft: '5%', marginRight: '5%', display: 'flex', flexDirection: 'row', justifyContent: 'space-between',
             marginTop: '2%', background:'#fff', padding: 20, borderRadius: 15
           }}>
 
@@ -1502,7 +1535,39 @@ const closeAcceptanceModal = async () => {
               <h2>{result.projectName}</h2>
               <hr/>
 
-              <table>                  
+              <table>   
+
+
+              <tr>
+
+<td style={{padding:10, borderWidth:0, borderColor:'#000', background:'transparent'}}>
+
+  <span style={{ fontWeight: 'bold',  }}>Application ID</span>
+
+</td>
+<td style={{padding:10, borderWidth:1, borderColor:'#ffffff'}}>
+
+{result.projectId}
+
+</td>
+</tr>  
+
+
+
+              <tr>
+
+<td style={{padding:10, borderWidth:0, borderColor:'#000', background:'transparent'}}>
+
+  <span style={{ fontWeight: 'bold',  }}>Endpoints</span>
+
+</td>
+<td style={{padding:10, borderWidth:1, borderColor:'#ffffff'}}>
+
+{uniqueEndpoints.length}
+
+</td>
+</tr>  
+                        
 
                 <tr>
 
@@ -1517,6 +1582,7 @@ const closeAcceptanceModal = async () => {
 
                   </td>
                 </tr>  
+                
 
               </table>
 
@@ -1531,7 +1597,7 @@ const closeAcceptanceModal = async () => {
                 className="primaryOutlineButton"
               >
                 <IoMdArrowRoundBack size={25} style={{ color: '#7366ff', marginRight: 10 }} /> <span className="primaryOutlineButtonText">
-                  Back to Projects</span>
+                  Back to Applications</span>
               </CButton>
 
               <CButton
@@ -1564,7 +1630,7 @@ const closeAcceptanceModal = async () => {
 
 
           <div style={{
-            width: '80%', marginLeft: '10%', marginRight: '10%',
+            width: '90%', marginLeft: '5%', marginRight: '5%',
             marginTop: '2%',
           }}>
 
@@ -1576,7 +1642,7 @@ const closeAcceptanceModal = async () => {
 
           :
           <div style={{
-            width: '80%', marginLeft: '10%', marginRight: '10%', display: 'flex', flexDirection: 'row', justifyContent: 'space-between',
+            width: '90%', marginLeft: '5%', marginRight: '5%', display: 'flex', flexDirection: 'row', justifyContent: 'space-between',
             marginTop: '2%', background:'#fff', padding: 20, borderRadius: 15
           }}>
 
@@ -1596,10 +1662,10 @@ const closeAcceptanceModal = async () => {
               <tbody>
 
                 <th style={{ padding: 20, borderWidth: 2, borderColor: '#fff' }}># of Issues</th>
-                <th style={{ padding: 20, borderWidth: 2, borderColor: '#fff' }}>0</th>
+                <th style={{ padding: 20, borderWidth: 2, borderColor: '#fff' }}>{numOfCriticalVulns}</th>
                 <th style={{ padding: 20, borderWidth: 2, borderColor: '#fff' }}>{numOfHighVulns}</th>
                 <th style={{ padding: 20, borderWidth: 2, borderColor: '#fff' }}>{numOfMediumVulns}</th>
-                <th style={{ padding: 20, borderWidth: 2, borderColor: '#fff' }}>0</th>
+                <th style={{ padding: 20, borderWidth: 2, borderColor: '#fff' }}>{numOfLowVulns}</th>
 
               </tbody>
             </table>
@@ -1610,7 +1676,7 @@ const closeAcceptanceModal = async () => {
 
 
         <div style={{
-          width: '80%', marginLeft: '10%', marginRight: '10%', display: 'flex', flexDirection: 'column',
+          width: '90%', marginLeft: '5%', marginRight: '5%', display: 'flex', flexDirection: 'column',
           marginTop: '2%', background:'#fff', padding: 20, borderRadius: 15
         }}>
 
@@ -1640,7 +1706,7 @@ const closeAcceptanceModal = async () => {
 
 </div>
 }
-          {(vulnDistroChartSeries.length > 0 || piiChartSeries.length > 0) &&
+          {(vulnDistroChartSeries.length > 0 && piiChartSeries.length > 0) &&
 
 
             <div style={{ display: 'flex', flexDirection: 'row', justifyContent: 'space-around', marginTop: 100 }}>
@@ -1648,23 +1714,23 @@ const closeAcceptanceModal = async () => {
 
               {vulnDistroChartSeries.length > 0 &&
 
-                <div style={{width:'100%'}}>
+                <div style={{width:'30%'}}>
 
-                  <h4 style={{ color: '#000', textAlign: 'center' }}>Vulnerability Distribution</h4>  
+                  <h5 style={{ color: '#000', textAlign: 'center' }}>Vulnerability Distribution</h5>  
                   <hr/>                
 
-                  <Chart options={vulnDistrochartOptions} series={vulnDistroChartSeries} type="pie" width="50%"/>
+                  <Chart options={vulnDistrochartOptions} series={vulnDistroChartSeries} type="pie" width="100%"/>
 
                 </div>
               }
 
               {piiChartSeries.length > 0 &&
 
-                <div>
+                <div style={{width:'30%'}}>
 
                   <h5 style={{ color: '#000', textAlign: 'center' }}>Sensitive Data</h5>
                   <hr/> 
-                  <Chart options={piichartOptions} series={piiChartSeries} type="pie" width="50%" />
+                  <Chart options={piichartOptions} series={piiChartSeries} type="pie" width="100%" />
 
                 </div>
               }
@@ -1677,7 +1743,7 @@ const closeAcceptanceModal = async () => {
 
 
         <div style={{
-          width: '80%', marginLeft: '10%', marginRight: '10%', display: 'flex', flexDirection: 'column',
+          width: '90%', marginLeft: '5%', marginRight: '5%', display: 'flex', flexDirection: 'column',
           marginTop: '2%'
         }}>
 

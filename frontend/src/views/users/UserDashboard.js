@@ -133,7 +133,7 @@ const UserDashboard = () => {
 
             </Link>
 
-            <Link to="/active-scans" style={{ textDecoration: 'none' }}>
+            <Link to="/api-inventory" style={{ textDecoration: 'none' }}>
 
               <div className="dashboardLinkDiv">
 

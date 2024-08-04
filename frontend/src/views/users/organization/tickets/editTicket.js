@@ -308,7 +308,7 @@ const EditTicket = () => {
           <div style={{ width: '100%', backgroundColor: '#fff', padding: 15 }}>
 
          
-            <CFormLabel htmlFor="formFileSm" style={{ marginTop: 30, color:'white'  }}>Ticket Title</CFormLabel>
+            <CFormLabel htmlFor="formFileSm" style={{ marginTop: 30, color:'#000'  }}>Ticket Title</CFormLabel>
             <CInputGroup className="" style={{ flexDirection: 'column' }}>
 
               <CFormInput
@@ -321,7 +321,7 @@ const EditTicket = () => {
               />
 
 
-              <CFormLabel htmlFor="formFileSm" style={{ marginTop: 30, color:'white'  }}>Ticket Category</CFormLabel>
+              <CFormLabel htmlFor="formFileSm" style={{ marginTop: 30, color:'#000'  }}>Ticket Category</CFormLabel>
 
               <CFormSelect
                 id="scanType"
@@ -330,51 +330,27 @@ const EditTicket = () => {
                 value={category}
                 style={{ width: '100%' }}
               >
-                  <option key="User Activity" value="User Activity">
-                    User Activity
-                  </option>
+                  
 
                   <option key="Support" value="Support">
                     Support
-                  </option>
-
-                  <option key="Network" value="Network">
-                    Network
-                  </option>
-
+                  </option>                
 
                   <option key="Vulnerability Management" value="Vulnerability Management">
                     Vulnerability Management
                   </option>
 
-                  <option key="Endpoint" value="Endpoint">
-                    Endpoint
-                  </option>
-
-                  <option key="Threat Management" value="Threat Management">
-                    Threat Management
-                  </option>
-
+                 
                   <option key="Compliance" value="Compliance">
                     Compliance
                   </option>
 
-                  <option key="Phishing" value="Phishing">
-                    Phishing
-                  </option>
-
-                  <option key="VPN" value="VPN">
-                    VPN
-                  </option>                  
-
-                  <option key="Suspicious activity" value="Suspicious activity">
-                    Suspicious activity
-                  </option>
+                
                 
               </CFormSelect>
 
 
-              <CFormLabel htmlFor="formFileSm" style={{ marginTop: 30, color:'white'  }}>Priority</CFormLabel>
+              <CFormLabel htmlFor="formFileSm" style={{ marginTop: 30, color:'#000'  }}>Priority</CFormLabel>
 
 <CFormSelect
   id="scanType"
@@ -406,7 +382,7 @@ const EditTicket = () => {
 </CFormSelect>
 
 
-          <CFormLabel htmlFor="formTextarea" style={{ marginTop: 30, color: 'white' }}>Description</CFormLabel>
+          <CFormLabel htmlFor="formTextarea" style={{ marginTop: 30, color: '#000' }}>Description</CFormLabel>
             <CInputGroup className="" style={{ flexDirection: 'column' }}>
               <textarea
                 id="formTextarea"
@@ -421,7 +397,7 @@ const EditTicket = () => {
 
 
 
-          <CFormLabel htmlFor="formFileSm" style={{ marginTop: 30, color: 'white' }}>Assigned To</CFormLabel>
+          <CFormLabel htmlFor="formFileSm" style={{ marginTop: 30, color: '#000' }}>Assigned To</CFormLabel>
             <CInputGroup className="" style={{ flexDirection: 'column' }}>
               <CFormSelect
                 id="assignedTo"
@@ -440,7 +416,7 @@ const EditTicket = () => {
 
             </CInputGroup>       
 
-            <CFormLabel htmlFor="formFileSm" style={{ marginTop: 30, color: 'white' }}>Status</CFormLabel>
+            <CFormLabel htmlFor="formFileSm" style={{ marginTop: 30, color: '#000' }}>Status</CFormLabel>
             <CInputGroup className="" style={{ flexDirection: 'column' }}>
               <CFormSelect
                 id="theStatus"
@@ -470,7 +446,7 @@ const EditTicket = () => {
              
 
 
-            <CFormLabel htmlFor="formTextarea" style={{ marginTop: 30, color: 'white' }}>Note</CFormLabel>
+            <CFormLabel htmlFor="formTextarea" style={{ marginTop: 30, color: '#000' }}>Note</CFormLabel>
             <CInputGroup className="" style={{ flexDirection: 'column' }}>
               <textarea
                 id="formTextarea"

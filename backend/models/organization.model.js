@@ -29,7 +29,7 @@ const organizationSchema = mongoose.Schema({
     },
     priority: {
       type: String,
-      enum: ['LOW', 'MEDIUM', 'HIGH'],
+      enum: ['LOW', 'MEDIUM', 'HIGH', 'CRITICAL'],
       required: true,
     },
   }],

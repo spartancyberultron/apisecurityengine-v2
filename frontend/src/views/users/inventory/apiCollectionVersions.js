@@ -237,6 +237,8 @@ const handleCheckboxChange = (event) => {
         formData.append('version', 'new');
         formData.append('collectionUrl', collectionUrl);
         formData.append('collectionId', collectionId);
+
+        
         
 
         // Make the API call
@@ -525,15 +527,23 @@ const handleCheckboxChange = (event) => {
 
         const bearerToken = localStorage.getItem('ASIToken');
 
+        console.log('selectedEndpointIdsToScan', selectedEndpointIdsToScan);
+        console.log('endpoints', endpoints);
+
+
         // Start scans on the selected endpoints and move to active scans
         // Make the API call
         const theBody = {
           theCollectionVersion:currentVersionIdToSelectEndpoints,
-          endpoints:endpoints,
+          //endpoints:selectedEndpointIdsToScan,
           scanScheduleType:scanScheduleType,
           specificDateTime:specificDateTime,
           recurringSchedule:recurringSchedule,
+          selectedEndpointIdsToScan:selectedEndpointIdsToScan
+
         }
+
+        
 
         fetch(global.backendUrl+'/api/v1/activeScans/startActiveScan', {
           method: 'POST',
@@ -576,7 +586,7 @@ const handleCheckboxChange = (event) => {
     
 
             // Move to active scans window in 1 second
-            navigate('/active-scans')
+            window.location.href = '/active-scans'
         }
 
       })
@@ -585,6 +595,8 @@ const handleCheckboxChange = (event) => {
         console.error(error);
       });
 
+      
+
 
     }
 
@@ -592,7 +604,7 @@ const handleCheckboxChange = (event) => {
 
   const columns = [
     {
-      label: "",
+      label: "#",
       options: {
           filter: false,           
       }
@@ -785,7 +797,7 @@ const handleCheckboxChange = (event) => {
 
     var dataItem = [];
 
-    dataItem.push(apiCollectionVersions[i].index);
+    dataItem.push(i+1);
     dataItem.push(apiCollectionVersions[i].version);
 
     dataItem.push(apiCollectionVersions[i].endpointsCount);

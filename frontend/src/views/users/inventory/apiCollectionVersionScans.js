@@ -229,7 +229,7 @@ const APICollectionVersionScans = () => {
 
   const columns = [
     {
-      label: "",
+      label: "#",
       options: {
           filter: false,           
       }

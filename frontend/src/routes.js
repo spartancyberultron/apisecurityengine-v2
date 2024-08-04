@@ -25,6 +25,8 @@ import Alerts from './views/users/activeScans/alerts';
 import PIIData from './views/users/piiData/piiData';
 import PIIDataDetails from './views/users/piiData/piiDataDetails';
 import Organization from './views/users/organization/organization';
+import OrganizationSettings from './views/users/organization/settings';
+
 import Protection from './views/users/protection/protection';
 import Settings from './views/users/organization/settings';
 
@@ -126,7 +128,7 @@ const routes = [
   { path: '/admin-edit-user', name: 'Admin Edit User', element: AdminEditUser}, 
 
 
-  { path: '/organization-settings', name: 'Organization Settings', element: Organization},
+  { path: '/organization-settings', name: 'Organization Settings', element: OrganizationSettings},
 
   { path: '/teams', name: 'Teams', element: Teams},
   { path: '/add-team', name: 'Add Team', element: AddTeam},

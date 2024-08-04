@@ -227,17 +227,17 @@ const AttackSurfaceManagement = () => {
 
   const columns = [
     {
-      label: "",
+      label: "#",
       options: {
           filter: false,           
       }
     },
-   // {
-   //   label: "Project",
-   //   options: {
-   //       filter: true,           
-   //   }
-   // },    
+    {
+      label: "Project",
+      options: {
+          filter: true,           
+      }
+    },    
     {
         label: "Domain",
         options: {
@@ -422,6 +422,8 @@ const AttackSurfaceManagement = () => {
 
   var tableData = [];
 
+  console.log('attackSurfaceScans:',attackSurfaceScans)
+
 
   for (var i = 0; i < attackSurfaceScans.length; i++) {
 
@@ -429,6 +431,8 @@ const AttackSurfaceManagement = () => {
 
     dataItem.push(i+1);
     //dataItem.push(attackSurfaceScans[i].projectName?attackSurfaceScans[i].projectName:'---');
+
+    dataItem.push(attackSurfaceScans[i].orgProject?attackSurfaceScans[i].orgProject.name:'---');
 
     dataItem.push(attackSurfaceScans[i].domain?attackSurfaceScans[i].domain:'---');
 

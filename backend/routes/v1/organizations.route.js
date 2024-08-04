@@ -29,7 +29,8 @@ const {
       getTeamDetails,    
       getWorkspaceDetails,    
       getProjectDetails,
-      addTicketUpdate
+      addTicketUpdate,
+      saveOrganizationSettings
     } = require('../../controllers/organizations.controller');
 
 const { protectUser } = require('../../middlewares/authMiddleware');
@@ -68,6 +69,8 @@ router.get('/getTeamDetails/:id', protectUser, getTeamDetails);
 router.get('/getWorkspaceDetails/:id', protectUser, getWorkspaceDetails);
 router.get('/getProjectDetails/:id', protectUser, getProjectDetails);
 
+
+router.post('/saveOrganizationSettings', protectUser, saveOrganizationSettings);
 
 
 router.get('/getTickets', protectUser, getTickets);

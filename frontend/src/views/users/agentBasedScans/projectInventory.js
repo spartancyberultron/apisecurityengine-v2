@@ -70,6 +70,8 @@ const ProjectInventory = () => {
       } else {
         openApiContent += '\n';
       }
+
+      openApiContent += `shadow-zombie: ${endpoint.shadowOrZombie}\n`;
     });
     return openApiContent;
   };
@@ -109,6 +111,7 @@ const ProjectInventory = () => {
     { name: 'url', label: 'Endpoint' },
     { name: 'headers', label: 'Headers', options: { customBodyRender: renderHeaders } },
     { name: 'body', label: 'Body', options: { customBodyRender: renderBody } },
+    { name: 'shadow-zombie', label: 'Shadow/Zombie' },
   ];
 
   const options = {

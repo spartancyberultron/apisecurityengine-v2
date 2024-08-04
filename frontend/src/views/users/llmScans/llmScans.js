@@ -227,7 +227,7 @@ const LLMScans = () => {
 
   const columns = [
     {
-      label: "",
+      label: "#",
       options: {
           filter: false,           
       }

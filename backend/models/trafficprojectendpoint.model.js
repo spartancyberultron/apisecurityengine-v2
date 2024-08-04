@@ -63,6 +63,10 @@ const trafficProjectEndpointSchema = mongoose.Schema({
   vulnCount: { 
     type: Number ,
     default: 0, 
+  },
+  shadowOrZombie: { 
+    type: String ,
+    default: '---', 
   }
 },{
   timestamps: true,

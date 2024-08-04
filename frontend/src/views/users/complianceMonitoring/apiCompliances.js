@@ -338,7 +338,7 @@ const APICompliances = () => {
 
   const columns = [
     {
-      label: "",
+      label: "#",
       options: {
         filter: false,
       }
@@ -365,22 +365,26 @@ const APICompliances = () => {
               flexDirection: 'column',
               alignItems: "center"
             }}>
-              {value.slice(0, displayCount).map((item, index) => (
-                <span key={index} style={{
-                  padding: 5,
-                  width: 600,
-                  textAlign: 'left',
-                  borderRadius: 10,
-                  fontSize: 12,
-                  fontWeight: 'normal',
-                  marginRight: 5,
-                  color: '#000',
-                  backgroundColor: '#f7e7ce',
-                  margin: 5
-                }}>
-                  {item}
-                </span>
-              ))}
+              <div style={{ display: 'flex', flexWrap: 'wrap', gap: '5px' }}>
+  {value.slice(0, displayCount).map((item, index) => (
+    <span
+      key={index}
+      style={{
+        padding: 5,
+        textAlign: 'left',
+        borderRadius: 10,
+        fontSize: 12,
+        fontWeight: 'normal',
+        color: '#000',
+        backgroundColor: '#f7e7ce',
+        margin: 5,
+        display: 'inline-block', // Allows items to be inline but wrap
+      }}
+    >
+      {item}
+    </span>
+  ))}
+</div>
               {value.length > 2 && (
                 <button 
                   onClick={() => setShowAll(!showAll)}
