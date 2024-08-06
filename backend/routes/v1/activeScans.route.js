@@ -23,7 +23,8 @@ const {
       runTestForWalletHijackingPossible,
       runTestForPreImageAttackPossible,
       generatePDFForAScan,
-      deleteActiveScan
+      deleteActiveScan,
+      runScanFromPostman
     } = require('../../controllers/activeScans.controller');
 
 const { protectUser } = require('../../middlewares/authMiddleware');
@@ -36,6 +37,8 @@ router.get('/getAllActiveScans', protectUser, getAllActiveScans);
 router.post('/getActiveScanDetails', protectUser, getActiveScanDetails);
 
 router.post('/startActiveScan', protectUser, jsonupload.single("file"), startActiveScan);
+router.post('/runScanFromPostman', protectUser, runScanFromPostman);
+
 router.post('/generatePDFForAScan', protectUser, generatePDFForAScan);
 
 

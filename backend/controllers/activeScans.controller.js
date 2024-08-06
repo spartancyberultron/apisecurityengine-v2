@@ -749,7 +749,7 @@ const fetchAndCheckContentType = async (link) => {
     }
 };
 
-
+/*
 // Parse Postman JSON
 const parsePostmanJSON = async (collectiondata, user, collectionFilePath, projectName, email) => {
 
@@ -944,7 +944,7 @@ const parsePostmanJSON = async (collectiondata, user, collectionFilePath, projec
         return { message: 'Not a valid PostMan Collection' };
     }
 };
-
+*/
 
 
 
@@ -1769,30 +1769,15 @@ module.exports.startActiveScan = asyncHandler(async (req, res) => {
           // Schedule the scan for a specific time
           const scanTime = new Date(specificDateTime);
           console.log('specificDateTime:',specificDateTime)
-          console.log('scanTime:',scanTime)
-
-      /*  cron.schedule('* * * * *', () => {
-            console.log('running a task every minute');
-
-            console.log('new Date().getTime(:', new Date().getTime())
-            console.log('scanTime.getTime():',scanTime.getTime())
-
-            if (new Date().getTime() >= scanTime.getTime()) {
-
-                console.log('comes here now')
-                runActiveScan(user, theCollectionVersion, endpoints, newScan._id);
-            }
-
-        });*/
+          console.log('scanTime:',scanTime)     
 
         const scheduledTask = cron.schedule('* * * * *', () => {
-            console.log('running a task every minute');
+          //  console.log('running a task every minute');
         
-            console.log('new Date().getTime():', new Date().getTime())
-            console.log('scanTime.getTime():', scanTime.getTime())
+            
         
             if (new Date().getTime() >= scanTime.getTime()) {
-                console.log('condition fulfilled, running scan')
+
                 runActiveScan(user, theCollectionVersion, endpoints, newScan._id);
                 
                 // Stop the scheduled task
@@ -1861,6 +1846,398 @@ module.exports.startActiveScan = asyncHandler(async (req, res) => {
     
 });
 
+
+// Run scan from Postman
+module.exports.runScanFromPostman = asyncHandler(async (req, res) => {
+
+    //const user = await User.findById(req.user._id);
+
+    const { collectionID, apiSecKey } = req.body;
+
+    const apiKey = 'PMAK-66b22f121aa5e100014fae49-9d74842c0ddfebba8af5cbbdd652361f0d';
+    const collectionId = collectionID;
+    const apiUrl = `https://api.getpostman.com/collections/${collectionId}`;
+
+async function getPostmanCollection() {
+  try {
+    const response = await axios.get(apiUrl, {
+      headers: {
+        'X-API-Key': apiKey
+      }
+    });
+
+    const collection = response.data;
+    console.log('Collection retrieved successfully');
+    // You can now use the collection object as needed
+    return collection;
+  } catch (error) {
+    console.error('Error fetching Postman collection:', error.message);
+    if (error.response) {
+      console.error('Response status:', error.response.status);
+      console.error('Response data:', error.response.data);
+    }
+    throw error;
+  }
+}
+
+// Usage
+/*
+getPostmanCollection()
+  .then(collection => {
+
+
+    console.log('collection:',collection)
+    // Do something with the collection
+    console.log('Collection name:', collection.collection.info.name);
+
+    const endpoints = parsePostmanJSON();
+
+    const newScan = new ActiveScan({
+            //user: user._id,
+            //theCollectionVersion,
+            //scanScheduleType,
+            //specificDateTime: scanScheduleType === 'specificTime' ? new Date(specificDateTime) : undefined,
+           // recurringSchedule: scanScheduleType === 'recurring' ? recurringSchedule : undefined,
+            status: 'in progress',
+            //endpointsScanned:selectedEndpointIdsToScan.length
+    });  
+    
+    await newScan.save();
+
+    console.log('scanScheduleType:',scanScheduleType)  
+
+    
+    // Run the scan immediately
+    const theScan = await runActiveScan(null, null, endpoints, newScan._id);
+    res.status(200).json({ theScan });
+  })
+  .catch(error => {
+    console.error('Failed to retrieve collection:', error);
+  });
+  */
+
+
+  getPostmanCollection()
+  .then(async (collection) => {  // Note the async keyword here
+    console.log('collection:', collection.collection);
+    console.log('Collection name:', collection.collection.info.name);
+
+    const endpoints = await parsePostmanJSON(collection.collection, null, null, null, null);
+
+    console.log('endpoints:',endpoints)
+
+    const newScan = new ActiveScan({
+      status: 'in progress',
+    });  
+    
+    await newScan.save();
+
+
+    // Run the scan immediately
+    const theScan = await runActiveScan(null, null, endpoints, newScan._id);
+    res.status(200).json({ scanResult:createBeautifulHTML(theScan) });
+  })
+  .catch(error => {
+    console.error('Failed to retrieve collection:', error);
+  });    
+    
+
+    
+});
+
+
+// Parse Postman JSON
+const parsePostmanJSON = async (collectiondata, user, collectionFilePath, theCollection, version) => {
+
+    //if (collectiondata.info._postman_id && collectiondata.item && Array.isArray(collectiondata.item)) {
+    if (collectiondata.info && collectiondata.item && Array.isArray(collectiondata.item)) {
+
+
+        // Function to recursively process items
+        const processItems = async (items) => {
+
+            const endpoints = [];
+
+            for (const item of items) {
+                let authorizationObject = { type: 'None' };
+
+
+                if (item.item && Array.isArray(item.item)) {
+
+                    await processItems(item.item);
+
+                } else {
+
+                    if (item.request.auth) {
+                        const authType = item.request.auth.type;
+                        if (authType === 'bearer') {
+                            authorizationObject = {
+                                type: 'bearer',
+                                bearerToken: item.request.auth.bearer
+                            };
+                        } else if (authType === 'apikey' || authType === 'jwt' || authType === 'digest' || authType === 'basic' || authType === 'oauth1' || authType === 'oauth2') {
+                            authorizationObject = {
+                                type: authType,
+                                apiKey: item.request.auth.apikey
+                            };
+                        }
+                    }
+
+                    ////////////////////
+
+                    let data;
+
+                    if (typeof item.request.url === 'string') {
+
+                        //   if(!item.request.url.includes('{{')){
+
+                        // Case 1: If "url" is a string, use it directly
+                        data = new ApiEndpoint({
+                            //theCollectionVersion: theCollectionVersion._id,
+                            //user: user,
+                            protocol: '',
+                            url: item.request.url,
+                            name: item.name,
+                            method: item.request.method,
+                            queryParams: item.request.url.query,
+                            headers: item.request.header,
+                            requestBody: item.request.body,
+                            authorization: authorizationObject
+                        });
+
+                        await data.save();
+                        endpoints.push(data)
+                        //}
+
+                    } else if (typeof item.request.url === 'object' && item.request.url !== null) {
+
+                        const rawUrl = item.request.url.raw;
+
+                        if (rawUrl && typeof rawUrl === 'string' && rawUrl !== "") {
+
+                            // Case 2: If "raw" URL exists, use it directly
+                            data = new ApiEndpoint({
+                                //theCollectionVersion: theCollectionVersion._id,
+                                //user: user,
+                                protocol: item.request.url.protocol,
+                                url: rawUrl,
+                                name: item.name,
+                                method: item.request.method,
+                                queryParams: item.request.url.query,
+                                headers: item.request.header,
+                                requestBody: item.request.body,
+                                authorization: authorizationObject
+                            });
+
+                            await data.save();
+                            endpoints.push(data)
+
+                        } else if (Array.isArray(item.request.url.host) && Array.isArray(item.request.url.path)) { // if host and path are arrays
+
+                            // Case 3: If "protocol" is not present but "host" and "path" exist, generate URL
+                            const generatedUrl = `${item.request.url.protocol}://${Array.isArray(item.request.url.host) ? item.request.url.host.join('.') : item.request.url.host}/${Array.isArray(item.request.url.path) ? item.request.url.path.join('/') : item.request.url.path}`;
+
+                            // if(!generatedUrl.includes('{{')){
+
+                            data = new ApiEndpoint({
+                                //theCollectionVersion: theCollectionVersion._id,
+                                //user: user,
+                                protocol: item.request.url.protocol,
+                                url: generatedUrl,
+                                name: item.name,
+                                method: item.request.method,
+                                queryParams: item.request.url.query,
+                                headers: item.request.header,
+                                requestBody: item.request.body,
+                                authorization: authorizationObject
+                            });
+
+                            await data.save();
+                            endpoints.push(data)
+                            // }
+
+                        } else if (!Array.isArray(item.request.url.host) && Array.isArray(item.request.url.path)) { // path is array but host is string
+
+                            const host = typeof item.request.url.host === 'string' ? item.request.url.host : (Array.isArray(item.request.url.host) ? item.request.url.host.join('.') : '');
+                            const path = Array.isArray(item.request.url.path) ? item.request.url.path.join('/') : item.request.url.path;
+
+                            const generatedUrl = `${item.request.url.protocol}://${host}/${path}`;
+
+                            // if(!generatedUrl.includes('{{')){
+                            data = new ApiEndpoint({
+                                //theCollectionVersion: theCollectionVersion._id,
+                                //user: user,
+                                url: generatedUrl,
+                                name: item.name,
+                                method: item.request.method,
+                                queryParams: item.request.url.query,
+                                headers: item.request.header,
+                                requestBody: item.request.body,
+                                authorization: authorizationObject
+                            });
+
+                            await data.save();
+                            endpoints.push(data)
+                            //}
+
+
+                        } else if (Array.isArray(item.request.url.host) && !Array.isArray(item.request.url.path)) { // host is array but path is string
+
+                            const host = Array.isArray(item.request.url.host) ? item.request.url.host.join('.') : item.request.url.host;
+                            const path = typeof item.request.url.path === 'string' ? item.request.url.path : (Array.isArray(item.request.url.path) ? item.request.url.path.join('/') : '');
+
+                            const generatedUrl = `${item.request.url.protocol}://${host}/${path}`;
+
+                            //  if(!generatedUrl.includes('{{')){
+
+                            data = new ApiEndpoint({
+                                //theCollectionVersion: theCollectionVersion._id,
+                                //user: user,
+                                url: generatedUrl,
+                                name: item.name,
+                                method: item.request.method,
+                                queryParams: item.request.url.query,
+                                headers: item.request.header,
+                                requestBody: item.request.body,
+                                authorization: authorizationObject
+                            });
+
+                            await data.save();
+                            endpoints.push(data)
+                            // }
+
+                        } else {
+                            console.log("item.request:", item.request)
+                            // Handle the case where neither "raw" nor "host" and "path" are present
+                            //throw new Error('Invalid format for item.request.url');
+                        }
+                    } else {
+
+                        console.log("item.request:", item.request)
+                        // Handle the case where item.request.url is not an object or string
+                        //throw new Error('Invalid type for item.request.url');
+                    }
+
+                    ////////////
+
+
+                    try {
+                        // await data.save();
+                    } catch (error) {
+                        return { message: 'An error occurred', error: error };
+                    }
+                }
+            }
+
+            return endpoints;
+        };
+
+        const endpoints1 = await processItems(collectiondata.item);
+
+        // Call the runActiveScan function and return the result
+        //const theScan = await runActiveScan(user, theCollection, projectName, email);
+        //return theScan;
+        return endpoints1;
+    } else {
+        return { message: 'Not a valid PostMan Collection' };
+    }
+};
+
+
+function createBeautifulHTML(jsonData) {
+
+    console.log('jsonData:',jsonData)
+    const scan = jsonData;
+    const vulnerabilities = jsonData.vulnerabilities;
+  
+    // Helper function to create a colored severity badge
+    const getSeverityBadge = (severity) => {
+      const colorMap = {
+        'LOW': 'bg-blue-100 text-blue-800',
+        'MEDIUM': 'bg-yellow-100 text-yellow-800',
+        'HIGH': 'bg-red-100 text-red-800',
+        'CRITICAL': 'bg-purple-100 text-purple-800'
+      };
+      const color = colorMap[severity] || 'bg-gray-100 text-gray-800';
+      return `<span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${color}">${severity}</span>`;
+    };
+  
+    // Create HTML for scan parameters
+    const scanParamsHTML = `
+      <h2 class="text-2xl font-bold mb-4">Scan Parameters</h2>
+      <table class="min-w-full divide-y divide-gray-200 mb-8">
+        <tbody class="bg-white divide-y divide-gray-200">
+          <tr>
+            <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">Scan ID</td>
+            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${scan._id}</td>
+          </tr>
+          <tr>
+            <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">Status</td>
+            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${scan.status}</td>
+          </tr>
+          <tr>
+            <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">Schedule Type</td>
+            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${scan.scanScheduleType}</td>
+          </tr>
+          <tr>
+            <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">Created At</td>
+            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${new Date(scan.createdAt).toLocaleString()}</td>
+          </tr>
+          <tr>
+            <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">Completed At</td>
+            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${new Date(scan.scanCompletedAt).toLocaleString()}</td>
+          </tr>
+        </tbody>
+      </table>
+    `;
+  
+    // Create HTML for vulnerabilities table
+    const vulnerabilitiesHTML = `
+      <h2 class="text-2xl font-bold mb-4">Vulnerabilities</h2>
+      <table class="min-w-full divide-y divide-gray-200">
+        <thead class="bg-gray-50">
+          <tr>
+            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Vulnerability Name</th>
+            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Risk Score</th>
+            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Endpoint</th>
+            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Description</th>
+          </tr>
+        </thead>
+        <tbody class="bg-white divide-y divide-gray-200">
+          ${vulnerabilities.map(vuln => `
+            <tr>
+              <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">${vuln.vulnerability.vulnerabilityName}</td>
+              <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${getSeverityBadge(vuln.vulnerability.riskScore)}</td>
+              <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${vuln.endpoint.url}</td>
+              <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${vuln.description}</td>
+            </tr>
+          `).join('')}
+        </tbody>
+      </table>
+    `;
+  
+    // Combine all HTML parts
+    const fullHTML = `
+      <!DOCTYPE html>
+      <html lang="en">
+      <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Scan Report</title>
+        <script src="https://cdn.tailwindcss.com"></script>
+      </head>
+      <body class="bg-gray-100 p-8">
+        <div class="max-w-7xl mx-auto">
+          <h1 class="text-3xl font-bold mb-8">Scan Report</h1>
+          ${scanParamsHTML}
+          ${vulnerabilitiesHTML}
+        </div>
+      </body>
+      </html>
+    `;
+  
+    return fullHTML;
+  }
 
 // Generate PDF for a scan and download it
 module.exports.generatePDFForAScan = asyncHandler(async (req, res) => {
