@@ -1636,13 +1636,13 @@ module.exports.getTopRisks = asyncHandler(async (req, res) => {
         const validResults = combinedResults.filter(result => result.title && result.count > 0);
 
         // Log for debugging
-        console.log('Filtered Valid Results:', validResults);
+       // console.log('Filtered Valid Results:', validResults);
 
         // Sort combined results by count in descending order
         validResults.sort((a, b) => b.count - a.count);
 
         // Log sorted results
-        console.log('Sorted Valid Results:', validResults);
+       // console.log('Sorted Valid Results:', validResults);
 
         // Get top 10 results
         const topRisks = validResults.slice(0, 10);

@@ -1739,8 +1739,8 @@ module.exports.startActiveScan = asyncHandler(async (req, res) => {
             _id: { $in: selectedEndpointIdsToScan }
         });
 
-        console.log('selectedEndpointIdsToScan:',selectedEndpointIdsToScan)
-        console.log('endpoints:',endpoints)
+       // console.log('selectedEndpointIdsToScan:',selectedEndpointIdsToScan)
+        //console.log('endpoints:',endpoints)
 
     const newScan = new ActiveScan({
             user: user._id,
@@ -1754,6 +1754,10 @@ module.exports.startActiveScan = asyncHandler(async (req, res) => {
     
     await newScan.save();
 
+    console.log('scanScheduleType:',scanScheduleType)
+
+   
+
     if (scanScheduleType === 'now') {
 
             // Run the scan immediately
@@ -1762,11 +1766,49 @@ module.exports.startActiveScan = asyncHandler(async (req, res) => {
 
     } else if (scanScheduleType === 'specificTime') {
 
-            // Schedule the scan for a specific time
-            const scanTime = new Date(specificDateTime);
-            cron.schedule(scanTime, () => {
+          // Schedule the scan for a specific time
+          const scanTime = new Date(specificDateTime);
+          console.log('specificDateTime:',specificDateTime)
+          console.log('scanTime:',scanTime)
+
+      /*  cron.schedule('* * * * *', () => {
+            console.log('running a task every minute');
+
+            console.log('new Date().getTime(:', new Date().getTime())
+            console.log('scanTime.getTime():',scanTime.getTime())
+
+            if (new Date().getTime() >= scanTime.getTime()) {
+
+                console.log('comes here now')
                 runActiveScan(user, theCollectionVersion, endpoints, newScan._id);
-            });
+            }
+
+        });*/
+
+        const scheduledTask = cron.schedule('* * * * *', () => {
+            console.log('running a task every minute');
+        
+            console.log('new Date().getTime():', new Date().getTime())
+            console.log('scanTime.getTime():', scanTime.getTime())
+        
+            if (new Date().getTime() >= scanTime.getTime()) {
+                console.log('condition fulfilled, running scan')
+                runActiveScan(user, theCollectionVersion, endpoints, newScan._id);
+                
+                // Stop the scheduled task
+                scheduledTask.cancel();
+                
+                console.log('Scheduled task has been stopped');
+            }
+        });
+
+
+
+          
+        /*    cron.schedule(scanTime, () => {
+                console.log('comes here actually')
+                runActiveScan(user, theCollectionVersion, endpoints, newScan._id);
+            });*/
             res.status(200).json({ "status": "scheduled" });
 
     } else if (scanScheduleType === 'recurring') {
@@ -1791,7 +1833,18 @@ module.exports.startActiveScan = asyncHandler(async (req, res) => {
             }
     
             cron.schedule(cronExpression, () => {
-                runActiveScan(user, theCollectionVersion, endpoints, newScan._id);
+
+                newScan1 = new ActiveScan({
+                    user: user._id,
+                    theCollectionVersion,
+                    scanScheduleType,
+                    specificDateTime: scanScheduleType === 'specificTime' ? new Date(specificDateTime) : undefined,
+                    recurringSchedule: scanScheduleType === 'recurring' ? recurringSchedule : undefined,
+                    status: scanScheduleType=='now'?'in progress':'scheduled',
+                    endpointsScanned:selectedEndpointIdsToScan.length
+                });  
+
+                runActiveScan(user, theCollectionVersion, endpoints, newScan1._id);
             });
             res.status(200).json({ "status": "scheduled" });
      } else {
@@ -1851,7 +1904,7 @@ module.exports.generatePDFForAScan = asyncHandler(async (req, res) => {
 
 async function runActiveScan(user, theCollectionVersion, endpoints, scanId) {
 
-    console.log('scanId:',scanId)
+    console.log('cameToScan:')
 
     try {
 

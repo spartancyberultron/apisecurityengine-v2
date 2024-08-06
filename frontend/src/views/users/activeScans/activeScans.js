@@ -325,13 +325,13 @@ const QuickScans = () => {
                 {value.status}
               </div>
 
-              {value.scanScheduleType == 'specificTime' &&
+              {value.scanScheduleType == 'specificTime' && value.status!=='COMPLETED' &&
 
                 <span style={{marginTop:5,}}>{'At ' + (new Date(value.specificDateTime)).toLocaleDateString() + '-' + (new Date(value.specificDateTime)).toLocaleTimeString()}</span>
 
               }
 
-              {value.scanScheduleType == 'recurring' &&
+              {value.scanScheduleType == 'recurring' && 
 
                 <span style={{marginTop:5}}>{'Recurring ' + value.recurringSchedule}</span>
 
