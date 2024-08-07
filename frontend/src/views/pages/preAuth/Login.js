@@ -87,9 +87,11 @@ const VendorLogin = () => {
     if (user) {
       const parsedUser = JSON.parse(user);
       if (parsedUser.userType === 'user') {
-        window.location.replace('/user-dashboard');
+        //window.location.replace('/user-dashboard');
+        navigate('/user-dashboard')
       } else if (parsedUser.userType === 'admin') {
-        window.location.replace('/admin-all-users');
+        //window.location.replace('/admin-all-users');
+        navigate('/admin-all-users')
       }
     }
   }, []);
