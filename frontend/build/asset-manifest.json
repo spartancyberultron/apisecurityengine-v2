@@ -1,7 +1,7 @@
 {
   "files": {
-    "main.css": "./static/css/main.1d5a8491.css",
-    "main.js": "./static/js/main.92da337f.js",
+    "main.css": "./static/css/main.10273110.css",
+    "main.js": "./static/js/main.5f347fdb.js",
     "react-syntax-highlighter/refractor-core-import.js": "./static/js/react-syntax-highlighter/refractor-core-import.27573f4b.chunk.js",
     "react-syntax-highlighter_languages_refractor_abap.js": "./static/js/react-syntax-highlighter_languages_refractor_abap.221f6ac3.chunk.js",
     "react-syntax-highlighter_languages_refractor_actionscript.js": "./static/js/react-syntax-highlighter_languages_refractor_actionscript.4c2236ad.chunk.js",
@@ -157,15 +157,12 @@
     "static/js/6453.6dbe93ef.chunk.js": "./static/js/6453.6dbe93ef.chunk.js",
     "static/media/securitybanner.jpg": "./static/media/securitybanner.bee80a9213ecaa0114e2.jpg",
     "static/media/landing-bg.jpg": "./static/media/landing-bg.9d9f755c113085ff671e.jpg",
-    "static/media/apisec-banner.png": "./static/media/apisec-banner.7689c43ad0ec508ca9f7.png",
     "static/media/apibanner.jpg": "./static/media/apibanner.07bd2bf2f8e51bb8b78c.jpg",
-    "static/media/apisec-banner-2.jpg": "./static/media/apisec-banner-2.8295b4ab55ad61e6d7a0.jpg",
     "static/media/dotnet-logo.png": "./static/media/dotnet-logo.918b4c89d8cfced8f1d7.png",
     "static/media/java-logo.png": "./static/media/java-logo.07101c69312e7f028de4.png",
     "static/media/dotnet-white-logo.png": "./static/media/dotnet-white-logo.698d16245186b6628679.png",
     "static/media/ddos-protection.png": "./static/media/ddos-protection.a094a2748ea2dd45925b.png",
     "static/media/php-logo.png": "./static/media/php-logo.aa680f57bf75b5d5acdc.png",
-    "static/media/apisec-image.png": "./static/media/apisec-image.9536f6b457ecf4ca88a0.png",
     "static/media/apisec-banner.jpg": "./static/media/apisec-banner.8618a5bbfccc0387c232.jpg",
     "static/media/google_chrome.png": "./static/media/google_chrome.fe74ad5a0c8e3484a1e4.png",
     "static/media/node-js-logo.png": "./static/media/node-js-logo.d980d9636ace07ad3dde.png",
@@ -184,8 +181,8 @@
     "static/media/aws-logo.png": "./static/media/aws-logo.f94586bbc2d6d5f6a605.png",
     "static/media/kubernetes-logo.png": "./static/media/kubernetes-logo.60a6a11474d5ee6f1434.png",
     "index.html": "./index.html",
-    "main.1d5a8491.css.map": "./static/css/main.1d5a8491.css.map",
-    "main.92da337f.js.map": "./static/js/main.92da337f.js.map",
+    "main.10273110.css.map": "./static/css/main.10273110.css.map",
+    "main.5f347fdb.js.map": "./static/js/main.5f347fdb.js.map",
     "refractor-core-import.27573f4b.chunk.js.map": "./static/js/react-syntax-highlighter/refractor-core-import.27573f4b.chunk.js.map",
     "react-syntax-highlighter_languages_refractor_abap.221f6ac3.chunk.js.map": "./static/js/react-syntax-highlighter_languages_refractor_abap.221f6ac3.chunk.js.map",
     "react-syntax-highlighter_languages_refractor_actionscript.4c2236ad.chunk.js.map": "./static/js/react-syntax-highlighter_languages_refractor_actionscript.4c2236ad.chunk.js.map",
@@ -341,7 +338,7 @@
     "6453.6dbe93ef.chunk.js.map": "./static/js/6453.6dbe93ef.chunk.js.map"
   },
   "entrypoints": [
-    "static/css/main.1d5a8491.css",
-    "static/js/main.92da337f.js"
+    "static/css/main.10273110.css",
+    "static/js/main.5f347fdb.js"
   ]
 }
