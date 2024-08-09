@@ -69,7 +69,6 @@ const Teams = () => {
     setTeamToDelete(user);
     setModalIsOpen(true);
   };
-
   
 
   const goToEditTeam = (id) => {
@@ -259,6 +258,44 @@ const Teams = () => {
         }
       }
     },
+    {
+      label: "Associated Workspaces",
+      options: {
+        filter: false,
+        download: false,
+        customBodyRender: (workspaces, tableMeta, updateValue) => {
+          // Check if value is an array and not empty
+          if (Array.isArray(workspaces) && workspaces.length > 0) {
+            return (
+              <div style={{ display: "flex", flexWrap: "wrap", gap: "10px" }}>
+                {workspaces.map(workspace => (
+                  <div 
+                    key={workspace._id} 
+                    style={{ 
+                      backgroundColor: "#FFA07A", // Light color background
+                      color: "#000", // Black text
+                      padding: "5px 10px", 
+                      borderRadius: "5px", 
+                      boxShadow: "0 2px 4px rgba(0, 0, 0, 0.1)",
+                      fontSize: "14px"
+                    }}
+                  >
+                    {workspace.name} 
+                  </div>
+                ))}
+              </div>
+            );
+          } else {
+            // Handle the case where there are no members
+            return (
+              <div style={{ display: "flex", alignItems: "center" }}>
+                ---
+              </div>
+            );
+          }
+        }
+      }
+    },
     
     {
       label: "Actions",
@@ -356,6 +393,7 @@ const Teams = () => {
     dataItem.push(i+1);
     dataItem.push(teams[i].name);
     dataItem.push(teams[i].users);
+    dataItem.push(teams[i].workspaces);
    
     dataItem.push(teams[i]._id); // for delete
 

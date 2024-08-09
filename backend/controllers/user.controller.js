@@ -16,12 +16,11 @@ const Ticket = require('../models/ticket.model');
 
 const SOAPOrGraphQLScanVulnerability = require('../models/soapOrGraphQLScanVulnerability.model');
 
-
 const SBOMScanVulnerability = require('../models/sbomScanVulnerability.model');
 const LLMScanVulnerability = require('../models/llmScanVulnerability.model');
 
 const moment = require('moment');
-
+const AttackSurfaceScanVulnerability = require('../models/attacksurfacescanvulnerability.model');
 
 
 // Sign Up 
@@ -189,7 +188,7 @@ module.exports.userLogin = asyncHandler(async (req, res) => {
     const { email, password } = req.body;
 
     // Check whether the email exists
-    const user = await User.findOne({ email: email });
+    const user = await User.findOne({ email: email }).populate('organization');
 
     if (!user) {
 
@@ -980,7 +979,18 @@ module.exports.getScanDetailsForReport = asyncHandler(async (req, res) => {
         _id: scanId,
         user: userId,
       })
-        .populate('theCollection') // Populate 'theCollection' field
+        .populate({
+          path: 'theCollectionVersion', // Populate 'theCollectionVersion' field
+          populate: {
+            path: 'apiCollection', // Further populate 'apiCollection' within 'theCollectionVersion'
+            populate: {
+              path: 'orgProject', // Further populate 'orgProject' within 'apiCollection'
+              populate: {
+                path: 'organization', // Further populate 'organization' within 'orgProject'
+              },
+            },
+          },
+        })
         .populate({
           path: 'vulnerabilities',
           model: 'ActiveScanVulnerability',
@@ -988,7 +998,7 @@ module.exports.getScanDetailsForReport = asyncHandler(async (req, res) => {
             {
               path: 'vulnerability',
               model: 'Vulnerability',
-              select: 'vulnerabilityName riskScore', // Include only the desired fields
+              select: 'vulnerabilityName riskScore vulnerabilityCode', // Include only the desired fields
             },
             {
               path: 'endpoint',
@@ -996,9 +1006,9 @@ module.exports.getScanDetailsForReport = asyncHandler(async (req, res) => {
               // You can select specific fields from 'ApiEndpoint' if needed
             },
           ],
-        }).lean();
-
-
+        })
+        .lean();
+      
         const endpointsCount = await ApiEndpoint.count({ theCollection: activeScan.theCollection })
         activeScan.endpointsCount = endpointsCount;
         
@@ -1020,7 +1030,7 @@ module.exports.getScanDetailsForReport = asyncHandler(async (req, res) => {
 // Controller function to add a new user
 module.exports.addProject = asyncHandler(async (req, res) => {
 
-    const { projectName, projectId } = req.body;
+    const { projectName, projectId, projectPhase } = req.body;
 
     function generateRandomID() {
         const length = 20;
@@ -1042,7 +1052,8 @@ module.exports.addProject = asyncHandler(async (req, res) => {
         projectName,
         projectIntegrationID: randomID,
         user:req.user._id,
-        orgProject:projectId
+        orgProject:projectId,
+        projectPhase
     });
     await project.save();
     res.status(201).json(project);
@@ -1054,12 +1065,13 @@ module.exports.addProject = asyncHandler(async (req, res) => {
 // Controller function to update a project
 module.exports.updateProject = asyncHandler(async (req, res) => {
 
-    const { id, projectName } = req.body;
+    const { id, projectName, projectPhase } = req.body;
 
     let project;
 
     project = await Project.findByIdAndUpdate(id, {
         projectName,
+        projectPhase
     }, { new: true });
 
 
@@ -1244,6 +1256,59 @@ module.exports.updateRiskAcceptanceForAnActiveScanVulnerability = asyncHandler(a
 
 });
 
+// Update Risk Acceptance For A SOAP/GraphQL Vulnerability
+
+module.exports.updateRiskAcceptanceForASOAPGraphQLVulnerability = asyncHandler(async (req, res) => {
+
+
+    const { vulnId, riskAcceptance, riskAcceptanceReason } = req.body;
+
+    const soapOrGraphQLScanVulnerability =  await SOAPOrGraphQLScanVulnerability.findById(vulnId);
+    soapOrGraphQLScanVulnerability.riskAcceptance = riskAcceptance;
+    soapOrGraphQLScanVulnerability.riskAcceptanceReason = riskAcceptanceReason;
+    await soapOrGraphQLScanVulnerability.save();
+
+
+    res.json({ status: 'updated', data: soapOrGraphQLScanVulnerability });
+
+});
+
+// Update Risk Acceptance For an attack surface Vulnerability
+
+module.exports.updateRiskAcceptanceForAnAttackSurfaceVulnerability = asyncHandler(async (req, res) => {
+
+
+    const { vulnId, riskAcceptance, riskAcceptanceReason } = req.body;
+
+    const attackSurfaceScanVulnerability =  await AttackSurfaceScanVulnerability.findById(vulnId);
+    attackSurfaceScanVulnerability.riskAcceptance = riskAcceptance;
+    attackSurfaceScanVulnerability.riskAcceptanceReason = riskAcceptanceReason;
+    await attackSurfaceScanVulnerability.save();
+
+
+    res.json({ status: 'updated', data: attackSurfaceScanVulnerability });
+
+});
+
+
+// Update Risk Acceptance For a mirroring agent project Vulnerability
+
+module.exports.updateRiskAcceptanceForAMirroringAgent = asyncHandler(async (req, res) => {
+
+
+    const { vulnId, riskAcceptance, riskAcceptanceReason } = req.body;
+
+    const projectVulnerability =  await ProjectVulnerability.findById(vulnId);
+    projectVulnerability.riskAcceptance = riskAcceptance;
+    projectVulnerability.riskAcceptanceReason = riskAcceptanceReason;
+    await projectVulnerability.save();
+
+
+    res.json({ status: 'updated', data: projectVulnerability });
+
+});
+
+
 
 // Get organization details
 module.exports.getOrganizationDetails = asyncHandler(async (req, res) => {
@@ -1318,7 +1383,7 @@ module.exports.getNumberOfOpenVulnerabilities = asyncHandler(async (req, res) =>
         });
     }
 
-    console.log('User organization:', user.organization);
+    //console.log('User organization:', user.organization);
 
     // First, let's check if there are any open tickets at all
     const openTicketsCount = await Ticket.countDocuments({
@@ -1326,7 +1391,7 @@ module.exports.getNumberOfOpenVulnerabilities = asyncHandler(async (req, res) =>
         status: 'OPEN'
     });
 
-    console.log('Total open tickets:', openTicketsCount);
+    //console.log('Total open tickets:', openTicketsCount);
 
     const vulnerabilityCounts = await Ticket.aggregate([
     {
@@ -1347,7 +1412,7 @@ module.exports.getNumberOfOpenVulnerabilities = asyncHandler(async (req, res) =>
     }
 ]);
 
-    console.log('Vulnerability counts:', vulnerabilityCounts);
+    //console.log('Vulnerability counts:', vulnerabilityCounts);
 
     res.status(200).json({
         success: true,
@@ -1648,7 +1713,7 @@ module.exports.getTopRisks = asyncHandler(async (req, res) => {
         const topRisks = validResults.slice(0, 10);
 
         // Log top risks
-        console.log('Top Risks:', topRisks);
+        //console.log('Top Risks:', topRisks);
 
         // Send the response
         res.json(topRisks);

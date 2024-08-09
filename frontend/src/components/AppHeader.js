@@ -77,6 +77,8 @@ const AppHeader = () => {
 
   const getUserDetails = () => {
 
+    console.log('JSON.parse(localStorage.getItem(ASIUser)):',JSON.parse(localStorage.getItem('ASIUser')))
+
     setUser(JSON.parse(localStorage.getItem('ASIUser')));
   }
 
@@ -131,13 +133,21 @@ const AppHeader = () => {
     return () => document.removeEventListener('mousedown', handleClickOutside);
   });
 
+  console.log('user:',user)
+
 
   return (
     <CHeader position="sticky" className="mb-4" style={{height:100}}>
 
       <CContainer fluid className="header-primary">
 
-          <img src={logo} style={{ width: 100, alignSelf: 'center' }} alt="" />        
+
+{user && user.organization && user.organization.logoURL ?
+          <img src={user.organization.logoURL} style={{ width: 100, alignSelf: 'center' }} alt="Organization Logo" />
+:
+<img src={logo} style={{ width: 100, alignSelf: 'center' }} alt="Organization Logo" />
+}
+    
 
 
         <div class="search-container" style={{ display: 'none' }}>
@@ -151,9 +161,7 @@ const AppHeader = () => {
             <CNavLink href="#" style={{ textDecoration: 'none', display: 'flex', flexDirection: 'column', pointerEvents:'none', marginTop:10 }}>
               <span className="header-welcome-text">Welcome, {user ? user.firstName : ''} {user ? user.lastName : ''}</span>
             </CNavLink>
-          </CNavItem>
-
-          
+          </CNavItem>          
 
           <AppHeaderDropdown style={{ marginLeft: 50 }} />
         </CHeaderNav>

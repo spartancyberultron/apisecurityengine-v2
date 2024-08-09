@@ -179,14 +179,14 @@ const closeAcceptanceModal = async () => {
       setSubmittingReason(true);    
 
       const data = {
-        activeScanVulnId: currentVulnForRiskAcceptance._id,
+        vulnId: currentVulnForRiskAcceptance._id,
         riskAcceptance:riskAcceptance,
         riskAcceptanceReason:reason
       };
 
 
       const token = localStorage.getItem('ASIToken');
-      const response = await axios.post('api/v1/users/updateRiskAcceptanceForAnActiveScanVulnerability', data, {
+      const response = await axios.post('api/v1/users/updateRiskAcceptanceForAMirroringAgent', data, {
           headers: { Authorization: `Bearer ${token}` },
       });
 

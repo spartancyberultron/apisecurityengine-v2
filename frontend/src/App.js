@@ -16,13 +16,18 @@ if (window.location.hostname === 'localhost') {
   axios.defaults.baseURL = "http://localhost:5001";
   global.backendUrl = "http://localhost:5001";
   global.baseUrl = "http://localhost:3000";
+  global.reportAPIURL = "http://localhost/apisec-reporting/apisec-reporting/public/api/v1/download/apisec-report-download/";
+
 } else {
   axios.defaults.baseURL = "https://backend-new.apisecurityengine.com";
   global.backendUrl = "https://backend-new.apisecurityengine.com";
   global.baseUrl = "https://appnew.apisecurityengine.com";
+  global.reportAPIURL = "https://reports.apisecurityengine.com/api/v1/download/apisec-report-download/";
+
 }
 
-global.reportAPIURL = "https://reports.apisecurityengine.com/api/v1/download/apisec-report-download/";
+
+
 
 const loading = (
   <div className="pt-3 text-center">

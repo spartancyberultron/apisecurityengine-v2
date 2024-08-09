@@ -309,7 +309,6 @@ const QuickScans = () => {
 
           } 
 
-
           return (
             <div style={{
               display: "flex",

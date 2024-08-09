@@ -44,6 +44,9 @@ const {
   getScanDetailsForReport,
   updateOWASPAndCWEForVulnerabilities,
   updateRiskAcceptanceForAnActiveScanVulnerability,
+  updateRiskAcceptanceForASOAPGraphQLVulnerability,
+  updateRiskAcceptanceForAnAttackSurfaceVulnerability,
+  updateRiskAcceptanceForAMirroringAgent,
   getOrganizationDetails,
   getTimeToResolveVulnerabilities,
   getNumberOfOpenVulnerabilities,
@@ -125,6 +128,10 @@ router.post('/deleteProtectionHost', protectUser, deleteProtectionHost);
 //router.post('/updateOWASPAndCWEForVulnerabilities', updateOWASPAndCWEForVulnerabilities);
 
 router.post('/updateRiskAcceptanceForAnActiveScanVulnerability', protectUser, updateRiskAcceptanceForAnActiveScanVulnerability);
+router.post('/updateRiskAcceptanceForASOAPGraphQLVulnerability', protectUser, updateRiskAcceptanceForASOAPGraphQLVulnerability);
+router.post('/updateRiskAcceptanceForAnAttackSurfaceVulnerability', protectUser, updateRiskAcceptanceForAnAttackSurfaceVulnerability);
+router.post('/updateRiskAcceptanceForAMirroringAgent', protectUser, updateRiskAcceptanceForAMirroringAgent);
+
 
 router.get('/getOrganizationDetails', protectUser, getOrganizationDetails);
 

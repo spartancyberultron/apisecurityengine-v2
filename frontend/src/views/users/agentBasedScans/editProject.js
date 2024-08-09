@@ -19,6 +19,7 @@ const EditProject = () => {
   const [agentStatus, setAgentStatus] = useState('')  
 
   const [projectNameEmpty, setProjectNameEmpty] = useState(false)
+  const [projectPhase, setProjectPhase] = useState("Development")
   
   const [projectId, setProjectId] = useState('')
 
@@ -182,6 +183,7 @@ const EditProject = () => {
 
 
         <CInputGroup className="mb-3 mt-3" style={{ flexDirection: 'column', marginTop: 30 }}>
+        <label htmlFor="projectPhase">Application Name</label>
           <CFormInput
             placeholder="Application Name"
             onChange={(e) => setProjectName(e.target.value)}
@@ -192,7 +194,23 @@ const EditProject = () => {
           {projectNameEmpty &&
             <span style={{ color: 'red', fontSize: 12, marginTop: 5 }}>Please enter application name</span>
           }
-        </CInputGroup>       
+        </CInputGroup>      
+
+
+        <div className="mb-3" style={{ marginTop: 20, marginBottom: 20,width: "30%" }}>
+        <label htmlFor="projectPhase">Project Phase</label>
+        <select 
+            id="projectPhase" 
+            value={projectPhase} 
+            onChange={(e) => setProjectPhase(e.target.value)}
+            style={{ width: '100%', padding: '5px', marginTop: '5px' }}
+        >
+            <option value="Design">Design</option>
+            <option value="Development">Development</option>
+            <option value="Testing">Testing</option>
+            <option value="Maintenance">Maintenance</option>
+        </select>
+    </div> 
 
       
 

@@ -112,6 +112,7 @@ async function parseScanResults(filename, soapOrGraphQLScan) {
 
         const scan = await SOAPOrGraphQLScan.findById(soapOrGraphQLScan._id)
         scan.scanCompletedAt = new Date();
+        scan.status = 'completed';
         scan.save()
 
     });
@@ -532,7 +533,7 @@ module.exports.startSOAPOrGraphQLScan = asyncHandler(async (req, res) => {
 
     const user = await User.findById(req.user._id);
 
-    const { scanName, type, collectionUrl, projectId } = req.body;
+    const { scanName, type, collectionUrl, projectId, projectPhase } = req.body;
 
     console.log('req.body:', req.body);
 
@@ -545,7 +546,8 @@ module.exports.startSOAPOrGraphQLScan = asyncHandler(async (req, res) => {
         collectionUrl: collectionUrl,
         type: type,
         status: 'in progress',
-        orgProject:projectId
+        orgProject:projectId,
+        projectPhase:projectPhase
     });
     newScan.save();
 
@@ -588,7 +590,7 @@ module.exports.startSOAPOrGraphQLScan = asyncHandler(async (req, res) => {
 
     console.log('toolCommand:', toolCommand)
 
-    //exec(toolCommand);
+    exec(toolCommand);
 
     //const resultFilePath = path.join(__dirname, "..", "uploads", "sbom-files", "sbom-scan-result-files", `${newScan._id}_result.json`);
 

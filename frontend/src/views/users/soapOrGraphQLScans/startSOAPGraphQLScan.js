@@ -33,6 +33,7 @@ const StartSOAPGraphQLScan = () => {
   const [file, setFile] = useState(null);
   const [type, setType] = useState('soap');
   const [loading, setLoading] = useState(false)
+  const [projectPhase, setProjectPhase] = useState("Development")
 
   const [collectionUrl, setCollectionUrl] = useState('');
 
@@ -112,6 +113,7 @@ const fetchProjects = async () => {
       formData.append('collectionUrl', collectionUrl);
       formData.append('type', type);
       formData.append('projectId', selectedProjectId); // Include selected projectId
+      formData.append('projectPhase', projectPhase); 
 
       // Make the API call
       fetch(global.backendUrl + '/api/v1/soapOrGraphQLScans/startSOAPOrGraphQLScan', {
@@ -315,6 +317,24 @@ const fetchProjects = async () => {
                                 </CFormSelect>
                             </CInputGroup>
 
+
+                            <div className="mb-3" style={{ marginTop: 20, marginBottom: 20, }}>
+        <label htmlFor="projectPhase">Project Phase</label>
+        <select 
+            id="projectPhase" 
+            value={projectPhase} 
+            onChange={(e) => setProjectPhase(e.target.value)}
+            style={{ width: '100%', padding: '5px', marginTop: '5px' }}
+        >
+            <option value="Design">Design</option>
+            <option value="Development">Development</option>
+            <option value="Testing">Testing</option>
+            <option value="Maintenance">Maintenance</option>
+        </select>
+    </div> 
+
+
+
               <CButton
                 style={{
                   width: '100%',
@@ -360,7 +380,7 @@ const fetchProjects = async () => {
 
 
           <p style={{ textAlign: 'center', alignSelf: 'center', width: '60%', fontSize: 13 }}>Please ensure the file you input,
-            has valid XML/WSDL content, and are in proper SOAP/GraphQL format.
+            has valid .xml/.gql/.graphql content, and are in proper SOAP/GraphQL format.
           </p>
 
         </div>

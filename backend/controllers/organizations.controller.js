@@ -71,7 +71,17 @@ module.exports.getTeams = asyncHandler(async (req, res) => {
   .populate({
     path: 'users', // The field in the Team schema that references User documents
     select: 'firstName lastName email' // Optional: specify which fields to return
-  });
+  }).lean();
+
+ 
+   
+
+   for(var i=0;i<teams.length;i++){
+
+        const workspaces = await Workspace.find({ teams: teams[i]._id });
+        teams[i].workspaces = workspaces;
+   }  
+
 
     res.status(200).json({ success: true, teams });
 });
@@ -165,7 +175,15 @@ module.exports.getWorkspaces = asyncHandler(async (req, res) => {
     .populate({
         path: 'teams', 
         select: 'name' 
-      });
+      }).lean();
+
+
+   for(var i=0;i<workspaces.length;i++){
+
+    const projects = await OrgProject.find({ workspace:  workspaces[i]._id});
+    workspaces[i].projects = projects;
+   }  
+
 
 
 
@@ -254,7 +272,19 @@ module.exports.getProjects = asyncHandler(async (req, res) => {
 
     const user = await User.findById(req.user._id).populate('organization');
 
-    const projects = await OrgProject.find({ organization: user.organization._id }).populate('workspace') 
+    const projects = await OrgProject.find({ organization: user.organization._id }).populate('workspace').lean(); 
+
+
+    for(var i=0;i<projects.length;i++){
+
+        const workspace = await Workspace.findById(projects[i].workspace._id).populate('teams');
+
+
+        projects[i].teams = workspace.teams;
+
+    }
+
+
 
 
     res.status(200).json({ success: true, projects });
@@ -345,7 +375,19 @@ module.exports.getOrganizationUsers = asyncHandler(async (req, res) => {
 
     const user = await User.findById(req.user._id).populate('organization');
 
-    const users = await User.find({ organization: user.organization._id });
+    const users = await User.find({ organization: user.organization._id }).lean();
+
+    for(var i=0;i<users.length;i++){
+
+        const teams = await Team.find({ users: users[i]._id });
+        users[i].teams = teams;
+     }  
+
+
+     console.log('users:',users)
+
+
+
 
     res.status(200).json({ success: true, users });
 });
@@ -750,7 +792,7 @@ module.exports.getTeamDetails = asyncHandler(async (req, res) => {
         const id = req.params.id;
 
         // Fetch team details from the database
-        const team = await Team.findById(id);
+        const team = await Team.findById(id).populate('users');
 
         if (!team) {
             // If team is not found, return a 404 Not Found response
@@ -778,7 +820,7 @@ module.exports.getWorkspaceDetails = asyncHandler(async (req, res) => {
         const id = req.params.id;
 
         // Fetch workspace details from the database
-        const workspace = await Workspace.findById(id);
+        const workspace = await Workspace.findById(id).populate('teams');
 
         if (!workspace) {
 

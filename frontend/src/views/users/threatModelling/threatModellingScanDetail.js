@@ -1423,11 +1423,11 @@ const ThreatModellingScanDetail = () => {
                   </td>
                   <td style={{ padding: 10, borderWidth: 1, borderColor: '#fff' }}>
 
-                    {(activeScan.theCollection && activeScan.theCollection.collectionName) ? activeScan.theCollection.collectionName : '<Name not found>'}
+                  {(activeScan.theCollectionVersion && activeScan.theCollectionVersion.apiCollection.collectionName) ? 
+                    activeScan.theCollectionVersion.apiCollection.collectionName : '<Name not found>'}
 
                   </td>
                 </tr>
-
 
                 <tr>
 

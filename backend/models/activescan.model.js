@@ -49,6 +49,10 @@ const activeScanSchema = new mongoose.Schema({
   recurringSchedule: {
     type: String,
     enum: ['daily', 'weekly', 'biweekly', 'monthly']
+  },
+  projectPhase: {
+    type: String,
+    enum: ['Design', 'Development', 'Testing', 'Maintenance']
   }
 }, {
   timestamps: true,

@@ -24,6 +24,7 @@ const AddProject = () => {
   const [projects, setProjects] = useState([]);
   const [selectedProjectId, setSelectedProjectId] = useState("");
   const navigate = useNavigate();
+  const [projectPhase, setProjectPhase] = useState("Development")
 
   useEffect(() => {
     fetchProjects();
@@ -119,6 +120,7 @@ const AddProject = () => {
         </div>
 
         <CInputGroup className="mb-3 mt-3" style={{ flexDirection: "column", marginTop: 30 }}>
+        <label htmlFor="projectPhase">Application Name</label>
           <CFormInput
             placeholder="Application Name"
             onChange={(e) => setProjectName(e.target.value)}
@@ -131,6 +133,7 @@ const AddProject = () => {
         </CInputGroup>
 
         <CInputGroup className="mb-3" style={{ flexDirection: "column", marginTop: 10 }}>
+        <label htmlFor="projectPhase">Select Project</label>
           <CFormSelect
             aria-label="Select Project"
             onChange={(e) => setSelectedProjectId(e.target.value)}
@@ -146,6 +149,21 @@ const AddProject = () => {
             ))}
           </CFormSelect>
         </CInputGroup>
+
+        <div className="mb-3" style={{ marginTop: 20, marginBottom: 20,width: "30%" }}>
+        <label htmlFor="projectPhase">Project Phase</label>
+        <select 
+            id="projectPhase" 
+            value={projectPhase} 
+            onChange={(e) => setProjectPhase(e.target.value)}
+            style={{ width: '100%', padding: '5px', marginTop: '5px' }}
+        >
+            <option value="Design">Design</option>
+            <option value="Development">Development</option>
+            <option value="Testing">Testing</option>
+            <option value="Maintenance">Maintenance</option>
+        </select>
+    </div>
 
         <CButton
           style={{

@@ -85,7 +85,18 @@ const EditTeam = () => {
 
     setTeam(response.data.data);
     setTeamName(response.data.data.name);
-    setSelectedUsers(response.data.data.users || []); // Set selected users if any
+
+    console.log('response.data.data.users:',response.data.data.users)
+    //setSelectedUsers(response.data.data.users || []); // Set selected users if any
+
+    // Assuming response.data.data.users is an array of user objects
+const selectedUsers = response.data.data.users.map(user => ({
+  value: user._id,
+  label: `${user.firstName} ${user.lastName} (${user.email})`
+}));
+
+// Set selected users to this array of objects
+setSelectedUsers(selectedUsers);
 
     setLoading(false);
   };
@@ -167,6 +178,9 @@ const EditTeam = () => {
     e.preventDefault();
     navigate('/teams');
   };
+
+
+  console.log("selectedUsers:",selectedUsers);
 
   return (
     <div style={{ display: 'flex', overflow: "scroll", position: 'relative', overflowY: 'hidden', overflowX: 'hidden', }}>

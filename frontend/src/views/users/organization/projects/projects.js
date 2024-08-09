@@ -223,6 +223,44 @@ const Projects = () => {
     "Project Name",     
     "Workspace",    
     {
+      label: "Teams Having Access (Via Workspace)",
+      options: {
+        filter: false,
+        download: false,
+        customBodyRender: (value, tableMeta, updateValue) => {
+          // Check if value is an array and not empty
+          if (Array.isArray(value) && value.length > 0) {
+            return (
+              <div style={{ display: "flex", flexWrap: "wrap", gap: "10px" }}>
+                {value.map(team => (
+                  <div 
+                    key={team._id} 
+                    style={{ 
+                      backgroundColor: "#FFA07A", // Light color background
+                      color: "#000", // Black text
+                      padding: "5px 10px", 
+                      borderRadius: "5px", 
+                      boxShadow: "0 2px 4px rgba(0, 0, 0, 0.1)",
+                      fontSize: "14px"
+                    }}
+                  >
+                    {team.name} 
+                  </div>
+                ))}
+              </div>
+            );
+          } else {
+            // Handle the case where there are no members
+            return (
+              <div style={{ display: "flex", alignItems: "center" }}>
+                ---
+              </div>
+            );
+          }
+        }
+      }
+    },
+    {
       label: "Actions",
       options: {
         filter: false,
@@ -318,6 +356,8 @@ const Projects = () => {
     dataItem.push(i+1);
     dataItem.push(projects[i].name);
     dataItem.push(projects[i].workspace.name);
+
+    dataItem.push(projects[i].teams);
    
     dataItem.push(projects[i]._id); // for delete
 

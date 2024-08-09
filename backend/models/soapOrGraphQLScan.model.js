@@ -28,6 +28,10 @@ const soapOrGraphQLScanSchema = new mongoose.Schema({
   },
   status:{
     type: String,
+  },
+  projectPhase: {
+    type: String,
+    enum: ['Design', 'Development', 'Testing', 'Maintenance']
   }
 }, {
   timestamps: true,

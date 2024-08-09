@@ -194,14 +194,14 @@ const closeCostOfBreachModal = async () => {
       setSubmittingReason(true);    
 
       const data = {
-        attackSurfaceScanVulnId: currentVulnForRiskAcceptance._id,
+        vulnId: currentVulnForRiskAcceptance._id,
         riskAcceptance:riskAcceptance,
         riskAcceptanceReason:reason
       };
 
 
       const token = localStorage.getItem('ASIToken');
-      const response = await axios.post('api/v1/users/updateRiskAcceptanceForAnAttackSurfaceScanScanVulnerability', data, {
+      const response = await axios.post('api/v1/users/updateRiskAcceptanceForAnAttackSurfaceVulnerability', data, {
           headers: { Authorization: `Bearer ${token}` },
       });
 
@@ -685,7 +685,8 @@ const closeCostOfBreachModal = async () => {
       body: {
         noMatch: 'No vulnerabilities found',
       }
-    }
+    },
+    
   };
 
 
@@ -707,7 +708,6 @@ const closeCostOfBreachModal = async () => {
 
       var endpointObject = attackSurfaceScan.vulnerabilities[i].endpoint;
 
-      console.log('endpointObject:',endpointObject)
     
 
 
@@ -1596,6 +1596,34 @@ const closeCostOfBreachModal = async () => {
                 </tr>
 
 
+                <tr>
+
+<td style={{ padding: 10, borderWidth: 0, borderColor: '#000', width: 400, background: '#fff' }}>
+
+  <span style={{ fontWeight: 'bold', }}>Scan Status</span>
+</td>
+<td style={{ padding: 10, borderWidth: 1, borderColor: '#fff', width: 400 }}>
+
+{attackSurfaceScan.status == 'completed' &&
+                     <span style={{backgroundColor:'#28C76F', color:'#fff', padding:10, }}>{attackSurfaceScan.status.toUpperCase()}</span>
+        }
+
+       
+
+      {attackSurfaceScan.status == 'in progress' &&
+                     <span style={{backgroundColor:'#FFC300', color:'#black', padding:10}}>{attackSurfaceScan.status.toUpperCase()}</span>
+        }
+
+</td>
+</tr>
+
+
+               
+
+
+{attackSurfaceScan.status == 'completed' &&
+
+
 
                 <tr>
 
@@ -1610,6 +1638,7 @@ const closeCostOfBreachModal = async () => {
                   </td>
                 </tr>
 
+      }
               </table>
 
 

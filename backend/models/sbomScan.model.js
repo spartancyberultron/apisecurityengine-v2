@@ -40,6 +40,10 @@ const sbomScanSchema = new mongoose.Schema({
   },
   criticalCount:{
     type: Number,
+  },
+  projectPhase: {
+    type: String,
+    enum: ['Design', 'Development', 'Testing', 'Maintenance']
   }
 }, {
   timestamps: true,

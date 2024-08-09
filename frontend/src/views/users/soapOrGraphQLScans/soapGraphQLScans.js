@@ -449,11 +449,8 @@ const SOAPGraphQLScans = () => {
    
    dataItem.push(soapOrGraphQLScans[i].vulnerabilities);    
 
-    if(soapOrGraphQLScans[i].scanCompletedAt){
-      dataItem.push("COMPLETED");
-    }else{
-      dataItem.push('IN PROGRESS');
-    }
+   dataItem.push(soapOrGraphQLScans[i].status?(soapOrGraphQLScans[i].status).toUpperCase():'COMPLETED');    
+
 
     
     dataItem.push(soapOrGraphQLScans[i]); // for view report link

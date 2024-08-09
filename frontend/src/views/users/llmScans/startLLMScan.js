@@ -55,7 +55,7 @@ const StartLLMScan = () => {
   const [modelName, setModelName] = useState('Vartul/t2')
 
   const [loading, setLoading] = useState(false)
-
+  const [projectPhase, setProjectPhase] = useState("Development")
   const [validationFailed, setValidationFailed] = useState(false);
   const [errorText, setErrorText] = useState('');
 
@@ -137,7 +137,8 @@ const fetchProjects = async () => {
         "selectedProbes": selectedProbes,
         "modelHubKey": modelHubKey,
         "modelName": modelName,
-        "projectId":selectedProjectId
+        "projectId":selectedProjectId,
+        "projectPhase":projectPhase
       }
 
       // Make the API call
@@ -423,6 +424,23 @@ const fetchProjects = async () => {
                                     ))}
                                 </CFormSelect>
                             </CInputGroup>
+
+
+
+                            <div className="mb-3" style={{ marginTop: 20, marginBottom: 20, }}>
+        <label htmlFor="projectPhase">Project Phase</label>
+        <select 
+            id="projectPhase" 
+            value={projectPhase} 
+            onChange={(e) => setProjectPhase(e.target.value)}
+            style={{ width: '100%', padding: '5px', marginTop: '5px' }}
+        >
+            <option value="Design">Design</option>
+            <option value="Development">Development</option>
+            <option value="Testing">Testing</option>
+            <option value="Maintenance">Maintenance</option>
+        </select>
+    </div> 
 
 
               <CButton

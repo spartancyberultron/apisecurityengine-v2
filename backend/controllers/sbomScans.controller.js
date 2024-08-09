@@ -64,7 +64,7 @@ module.exports.startSBOMScan = asyncHandler(async (req, res) => {
 
     const user = await User.findById(req.user._id);
 
-    const { scanName, projectId } = req.body;
+    const { scanName, projectId, projectPhase } = req.body;
 
     const originalname = req.file.originalname
     const fileformat = originalname.split('.').pop();
@@ -79,7 +79,8 @@ module.exports.startSBOMScan = asyncHandler(async (req, res) => {
             user: user._id,
             sbomFilePath: filePath,
             status:'in progress',
-            orgProject:projectId
+            orgProject:projectId,
+            projectPhase:projectPhase
         });
         newScan.save();
 

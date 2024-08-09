@@ -260,6 +260,44 @@ const Workspaces = () => {
         }
       }
     },
+    {
+      label: "Projects Included",
+      options: {
+        filter: false,
+        download: false,
+        customBodyRender: (value, tableMeta, updateValue) => {
+          // Check if value is an array and not empty
+          if (Array.isArray(value) && value.length > 0) {
+            return (
+              <div style={{ display: "flex", flexWrap: "wrap", gap: "10px" }}>
+                {value.map(project => (
+                  <div 
+                    key={project._id} 
+                    style={{ 
+                      backgroundColor: "#FFA07A", // Light color background
+                      color: "#000", // Black text
+                      padding: "5px 10px", 
+                      borderRadius: "5px", 
+                      boxShadow: "0 2px 4px rgba(0, 0, 0, 0.1)",
+                      fontSize: "14px"
+                    }}
+                  >
+                    {project.name}
+                  </div>
+                ))}
+              </div>
+            );
+          } else {
+            // Handle the case where there are no teams
+            return (
+              <div style={{ display: "flex", alignItems: "center" }}>
+                ---
+              </div>
+            );
+          }
+        }
+      }
+    },
     
     {
       label: "Actions",
@@ -357,6 +395,8 @@ const Workspaces = () => {
     dataItem.push(i+1);
     dataItem.push(workspaces[i].name);
     dataItem.push(workspaces[i].teams);
+    dataItem.push(workspaces[i].projects);
+
    
     dataItem.push(workspaces[i]._id); // for delete
 

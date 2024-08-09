@@ -25,6 +25,8 @@ const APICollectionVersions = () => {
   //const [toast, addToast] = useState(0)
   const navigate = useNavigate()
 
+  const [projectPhase, setProjectPhase] = useState("Development")
+
   const [apiCollectionVersions, setApiCollectionVersions] = useState([])
   const [apiCollection, setApiCollection] = useState(null)
   const [apiCollectionId, setApiCollectionId] = useState('')
@@ -237,8 +239,7 @@ const handleCheckboxChange = (event) => {
         formData.append('version', 'new');
         formData.append('collectionUrl', collectionUrl);
         formData.append('collectionId', collectionId);
-
-        
+        formData.append('projectPhase', projectPhase);        
         
 
         // Make the API call
@@ -1118,7 +1119,7 @@ const handleCheckboxChange = (event) => {
 
            
 
-<div style={{ marginTop: 20, marginBottom: 20 }}>
+    <div style={{ marginTop: 20, marginBottom: 20 }}>
         <label htmlFor="scanScheduleType">Run this scan:</label>
         <select 
             id="scanScheduleType" 
@@ -1129,6 +1130,21 @@ const handleCheckboxChange = (event) => {
             <option value="now">Now</option>
             <option value="specificTime">At a Specific Time</option>
             <option value="recurring">Recurringly</option>
+        </select>
+    </div>
+
+    <div style={{ marginTop: 20, marginBottom: 20 }}>
+        <label htmlFor="projectPhase">Project Phase</label>
+        <select 
+            id="projectPhase" 
+            value={projectPhase} 
+            onChange={(e) => setProjectPhase(e.target.value)}
+            style={{ width: '100%', padding: '5px', marginTop: '5px' }}
+        >
+            <option value="Design">Design</option>
+            <option value="Development">Development</option>
+            <option value="Testing">Testing</option>
+            <option value="Maintenance">Maintenance</option>
         </select>
     </div>
 

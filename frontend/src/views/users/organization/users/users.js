@@ -225,7 +225,45 @@ const Users = () => {
     "Email",
     "Phone Number",
     "Type",
-    "Status",       
+    "Status",   
+    {
+      label: "Teams Included In",
+      options: {
+        filter: false,
+        download: false,
+        customBodyRender: (value, tableMeta, updateValue) => {
+          // Check if value is an array and not empty
+          if (Array.isArray(value) && value.length > 0) {
+            return (
+              <div style={{ display: "flex", flexWrap: "wrap", gap: "10px" }}>
+                {value.map(team => (
+                  <div 
+                    key={team._id} 
+                    style={{ 
+                      backgroundColor: "#FFA07A", // Light color background
+                      color: "#000", // Black text
+                      padding: "5px 10px", 
+                      borderRadius: "5px", 
+                      boxShadow: "0 2px 4px rgba(0, 0, 0, 0.1)",
+                      fontSize: "14px"
+                    }}
+                  >
+                    {team.name}
+                  </div>
+                ))}
+              </div>
+            );
+          } else {
+            // Handle the case where there are no teams
+            return (
+              <div style={{ display: "flex", alignItems: "center" }}>
+                ---
+              </div>
+            );
+          }
+        }
+      }
+    },    
     {
       label: "Actions",
       options: {
@@ -325,8 +363,10 @@ const Users = () => {
     dataItem.push(users[i].lastName);
     dataItem.push(users[i].email);
     dataItem.push(users[i].phoneNumber);
-    dataItem.push(users[i].userType.charAt(0).toUpperCase() + users[i].userType.slice(1));
+    dataItem.push(users[i].userType?users[i].userType.charAt(0).toUpperCase() + users[i].userType.slice(1):'---');
     dataItem.push(users[i].status.charAt(0).toUpperCase() + users[i].status.slice(1));
+
+    dataItem.push(users[i].teams);
    
     dataItem.push(users[i]._id); // for delete
 

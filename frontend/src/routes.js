@@ -80,6 +80,7 @@ import AttackSurfaceScanResult from './views/users/attackSurface/attackSurfaceSc
 
 import ResultIntegrations from './views/users/organization/resultIntegrations';
 
+import Integrations from './views/users/integrations/integrations';
 
 
 const routes = [
@@ -158,6 +159,8 @@ const routes = [
   { path: '/attack-surface-scan-result', name: 'Attack Surface Scan Result', element: AttackSurfaceScanResult}, 
 
   { path: '/result-integrations', name: 'Result Integrations', element: ResultIntegrations},   
+
+  { path: '/integrations', name: 'Integrations', element: Integrations},   
   
 ]
 

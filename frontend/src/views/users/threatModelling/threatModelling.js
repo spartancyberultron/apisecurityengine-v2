@@ -398,11 +398,11 @@ const ThreatModelling = () => {
     var dataItem = [];
 
     dataItem.push(i+1);
-    dataItem.push(activeScans[i].projectName?activeScans[i].projectName:'---');
+    dataItem.push(activeScans[i].theCollectionVersion.apiCollection.orgProject?activeScans[i].theCollectionVersion.apiCollection.orgProject.name:'---');
 
     dataItem.push(activeScans[i].theCollectionVersion.apiCollection.collectionName?activeScans[i].theCollectionVersion.apiCollection.collectionName:'<Name not found>');
 
-    dataItem.push(activeScans[i].endpointsCount);
+    dataItem.push(activeScans[i].endpointsScanned);
 
     dataItem.push((new Date(activeScans[i].createdAt)).toLocaleDateString('en-US') + ' - ' + (new Date(activeScans[i].createdAt)).toLocaleTimeString('en-US'));
 

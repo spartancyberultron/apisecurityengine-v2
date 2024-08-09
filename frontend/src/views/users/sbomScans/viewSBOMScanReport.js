@@ -456,6 +456,35 @@ const ViewSBOMScanReport = () => {
 
 
 
+
+                <tr>
+
+<td style={{ padding: 10, borderWidth: 0, borderColor: '#000', width: 400, background: '#fff' }}>
+
+  <span style={{ fontWeight: 'bold', }}>Scan Status</span>
+</td>
+<td style={{ padding: 10, borderWidth: 1, borderColor: '#fff', width: 400 }}>
+
+{sbomScan.status == 'completed' &&
+                     <span style={{backgroundColor:'#28C76F', color:'#fff', padding:10, }}>{sbomScan.status.toUpperCase()}</span>
+        }
+
+       
+
+      {sbomScan.status == 'in progress' &&
+                     <span style={{backgroundColor:'#FFC300', color:'#black', padding:10}}>{sbomScan.status.toUpperCase()}</span>
+        }
+
+</td>
+</tr>
+
+
+               
+
+
+{sbomScan.status == 'completed' &&
+
+
                 <tr>
 
                   <td style={{ padding: 10, borderWidth: 0, borderColor: '#000', width: 400, background: '#fff' }}>
@@ -468,6 +497,7 @@ const ViewSBOMScanReport = () => {
 
                   </td>
                 </tr>
+}
 
               </table>
 

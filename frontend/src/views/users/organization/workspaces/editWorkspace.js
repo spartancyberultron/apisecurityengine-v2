@@ -76,7 +76,19 @@ const EditWorkspace = () => {
         value: team._id,
         label: team.name
       }));
-      setSelectedTeams(initialSelectedTeams);
+
+      console.log('response.data.data.teams:', response.data.data.teams)
+
+
+       // Assuming response.data.data.users is an array of user objects
+const selectedTeams = response.data.data.teams.map(team => ({
+  value: team._id,
+  label: `${team.name}`
+}));
+
+setSelectedTeams(selectedTeams);
+
+
     } catch (error) {
       console.error("Error loading workspace details", error);
     } finally {
@@ -110,8 +122,8 @@ const EditWorkspace = () => {
       .then(data => {
         if (data.hasOwnProperty('error')) {
           setValidationFailed(true);
-          setErrorText(data.error);
-          setSubmitting(false);
+          setErrorText(data.error);    
+          setSubmitting(false);   
         } else if (data.hasOwnProperty('err')) {
           setSubmitting(false);
           setValidationFailed(true);
@@ -151,6 +163,8 @@ const EditWorkspace = () => {
       label: team.name
     }));
   };
+
+  console.log("selectedTeams:",selectedTeams)
   
   return (
     <div style={{ display: 'flex', overflow: "scroll", position: 'relative', overflowY: 'hidden', overflowX: 'hidden', }}>

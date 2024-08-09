@@ -300,6 +300,20 @@ export const AppSidebarNav = ({ items }) => {
             </Link>
 
 
+            <Link className="menuLink" to="/integrations" onClick={toggleRefreshFlag} style={{
+              padding: 15, display: 'flex', flexDirection: 'row', textDecoration: 'none',
+              background: currentRoute.includes('integrations') 
+               ? '#7367f0' : 'transparent', justifyContent: 'center'
+            }}>
+
+              <GiHotSurface size={22} color={(currentRoute.includes('integrations') ) ? '#fff' : '#b6bee3'} />
+              <span className="headerText" style={{
+                marginLeft: 10, color: (currentRoute.includes('integrations'))
+                  ? '#fff' : '#5D596C'
+              }}>Integrations</span>
+            </Link>
+
+
 
             <Link className="menuLink" to="/protection" onClick={toggleRefreshFlag} style={{
               padding: 15, display: 'flex', flexDirection: 'row', textDecoration: 'none', display: 'none',

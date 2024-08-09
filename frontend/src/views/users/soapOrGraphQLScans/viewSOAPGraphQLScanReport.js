@@ -59,6 +59,27 @@ const ViewSOAPGraphQLScanReport = () => {
 
   }, []);
 
+  const closeModal = async () => {
+
+    setModalIsOpen(false);
+  };
+
+  const customStyles = {
+    content: {
+      top: '20%',
+      left: '20%',
+      width: '70%',
+      right: 'auto',
+      bottom: 'auto',
+      height: '70%',
+      backgroundColor: '#E1E1E1',
+      borderRadius: 15,
+      borderColor: 'yellow',
+      zIndex: 10000
+    },
+  };
+
+
   const handleDropdownChange = (event) => {
 
     console.log('event.target.value:',event.target.value)
@@ -178,24 +199,26 @@ const ViewSOAPGraphQLScanReport = () => {
   
     const handleAcceptanceSave = async() => {
 
-      /*
+      console.log('comes')
+      
   
       if(reason == ''){
         setReasonEmptyError(true);
+        setAcceptanceModalIsOpen(true);
   
       }else{
   
         setSubmittingReason(true);    
   
         const data = {
-          activeScanVulnId: currentVulnForRiskAcceptance._id,
+          vulnId: currentVulnForRiskAcceptance._id,
           riskAcceptance:riskAcceptance,
           riskAcceptanceReason:reason
         };
   
   
         const token = localStorage.getItem('ASIToken');
-        const response = await axios.post('api/v1/users/updateRiskAcceptanceForAnActiveScanVulnerability', data, {
+        const response = await axios.post('api/v1/users/updateRiskAcceptanceForASOAPGraphQLVulnerability', data, {
             headers: { Authorization: `Bearer ${token}` },
         });
   
@@ -203,7 +226,7 @@ const ViewSOAPGraphQLScanReport = () => {
   
         if(response.data.data){
   
-          setActiveScan((prevState) => ({
+          setSoapOrGraphQLScan((prevState) => ({
             ...prevState,
             vulnerabilities: prevState.vulnerabilities.map((vuln) => {
               if (vuln._id === currentVulnForRiskAcceptance._id) {
@@ -227,16 +250,13 @@ const ViewSOAPGraphQLScanReport = () => {
         
       }
 
-      */
-
-      setAcceptanceModalIsOpen(false);
-  
-          setRiskAcceptance('No');
-          setReason("");
-          setSubmittingReason(false)
       
+
   
-    };
+          //setRiskAcceptance('No');
+         // setReason("");
+          //setSubmittingReason(false)   
+      };
   
 
   const columns = [
@@ -589,7 +609,32 @@ const ViewSOAPGraphQLScanReport = () => {
                 </tr>
 
 
+                <tr>
 
+<td style={{ padding: 10, borderWidth: 0, borderColor: '#000', width: 400, background: '#fff' }}>
+
+  <span style={{ fontWeight: 'bold', }}>Scan Status</span>
+</td>
+<td style={{ padding: 10, borderWidth: 1, borderColor: '#fff', width: 400 }}>
+
+{soapOrGraphQLScan.status == 'completed' &&
+                     <span style={{backgroundColor:'#28C76F', color:'#fff', padding:10, }}>{soapOrGraphQLScan.status.toUpperCase()}</span>
+        }
+
+       
+
+      {soapOrGraphQLScan.status == 'in progress' &&
+                     <span style={{backgroundColor:'#FFC300', color:'#black', padding:10}}>{soapOrGraphQLScan.status.toUpperCase()}</span>
+        }
+
+</td>
+</tr>
+
+
+               
+
+
+{soapOrGraphQLScan.status == 'completed' &&
                 <tr>
 
                   <td style={{ padding: 10, borderWidth: 0, borderColor: '#000', width: 400, background: '#fff' }}>
@@ -602,6 +647,7 @@ const ViewSOAPGraphQLScanReport = () => {
 
                   </td>
                 </tr>
+}
 
               </table>
 
@@ -875,6 +921,46 @@ const ViewSOAPGraphQLScanReport = () => {
         </div>
       )}
     </Modal>    
+
+
+    <Modal
+          isOpen={modalIsOpen}
+          onRequestClose={closeModal}
+          style={customStyles}
+          contentLabel="Remediations"
+        >
+
+          <button style={{ float: 'right', backgroundColor: 'transparent', borderWidth: 0 }} onClick={closeModal} >
+            <AiFillCloseCircle size={30} color={'#000'} />
+          </button>
+
+          {currentVulnerability &&
+
+            <div className="modalWindow" style={{ backgroundColor: '#E1E1E1' }}>
+
+
+              <h5 style={{ color: '#000' }}><strong>Vulnerability Name</strong>: {currentVulnerability.vulnerabilityName}</h5>
+              <h5 style={{ color: '#000' }}><strong>Severity</strong>: {currentVulnerability.riskScore}</h5>
+
+              <hr />
+
+              <h5 style={{ color: '#000' }}>Remediations</h5>
+              <hr />
+
+              {currentVulnerability && currentVulnerability.remediations.map((item) => (
+                <div style={{ backgroundColor: '#ebedef', padding: 10, marginTop: 10, borderRadius: 15 }}>
+
+                  <h5 style={{ color: '#000' }}>{item.remediationHeading}</h5>
+                  <h5 style={{ color: '#000', fontSize: 16, fontWeight: 'normal' }}>{item.remediationContent}</h5>
+
+                </div>
+              ))}
+
+            </div>
+          }
+
+
+        </Modal>
 
     </div>
   )

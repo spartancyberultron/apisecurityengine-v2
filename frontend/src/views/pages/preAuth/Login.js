@@ -86,6 +86,10 @@ const VendorLogin = () => {
     const user = localStorage.getItem('ASIUser');
     if (user) {
       const parsedUser = JSON.parse(user);
+
+      console.log('parsedUser:', parsedUser);
+
+
       if (parsedUser.userType === 'user') {
         //window.location.replace('/user-dashboard');
         navigate('/user-dashboard')

@@ -150,7 +150,17 @@ module.exports.getActiveScanDetails = asyncHandler(async (req, res) => {
 
     const { scanId } = req.body;
 
-    const activeScan = await ActiveScan.findById(scanId).populate('user theCollection').lean();
+    const activeScan = await ActiveScan.findById(scanId)
+  .populate({
+    path: 'user', // Populate user field
+  })
+  .populate({
+    path: 'theCollectionVersion', // Populate theCollectionVersion field
+    populate: {
+      path: 'apiCollection', // Further nested populate: apiCollection field within theCollectionVersion
+    }
+  })
+  .lean();
 
     const vulnerabilities = await ActiveScanVulnerability.find({ activeScan: scanId }).populate('vulnerability endpoint').lean();
 
@@ -1733,7 +1743,7 @@ module.exports.startActiveScan = asyncHandler(async (req, res) => {
 
     const { theCollectionVersion, scanScheduleType,
         specificDateTime,
-        recurringSchedule,selectedEndpointIdsToScan } = req.body;
+        recurringSchedule,selectedEndpointIdsToScan, projectPhase } = req.body;
 
         const endpoints = await ApiEndpoint.find({
             _id: { $in: selectedEndpointIdsToScan }
@@ -1749,7 +1759,8 @@ module.exports.startActiveScan = asyncHandler(async (req, res) => {
             specificDateTime: scanScheduleType === 'specificTime' ? new Date(specificDateTime) : undefined,
             recurringSchedule: scanScheduleType === 'recurring' ? recurringSchedule : undefined,
             status: scanScheduleType=='now'?'in progress':'scheduled',
-            endpointsScanned:selectedEndpointIdsToScan.length
+            endpointsScanned:selectedEndpointIdsToScan.length,
+            projectPhase:projectPhase
     });  
     
     await newScan.save();

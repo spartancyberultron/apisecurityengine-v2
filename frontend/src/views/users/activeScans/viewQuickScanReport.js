@@ -589,42 +589,61 @@ value.vulnerability.vulnerabilityCode == 6) &&
       label: "Risk Acceptance",
       options: {
         filter: true,
-        download: true,
+        filterType: 'dropdown', // Adjust based on your filter type
+        filterList: [],
         customBodyRender: (value, tableMeta, updateValue) => {
           return (
             <div style={{
               display: "flex",
               alignItems: "center",
-              flexDirection:'column',
-            }} >
-
-              {value.riskAcceptance && value.riskAcceptance == 'Yes' ?
-
-                <span style={{backgroundColor:'#28c76f', color:'#fff', padding: 5,
-                width: 120,
-                textAlign: 'center',
-                borderRadius: 10,
-                fontSize: 12,
-                fontWeight: 'normal',
-                marginRight: 5,                
-                margin:5}} onClick={() => handleModalOpen(value)}>Yes  &nbsp;&nbsp;&nbsp;<CiEdit size={20}/></span>
+              flexDirection: 'column',
+            }}>
+              {value.riskAcceptance && value.riskAcceptance === 'Yes' ?
+                <span style={{
+                  backgroundColor: '#28c76f', color: '#fff', padding: 5,
+                  width: 120,
+                  textAlign: 'center',
+                  borderRadius: 10,
+                  fontSize: 12,
+                  fontWeight: 'normal',
+                  marginRight: 5,
+                  margin: 5
+                }} onClick={() => handleModalOpen(value)}>Yes &nbsp;&nbsp;&nbsp;<CiEdit size={20} /></span>
                 :
-                <span style={{backgroundColor:'#ea5455', color:'#fff', padding: 5,
-                width: 120,
-                textAlign: 'center',
-                borderRadius: 10,
-                fontSize: 12,
-                fontWeight: 'normal',
-                marginRight: 5,                
-                margin:5}} onClick={() => handleModalOpen(value)}>No  &nbsp;&nbsp;&nbsp;<CiEdit size={20}/></span>
+                <span style={{
+                  backgroundColor: '#ea5455', color: '#fff', padding: 5,
+                  width: 120,
+                  textAlign: 'center',
+                  borderRadius: 10,
+                  fontSize: 12,
+                  fontWeight: 'normal',
+                  marginRight: 5,
+                  margin: 5
+                }} onClick={() => handleModalOpen(value)}>No &nbsp;&nbsp;&nbsp;<CiEdit size={20} /></span>
               }
-              
             </div>
           )
-        }
+        },
+        filterOptions: {
+          names: ['Yes', 'No'],
+          logic: (value, filterVal) => {
+            return filterVal.length > 0 ? filterVal.includes(value.riskAcceptance) : true;
+          },
+          display: (filterList, onChange, index, column) => (
+            <div>
+              <select
+                onChange={(event) => onChange(event.target.value)}
+                value={filterList[index] || 'All'}
+              >
+                <option value='All'>All</option>
+                <option value='Yes'>Yes</option>
+                <option value='No'>No</option>
+              </select>
+            </div>
+          ),
+        },
       }
     },
-
   ];
 
   const getMuiTheme = () => createTheme({
@@ -1472,6 +1491,8 @@ value.vulnerability.vulnerabilityCode == 6) &&
   const piiChartSeries = piiDataArray;
 
 
+  console.log('activeScan:',activeScan)
+
 
 
   return (
@@ -1519,7 +1540,8 @@ value.vulnerability.vulnerabilityCode == 6) &&
                   </td>
                   <td style={{ padding: 10, borderWidth: 1, borderColor: '#fff' }}>
 
-                    {(activeScan.theCollection && activeScan.theCollection.collectionName) ? activeScan.theCollection.collectionName : '<Name not found>'}
+                    {(activeScan.theCollectionVersion && activeScan.theCollectionVersion.apiCollection.collectionName) ? 
+                    activeScan.theCollectionVersion.apiCollection.collectionName : '<Name not found>'}
 
                   </td>
                 </tr>
@@ -1568,13 +1590,39 @@ value.vulnerability.vulnerabilityCode == 6) &&
                   </td>
                 </tr>
 
-
-
                 <tr>
 
                   <td style={{ padding: 10, borderWidth: 0, borderColor: '#000', width: 400, background: '#fff' }}>
 
-                    <span style={{ fontWeight: 'bold', }}>Scan Completed At</span>
+                    <span style={{ fontWeight: 'bold', }}>Scan Status</span>
+                  </td>
+                  <td style={{ padding: 10, borderWidth: 1, borderColor: '#fff', width: 400 }}>
+
+              
+
+        {activeScan.status == 'completed' &&
+                     <span style={{backgroundColor:'#28C76F', color:'#fff', padding:10, }}>{activeScan.status.toUpperCase()}</span>
+        }
+
+       
+
+      {activeScan.status == 'in progress' &&
+                     <span style={{backgroundColor:'#FFC300', color:'#black', padding:10}}>{activeScan.status.toUpperCase()}</span>
+        }
+
+                             
+
+
+                  </td>
+                </tr>
+              
+
+              {activeScan.status == 'completed' &&
+                <tr>
+
+                  <td style={{ padding: 10, borderWidth: 0, borderColor: '#000', width: 400, background: '#fff' }}>
+
+                    <span style={{ fontWeight: 'bold',  }}>Scan Completed At</span>
                   </td>
                   <td style={{ padding: 10, borderWidth: 1, borderColor: '#fff', width: 400 }}>
 
@@ -1582,6 +1630,7 @@ value.vulnerability.vulnerabilityCode == 6) &&
 
                   </td>
                 </tr>
+              }
 
               </table>
 
@@ -2175,9 +2224,7 @@ value.vulnerability.vulnerabilityCode == 6) &&
                 />
             ))}
         </div>      
-        }
-
-            
+        }    
           
 
 

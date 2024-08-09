@@ -1,5 +1,6 @@
 const mongoose = require('mongoose');
 
+// This is called "Application" in the app. "Project" is OrgProject model.
 const projectSchema = new mongoose.Schema({
 
   user: { 
@@ -27,6 +28,10 @@ const projectSchema = new mongoose.Schema({
   piiFields: [{ 
     type: String 
   }],
+  projectPhase: {
+    type: String,
+    enum: ['Design', 'Development', 'Testing', 'Maintenance']
+  }
 
 
 }, {

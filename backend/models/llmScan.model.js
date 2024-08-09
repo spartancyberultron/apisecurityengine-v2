@@ -45,7 +45,11 @@ const llmScanSchema = new mongoose.Schema({
     complete_path: String,
     file_name: String,
     data: String
-  }] 
+  }] ,
+  projectPhase: {
+    type: String,
+    enum: ['Design', 'Development', 'Testing', 'Maintenance']
+  }
 
   
 }, {
