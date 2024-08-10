@@ -1,7 +1,7 @@
 {
   "files": {
     "main.css": "./static/css/main.10273110.css",
-    "main.js": "./static/js/main.5f347fdb.js",
+    "main.js": "./static/js/main.2d5e8fd4.js",
     "react-syntax-highlighter/refractor-core-import.js": "./static/js/react-syntax-highlighter/refractor-core-import.27573f4b.chunk.js",
     "react-syntax-highlighter_languages_refractor_abap.js": "./static/js/react-syntax-highlighter_languages_refractor_abap.221f6ac3.chunk.js",
     "react-syntax-highlighter_languages_refractor_actionscript.js": "./static/js/react-syntax-highlighter_languages_refractor_actionscript.4c2236ad.chunk.js",
@@ -182,7 +182,7 @@
     "static/media/kubernetes-logo.png": "./static/media/kubernetes-logo.60a6a11474d5ee6f1434.png",
     "index.html": "./index.html",
     "main.10273110.css.map": "./static/css/main.10273110.css.map",
-    "main.5f347fdb.js.map": "./static/js/main.5f347fdb.js.map",
+    "main.2d5e8fd4.js.map": "./static/js/main.2d5e8fd4.js.map",
     "refractor-core-import.27573f4b.chunk.js.map": "./static/js/react-syntax-highlighter/refractor-core-import.27573f4b.chunk.js.map",
     "react-syntax-highlighter_languages_refractor_abap.221f6ac3.chunk.js.map": "./static/js/react-syntax-highlighter_languages_refractor_abap.221f6ac3.chunk.js.map",
     "react-syntax-highlighter_languages_refractor_actionscript.4c2236ad.chunk.js.map": "./static/js/react-syntax-highlighter_languages_refractor_actionscript.4c2236ad.chunk.js.map",
@@ -339,6 +339,6 @@
   },
   "entrypoints": [
     "static/css/main.10273110.css",
-    "static/js/main.5f347fdb.js"
+    "static/js/main.2d5e8fd4.js"
   ]
 }
