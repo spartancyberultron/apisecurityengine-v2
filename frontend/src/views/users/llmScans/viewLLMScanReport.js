@@ -25,6 +25,7 @@ import { extractHostAndEndpoint } from '../utils';
 import { CiEdit } from "react-icons/ci";
 
 import Chart from 'react-apexcharts'
+import remediationData from './llm-remediations.json';
 
 const ViewLLMScanReport = () => {
 
@@ -55,6 +56,35 @@ const ViewLLMScanReport = () => {
       <CToastBody>Success</CToastBody>
     </CToast>
   ) 
+
+
+  // Function to get remediation based on the probe name
+const getRemediation = (vulnerabilityName) => {
+  // Find the matching probe
+  const result = remediationData.find(item => item.vulnerability === vulnerabilityName);
+
+  if (result) {
+    return result.recommendation;
+  } else {
+    return 'Vulnerability not found.';
+  }
+};
+
+
+  const customStyles = {
+    content: {
+      top: '20%',
+      left: '20%',
+      width: '70%',
+      right: 'auto',
+      bottom: 'auto',
+      height: '70%',
+      backgroundColor: '#E1E1E1',
+      borderRadius: 15,
+      borderColor: 'yellow',
+      zIndex: 10000
+    },
+  };
 
 
   const customStyles1 = {
@@ -237,11 +267,47 @@ const openCostOfBreachModal = async (value) => {
 };
 
 
+const processContent = (data) => {
+  // Use a regular expression to match code blocks and split the text accordingly
+  const parts = data.split(/(?<=\n)(?=```)/);
+  
+  let htmlContent = '';
+
+  parts.forEach(part => {
+    if (part.startsWith('```')) {
+      // Extract code block language and code
+      const [lang, ...codeLines] = part.split('\n').slice(1, -1); // Remove the opening and closing ```
+      htmlContent += `<pre style="background-color: #f5f5f5;
+      border-left: 3px solid #333;
+      padding: 10px;
+      overflow-x: auto;
+      white-space: pre-wrap;
+      margin: 10px 0;"><code class="${lang.trim()}">${codeLines.join('\n')}</code></pre>`;
+    } else {
+      // Split text into paragraphs by newline
+      const paragraphs = part.split('\n').filter(line => line.trim() !== '');
+      paragraphs.forEach(paragraph => {
+        htmlContent += `<p>${paragraph}</p>`;
+      });
+    }
+  });
+
+  return htmlContent;
+};
+
 
 const closeCostOfBreachModal = async () => {
 
   setCostOfBreachModalIsOpen(false);
 };
+
+const closeModal = async () => {
+
+  setModalIsOpen(false);
+};
+
+
+console.log('currentVulnerability:', currentVulnerability)
 
 
   const handleAcceptanceSave = async() => {
@@ -1040,7 +1106,46 @@ const closeCostOfBreachModal = async () => {
           </div>
         </div>
       )}
-    </Modal>    
+    </Modal>   
+
+
+     <Modal
+          isOpen={modalIsOpen}
+          onRequestClose={closeModal}
+          style={customStyles}
+          contentLabel="Remediations"
+        >
+
+          <button style={{ float: 'right', backgroundColor: 'transparent', borderWidth: 0 }} onClick={closeModal} >
+            <AiFillCloseCircle size={30} color={'#000'} />
+          </button>
+
+          {currentVulnerability &&
+
+            <div className="modalWindow" style={{ backgroundColor: '#E1E1E1' }}>
+
+
+              <h5 style={{ color: '#000' }}><strong>Vulnerability Name</strong>: {currentVulnerability.vulnerability}</h5>
+
+              <hr />
+
+              <h5 style={{ color: '#000' }}>Remediations</h5>
+              <hr />
+
+             
+
+                  <h5 style={{ color: '#000', fontSize: 16, fontWeight: 'normal' }} 
+                  dangerouslySetInnerHTML={{__html:processContent(getRemediation(currentVulnerability.vulnerability))}}>
+                  </h5>
+
+               
+
+            </div>
+          }
+
+
+        </Modal>
+ 
 
 
     </div>

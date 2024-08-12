@@ -6,13 +6,16 @@ const sharp = require('sharp');
 const https = require('https');
 
 const { User } = require('../models/user.model');
-const Project = require("../models/project.model");
 
 const { none } = require('../config/multerUpload');
 const APICollection = require('../models/apicollection.model');
 const Vulnerability = require('../models/vulnerability.model');
 const ProjectVulnerability = require('../models/projectVulnerability.model');
 const TrafficProjectEndpoint = require('../models/trafficprojectendpoint.model');
+const Organization = require('../models/organization.model');
+
+const Project = require('../models/project.model');
+const OrgProject = require('../models/orgproject.model');
 
 const jsyaml = require('js-yaml');
 const pdfkit = require('pdfkit-table');
@@ -25,6 +28,9 @@ const axios = require('axios');
 const { URL } = require('url');
 const crypto = require('crypto');
 const { v4: uuidv4 } = require('uuid');
+
+
+const remediations = require('./remediations/rest-remediations.json');
 
 
 const { basicAuthenticationDetectedCheck } = require("../services/securityTests/agentScansTools/basicAuthenticationDetectedCheck.service");
@@ -60,6 +66,34 @@ const {
 } = require("../services/securityTests/helpers/findSSLIssues.service");
 
 
+function getObjectByIndex(index) {
+    // Find the object with the given index
+    const result = remediations.find(item => item.index === index);
+    return result || null; // Return null if no object is found
+}
+
+async function getVulnSeverityAndPriority(vulnId) {
+    try {
+        // Find the organization document that contains the specified vulnId
+        const organization = await Organization.findOne({
+            'vulnSeverityAndPriority.vulnId': vulnId
+        }, {
+            'vulnSeverityAndPriority.$': 1 // Project only the matching element from the array
+        }).exec();
+        
+        if (organization && organization.vulnSeverityAndPriority.length > 0) {
+            // Return the severity and priority for the specified vulnId
+            return organization.vulnSeverityAndPriority[0];
+        } else {
+            // If no matching element is found, return null
+            return null;
+        }
+    } catch (error) {
+        console.error('Error retrieving vulnerability details:', error);
+        throw error;
+    }
+}
+
 // Get all vulnerabilities of a project
 module.exports.getProjectVulnerabilities = asyncHandler(async (req, res) => {
 
@@ -84,6 +118,7 @@ module.exports.getProjectVulnerabilities = asyncHandler(async (req, res) => {
 // Receive request info from a mirrored API traffic
 module.exports.sendRequestInfo = asyncHandler(async (req, res) => {
 
+    try{
 
     // Fetch the body params
     const { api_key, the_request } = req.body;
@@ -100,12 +135,25 @@ module.exports.sendRequestInfo = asyncHandler(async (req, res) => {
     console.log('queryParameters:',queryParameters)
 
 
+    const application = await Project.findOne({projectIntegrationID:api_key}).populate('orgProject')
+    console.log('application:',application.orgProject)
+    const orgProject = await OrgProject.findById(application.orgProject._id);
+
+    console.log('orgProject:',orgProject)
+
+
+
 
     // Trim the quotes around api_key, in case someone has inputted with quotes in their env file
     const trimmed_api_key = api_key.replace(/^['"](.*)['"]$/, '$1');
     const project = await Project.findOne({ projectIntegrationID: trimmed_api_key });
 
+    console.log('project', project)
+
+
     if (project.capturingStatus == 'Capturing') {
+        console.log('comess in')
+
 
         console.log('method:', method)
         console.log('url:', url)
@@ -185,7 +233,7 @@ module.exports.sendRequestInfo = asyncHandler(async (req, res) => {
 
         // Check for Sensitive Data in Query Params 
 
-        var { issueFound, findings } = await sensitiveDataInQueryParamsCheck(queryParameters)
+        var { issueFound, findings } = await sensitiveDataInQueryParamsCheck(queryParameters, orgProject.organization._id)
 
         console.log('issueFound:',issueFound)
 
@@ -206,13 +254,22 @@ module.exports.sendRequestInfo = asyncHandler(async (req, res) => {
 
                 const vuln = await Vulnerability.findOne({ vulnerabilityCode: 6 })
 
+                var remediation = (getObjectByIndex(23)).remediation;
+
+                    const result = await getVulnSeverityAndPriority(6);
+                    const severity = result ? result.severity : null;
+                    const priority = result ? result.priority : null;
+
                 const theProjectVulnerability = await ProjectVulnerability.create({
 
                     project: project,
                     vulnerability: vuln,
                     endpoint: url,
                     description: description,
-                    findings: piiArray
+                    findings: piiArray,
+                    remediation:remediation,
+                        severity:severity,
+                        priority:priority
                 });
 
                 const uniquePiiFields = [];
@@ -235,7 +292,7 @@ module.exports.sendRequestInfo = asyncHandler(async (req, res) => {
 
 
         // Check for Sensitive Data in Path Params
-        var { issueFound, findings } = await sensitiveDataInPathParamsCheck(url)
+        var { issueFound, findings } = await sensitiveDataInPathParamsCheck(url, orgProject.organization._id)
 
         console.log('issueFound11:',issueFound)
 
@@ -253,7 +310,13 @@ module.exports.sendRequestInfo = asyncHandler(async (req, res) => {
 
             if (findings.length > 0) {
 
-                const vuln = await Vulnerability.findOne({ vulnerabilityCode: 6 })
+                const vuln = await Vulnerability.findOne({ vulnerabilityCode: 2 })
+
+                var remediation = (getObjectByIndex(24)).remediation;
+
+                    const result = await getVulnSeverityAndPriority(2);
+                    const severity = result ? result.severity : null;
+                    const priority = result ? result.priority : null;
 
                 const theProjectVulnerability = await ProjectVulnerability.create({
 
@@ -261,7 +324,10 @@ module.exports.sendRequestInfo = asyncHandler(async (req, res) => {
                     vulnerability: vuln,
                     endpoint: url,
                     description: description,
-                    findings: piiArray
+                    findings: piiArray,
+                    remediation:remediation,
+                        severity:severity,
+                        priority:priority
                 });
 
                 const uniquePiiFields = [];
@@ -293,12 +359,21 @@ module.exports.sendRequestInfo = asyncHandler(async (req, res) => {
 
                 var description = 'This API has basic authentication on it. A stronger authentication method like Bearer token, is recommended.'
 
+                var remediation = (getObjectByIndex(20)).remediation;
+
+                const result = await getVulnSeverityAndPriority(3);
+                const severity = result ? result.severity : null;
+                const priority = result ? result.priority : null;
+
                 const theProjectVulnerability = await ProjectVulnerability.create({
 
                     project: project,
                     vulnerability: vuln,
                     endpoint: url,
                     description: description,
+                    remediation:remediation,
+                        severity:severity,
+                        priority:priority
                 });
 
             }
@@ -436,6 +511,9 @@ module.exports.sendRequestInfo = asyncHandler(async (req, res) => {
                         const hostResult = hostsResults.find(hostResult => theEndpoints[i].url.includes(hostResult.host));
 
                         if (hostResult) {
+
+                            var remediation = '';
+
                             if (hostResult.certificateMissing) {
 
                                 findings.push({ description: 'SSL Certificate not installed', exploitability: '' });
@@ -454,6 +532,8 @@ module.exports.sendRequestInfo = asyncHandler(async (req, res) => {
                                 additionalCWEs.push('CWE-259: Use of a Hardcoded Password')
                                 additionalCWEs.push('CWE-327: Broken or Risky Cryptographic Algorithm')
 
+                                remediation = remediation + '<br/><br/>' + (getObjectByIndex(1)).remediation;
+
 
                             }
 
@@ -469,6 +549,8 @@ module.exports.sendRequestInfo = asyncHandler(async (req, res) => {
                                 additionalCWEs.push('CWE-295: Improper Access Control')
                                 additionalCWEs.push('CWE-300: Insufficient Cryptographic Strength')
                                 additionalCWEs.push('CWE-758: Use of a Broken or Risky Cryptographic Algorithm')
+
+                                remediation = remediation + '<br/><br/>' + (getObjectByIndex(7)).remediation;
                             }
 
                             if (hostResult.tls13EarlyCheckIssue) {
@@ -481,6 +563,8 @@ module.exports.sendRequestInfo = asyncHandler(async (req, res) => {
                                 additionalCWEs.push('CWE-319: Cleartext Transmission of Sensitive Information')
                                 additionalCWEs.push('CWE-352: Cross-Site Request Forgery (CSRF)')
                                 additionalCWEs.push('CWE-294: Authentication Bypass by Capture-replay')
+
+                                remediation = remediation + '<br/><br/>' + (getObjectByIndex(11)).remediation;
                             }
 
                             if (hostResult.openSSLCCSInjectionIssues) {
@@ -493,6 +577,8 @@ module.exports.sendRequestInfo = asyncHandler(async (req, res) => {
 
                                 additionalCWEs.push('CWE-295: Improper Access Control')
                                 additionalCWEs.push('CWE-894: Improper Control of TLS Communication')
+
+                                remediation = remediation + '<br/><br/>' + (getObjectByIndex(6)).remediation;
                             }
 
                             if (hostResult.downgradePreventionIssue) {
@@ -503,6 +589,8 @@ module.exports.sendRequestInfo = asyncHandler(async (req, res) => {
                                 findings.push({ description, exploitability });
 
                                 additionalCWEs.push('CWE Reference: CWE-2001: Sensitive Information Disclosure')
+
+                                remediation = remediation + '<br/><br/>' + (getObjectByIndex(10)).remediation;
                             }
 
                             if (hostResult.heartbleedIssues) {
@@ -515,6 +603,8 @@ module.exports.sendRequestInfo = asyncHandler(async (req, res) => {
 
                                 additionalCWEs.push('CWE-311: Improper Restriction of Operation within the Bounds of a Memory Buffer')
                                 additionalCWEs.push('CWE-255: Improper Check for Certificate Revocation')
+
+                                remediation = remediation + '<br/><br/>' + (getObjectByIndex(2)).remediation;
                             }
 
                             if (hostResult.insecureNegotiationIssue) {
@@ -525,6 +615,8 @@ module.exports.sendRequestInfo = asyncHandler(async (req, res) => {
                                 findings.push({ description, exploitability });
 
                                 additionalCWEs.push('CWE-2001: Sensitive Information Not Protected')
+
+                                remediation = remediation + '<br/><br/>' + (getObjectByIndex(9)).remediation;
                             }
 
                             if (hostResult.sessionResumptionIssues) {
@@ -535,6 +627,8 @@ module.exports.sendRequestInfo = asyncHandler(async (req, res) => {
                                 findings.push({ description, exploitability });
 
                                 additionalCWEs.push('CWE-319: Cleartext Transmission of Sensitive Information')
+
+                                remediation = remediation + '<br/><br/>' + (getObjectByIndex(8)).remediation;
                             }
 
                             if (hostResult.ellipticCurvesIssues) {
@@ -546,6 +640,8 @@ module.exports.sendRequestInfo = asyncHandler(async (req, res) => {
                                 findings.push({ description, exploitability });
 
                                 additionalCWEs.push('CWE-326: Inadequate Encryption Strength')
+
+                                remediation = remediation + '<br/><br/>' + (getObjectByIndex(3)).remediation;
                             }
                         }
 
@@ -568,6 +664,10 @@ module.exports.sendRequestInfo = asyncHandler(async (req, res) => {
                                   additionalCWEs:additionalCWEs
                               }); */
 
+                              const result = await getVulnSeverityAndPriority(4);
+                            const severity = result ? result.severity : null;
+                            const priority = result ? result.priority : null;
+
                             const theProjectVulnerability = await ProjectVulnerability.create({
 
                                 project: project,
@@ -575,7 +675,10 @@ module.exports.sendRequestInfo = asyncHandler(async (req, res) => {
                                 endpoint: url,
                                 description: description,
                                 sslFindings: findings,
-                                additionalCWEs: additionalCWEs
+                                additionalCWEs: additionalCWEs,
+                                remediation:remediation,
+                                severity:severity,
+                                priority:priority
                             });
 
                         }
@@ -633,13 +736,22 @@ module.exports.sendRequestInfo = asyncHandler(async (req, res) => {
 
                 //var description = 'The method on this endpoint can be tampered to any of the following:' + tamperableMethods.join(',');
 
+                var remediation = (getObjectByIndex(26)).remediation;
+
+                        const result1 = await getVulnSeverityAndPriority(8);
+                        const severity = result1 ? result1.severity : null;
+                        const priority = result1 ? result1.priority : null;
+
                 const theProjectVulnerability = await ProjectVulnerability.create({
 
                     project: project,
                     vulnerability: vuln,
                     endpoint: url,
                     description: description,
-                    findings: findings
+                    findings: findings,
+                    remediation:remediation,
+                            severity:severity,
+                            priority:priority
                 });
 
             }
@@ -685,6 +797,8 @@ module.exports.sendRequestInfo = asyncHandler(async (req, res) => {
                         const vuln = await Vulnerability.findOne({ vulnerabilityCode: 10 });
             
                         var description = 'Some security headers are not enabled on this host.';
+
+                        var remediation = ''; 
             
                        /* const theActiveScanVulnerability = await ActiveScanVulnerability.create({
                             activeScan: theActiveScan,
@@ -695,13 +809,55 @@ module.exports.sendRequestInfo = asyncHandler(async (req, res) => {
                         });
                         */
 
+                        if(findings.includes("Content-Security-Policy")){
+                            remediation = remediation + '<br/><br>' +(getObjectByIndex(12)).remediation;
+                        }
+
+                        if(findings.includes("Strict-Transport-Security")){
+                            remediation = remediation + '<br/><br>' +(getObjectByIndex(13)).remediation;
+                        }
+
+                        if(findings.includes("X-Frame-Options")){
+                            remediation = remediation + '<br/><br>' +(getObjectByIndex(14)).remediation;
+                        }
+
+                        if(findings.includes("X-Content-Type-Options")){
+                            remediation = remediation + '<br/><br>' +(getObjectByIndex(15)).remediation;
+                        }
+
+                        if(findings.includes("X-XSS-Protection")){
+                            remediation = remediation + '<br/><br>' +(getObjectByIndex(16)).remediation;
+                        }
+
+                        if(findings.includes("Cross-Origin Resource Sharing")){
+                            remediation = remediation + '<br/><br>' +(getObjectByIndex(17)).remediation;
+                        }
+
+                        if(findings.includes("Referrer-Policy")){
+                            remediation = remediation + '<br/><br>' +(getObjectByIndex(18)).remediation;
+                        }
+
+                        if(findings.includes("Feature-Policy")){
+                            remediation = remediation + '<br/><br>' +(getObjectByIndex(19)).remediation;
+                        }
+
+                       // var remediation = (getObjectByIndex(12)).remediation;
+
+                        const result = await getVulnSeverityAndPriority(10);
+                        const severity = result ? result.severity : null;
+                        const priority = result ? result.priority : null;
+
+
                         const theProjectVulnerability = await ProjectVulnerability.create({
 
                             project: project,
                             vulnerability: vuln,
                             endpoint: url,
                             description: description,
-                            findings:findings
+                            findings:findings,
+                            remediation:remediation,
+                            severity:severity,
+                            priority:priority
                         });            
                         
                     }
@@ -718,26 +874,7 @@ module.exports.sendRequestInfo = asyncHandler(async (req, res) => {
         }        
 
 
-        // Check for Security Headers not Enabled in Host
-       /* var missingHeaders = await securityHeadersNotEnabledOnHostCheck(protocol, host);
-
-        if (missingHeaders.length > 0) {
-
-            const vuln = await Vulnerability.findOne({ vulnerabilityCode: 10 })
-
-            var description = 'The following security headers are not enabled on the host:' + missingHeaders.join(',');
-
-            const theProjectVulnerability = await ProjectVulnerability.create({
-
-                project: project,
-                vulnerability: vuln,
-                endpoint: url,
-                description: description,
-            });
-        }
-
-        // END - Check for HTTP Verb Tampering Possible
-        */
+        
 
 
 
@@ -746,8 +883,16 @@ module.exports.sendRequestInfo = asyncHandler(async (req, res) => {
             status: 'received',
         });
 
+        
+
 
     }
+
+} catch (error) {
+
+    console.log('error:', error)
+}
+
 
 });
 

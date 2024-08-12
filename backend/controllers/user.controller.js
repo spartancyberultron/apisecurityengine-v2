@@ -4,6 +4,8 @@ const bcrypt = require('bcryptjs');
 
 const { generateToken } = require('../utils/generateToken');
 const APICollection = require('../models/apicollection.model');
+const APICollectionVersion = require('../models/apicollectionversion.model');
+
 const ApiEndpoint = require('../models/apiendpoint.model');
 const Vulnerability = require('../models/vulnerability.model');
 const ActiveScan = require('../models/activescan.model');
@@ -809,19 +811,26 @@ module.exports.getEndpointsWithPIIData = asyncHandler(async (req, res) => {
 
     var collections = await APICollection.find({ user: req.user._id }).lean();
 
+    const collectionIds = collections.map(collection => collection._id);
+
+    const apiCollectionVersions = await APICollectionVersion.find({
+        apiCollection: { $in: collectionIds }
+    }).lean();
+
     var endpoints = [];
 
-    for (var i = 0; i < collections.length; i++) {
+    for (var i = 0; i < apiCollectionVersions.length; i++) {        
 
         var theEndpoints = await ApiEndpoint.find({
-            theCollection: collections[i]._id,
+            theCollectionVersion: apiCollectionVersions[i]._id,
             piiFields: { $ne: [] },
             
-          }).lean();
-          
+          }).lean();          
 
         endpoints = endpoints.concat(theEndpoints);
     }
+
+    console.log('endpoints:',endpoints)
 
     for (var i = 0; i < endpoints.length; i++) {
 

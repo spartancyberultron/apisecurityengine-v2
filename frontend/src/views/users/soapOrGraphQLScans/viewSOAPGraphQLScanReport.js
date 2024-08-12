@@ -9,6 +9,7 @@ import axios from 'axios';
 
 import { CiEdit } from "react-icons/ci";
 
+import remediationData from './remediations.json'; 
 
 import { IoMdArrowRoundBack } from "react-icons/io";
 import { ShimmerTable, ShimmerTitle, ShimmerCircularImage } from "react-shimmer-effects";
@@ -42,6 +43,35 @@ const ViewSOAPGraphQLScanReport = () => {
       <CToastBody>Success</CToastBody>
     </CToast>
   ) 
+
+
+  const processContent = (data) => {
+    // Use a regular expression to match code blocks and split the text accordingly
+    const parts = data.split(/(?<=\n)(?=```)/);
+    
+    let htmlContent = '';
+  
+    parts.forEach(part => {
+      if (part.startsWith('```')) {
+        // Extract code block language and code
+        const [lang, ...codeLines] = part.split('\n').slice(1, -1); // Remove the opening and closing ```
+        htmlContent += `<pre style="background-color: #f5f5f5;
+        border-left: 3px solid #333;
+        padding: 10px;
+        overflow-x: auto;
+        white-space: pre-wrap;
+        margin: 10px 0;"><code class="${lang.trim()}">${codeLines.join('\n')}</code></pre>`;
+      } else {
+        // Split text into paragraphs by newline
+        const paragraphs = part.split('\n').filter(line => line.trim() !== '');
+        paragraphs.forEach(paragraph => {
+          htmlContent += `<p>${paragraph}</p>`;
+        });
+      }
+    });
+  
+    return htmlContent;
+  };
 
   useEffect(() => {
 
@@ -199,7 +229,6 @@ const ViewSOAPGraphQLScanReport = () => {
   
     const handleAcceptanceSave = async() => {
 
-      console.log('comes')
       
   
       if(reason == ''){
@@ -524,6 +553,26 @@ const ViewSOAPGraphQLScanReport = () => {
     }
   }
 
+
+
+
+const getRemediation = (testCaseName) => {
+
+  console.log('remediationData:',remediationData)
+
+  // Find the matching test case
+  const result = remediationData.find(item => item.testCaseName === testCaseName);
+
+
+
+  if (result) {
+      return result.remediation;
+  } else {
+      return 'Test case not found.';
+  }
+};
+
+  
 
 
   return (
@@ -940,21 +989,16 @@ const ViewSOAPGraphQLScanReport = () => {
 
 
               <h5 style={{ color: '#000' }}><strong>Vulnerability Name</strong>: {currentVulnerability.vulnerabilityName}</h5>
-              <h5 style={{ color: '#000' }}><strong>Severity</strong>: {currentVulnerability.riskScore}</h5>
 
               <hr />
 
               <h5 style={{ color: '#000' }}>Remediations</h5>
               <hr />
+             
 
-              {currentVulnerability && currentVulnerability.remediations.map((item) => (
-                <div style={{ backgroundColor: '#ebedef', padding: 10, marginTop: 10, borderRadius: 15 }}>
-
-                  <h5 style={{ color: '#000' }}>{item.remediationHeading}</h5>
-                  <h5 style={{ color: '#000', fontSize: 16, fontWeight: 'normal' }}>{item.remediationContent}</h5>
-
-                </div>
-              ))}
+                  <h5 style={{ color: '#000', fontSize: 16, fontWeight: 'normal' }} 
+                  dangerouslySetInnerHTML={{__html:currentVulnerability.remediation}}>
+                  </h5>               
 
             </div>
           }

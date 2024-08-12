@@ -143,6 +143,7 @@ const customStyles2 = {
     right: 'auto',
     bottom: 'auto',
     maxHeight: '80%',
+    height: '80%',
     backgroundColor: '#c2eef4',
     borderRadius: 15,
     borderColor: 'yellow',

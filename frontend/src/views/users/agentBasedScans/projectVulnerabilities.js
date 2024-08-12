@@ -129,6 +129,7 @@ const ProjectVulnerabilities = () => {
     maxWidth: '1000px',
     width: '90%',
     maxHeight: '80%',
+    height: '80%',
     overflowY: 'auto'
   }
 };
@@ -141,6 +142,7 @@ const customStyles2 = {
     right: 'auto',
     bottom: 'auto',
     maxHeight: '80%',
+    height: '80%',
     backgroundColor: '#c2eef4',
     borderRadius: 15,
     borderColor: 'yellow',
@@ -725,14 +727,14 @@ if (!uniqueEndpoints.includes(endpointPart)) {
 
       dataItem.push(result.vulnerabilities[i]);
 
-      dataItem.push(result.vulnerabilities[i].vulnerability.riskScore);
+      dataItem.push(result.vulnerabilities[i].severity);
 
       dataItem.push(result.vulnerabilities[i].vulnerability.owasp);
       
       dataItem.push((result.vulnerabilities[i].vulnerability.cwe).concat(result.vulnerabilities[i].additionalCWEs));
 
-      dataItem.push(result.vulnerabilities[i].vulnerability); // for cost of breach
-      dataItem.push(result.vulnerabilities[i].vulnerability); // for remediations
+      dataItem.push(result.vulnerabilities[i]); // for cost of breach
+      dataItem.push(result.vulnerabilities[i]); // for remediations
 
       dataItem.push(result.vulnerabilities[i]); // For risk acceptance
 
@@ -751,19 +753,19 @@ if (!uniqueEndpoints.includes(endpointPart)) {
 
     for (var i = 0; i < result.vulnerabilities.length; i++) {
 
-      if (result.vulnerabilities[i].vulnerability.riskScore == 'HIGH') {
+      if (result.vulnerabilities[i].severity == 'HIGH') {
         numOfHighVulns++;
       }
 
-      if (result.vulnerabilities[i].vulnerability.riskScore == 'MEDIUM') {
+      if (result.vulnerabilities[i].severity == 'MEDIUM') {
         numOfMediumVulns++;
       }
 
-      if (result.vulnerabilities[i].vulnerability.riskScore == 'LOW') {
+      if (result.vulnerabilities[i].severity == 'LOW') {
         numOfLowVulns++;
       }
 
-      if (result.vulnerabilities[i].vulnerability.riskScore == 'CRITICAL') {
+      if (result.vulnerabilities[i].severity == 'CRITICAL') {
         numOfCriticalVulns++;
       }
     }
@@ -1039,43 +1041,9 @@ if (!uniqueEndpoints.includes(endpointPart)) {
   const vulnDistroChartSeries = dataArray;   
 
 
-  var nameCount = 0;
-  var addressCount = 0;
-  var phoneCount = 0;
-  var ipCount = 0;
-  var macCount = 0;
-  var ssnCount = 0;
-  var passportNumCount = 0;
-  var dlCount = 0;
-  var bankAccountNumCount = 0;
-  var creditDebitCardNumCount = 0;
-  var panNumCount = 0;
-  var aadhaarNumCount = 0;
-  var voterIDNumCount = 0;
-  var vehicleRegistrationNumCount = 0;
-  var dobCount = 0;
-  var pobCount = 0;
-  var raceCount = 0;
-  var religionCount = 0;
-  var weightCount = 0;
-  var heightCount = 0;
-  var latitudeCount = 0;
-  var longitudeCount = 0;
-  var employeeIDCount = 0;
-  var bmiCount = 0;
-  var heartRateCount = 0;
-  var bloodPressureCount = 0;
-  var fatherNameCount = 0;
-  var motherNameCount = 0;
-  var brotherNameCount = 0;
-  var sisterNameCount = 0;
-  var daughterNameCount = 0;
-  var sonNameCount = 0;
-  var orderIDCount = 0;
-  var transactionIDCount = 0;
-  var cookieDataCount = 0;
+  var totalPIIs = [];
 
-
+  
   if (result) {
 
     for (var i = 0; i < result.vulnerabilities.length; i++) {
@@ -1083,380 +1051,32 @@ if (!uniqueEndpoints.includes(endpointPart)) {
       if (result.vulnerabilities[i].vulnerability.vulnerabilityCode == 6 || result.vulnerabilities[i].vulnerability.vulnerabilityCode == 2) {
 
         var piiFields = result.vulnerabilities[i].findings;
+        totalPIIs = totalPIIs.concat(piiFields);
 
-        console.log('piiFields', piiFields)      
-
-        if (piiFields.includes("Name")) {
-          nameCount++;
-        }
-
-        if (piiFields.includes("Email")) {
-          nameCount++;
-        }
-
-        if (piiFields.includes("Address")) {
-          addressCount++;
-        }
-
-        if (piiFields.includes("Phone Number")) {
-          phoneCount++;
-        }
-
-        if (piiFields.includes("Internet Protocol (IP)")) {
-          ipCount++;
-        }
-
-        if (piiFields.includes("Media Access Control (MAC)")) {
-          macCount++;
-        }
-
-        if (piiFields.includes("Social Security Number (SSN)")) {
-          ssnCount++;
-        }
-
-        if (piiFields.includes("Passport Number")) {
-          passportNumCount++;
-        }
-
-        if (piiFields.includes("Driving License Number")) {
-          dlCount++;
-        }
-
-        if (piiFields.includes("Bank Account Number")) {
-          bankAccountNumCount++;
-        }
-
-        if (piiFields.includes("Credit/Debit Card Number")) {
-          creditDebitCardNumCount++;
-        }
-
-        if (piiFields.includes("PAN Number")) {
-          panNumCount++;
-        }
-
-        if (piiFields.includes("Aadhaar Number")) {
-          aadhaarNumCount++;
-        }
-
-        if (piiFields.includes("Voter ID Number")) {
-          voterIDNumCount++;
-        }
-
-        if (piiFields.includes("Vehicle Registration Number")) {
-          vehicleRegistrationNumCount++;
-        }
-
-        if (piiFields.includes("Date of Birth")) {
-          dobCount++;
-        }
-
-        if (piiFields.includes("Place of Birth")) {
-          pobCount++;
-        }
-
-        if (piiFields.includes("Race")) {
-          raceCount++;
-        }
-
-        if (piiFields.includes("Religion")) {
-          religionCount++;
-        }
-
-        if (piiFields.includes("Weight")) {
-          weightCount++;
-        }
-
-        if (piiFields.includes("Height")) {
-          heightCount++;
-        }
-
-        if (piiFields.includes("Latitude")) {
-          latitudeCount++;
-        }
-
-        if (piiFields.includes("Longitude")) {
-          longitudeCount++;
-        }
-
-        if (piiFields.includes("Employee ID")) {
-          employeeIDCount++;
-        }
-
-        if (piiFields.includes("BMI")) {
-          bmiCount++;
-        }
-
-        if (piiFields.includes("Heart Rate")) {
-          heartRateCount++;
-        }
-
-        if (piiFields.includes("Blood Pressure")) {
-          bloodPressureCount++;
-        }
-
-        if (piiFields.includes("Father Name")) {
-          fatherNameCount++;
-        }
-
-        if (piiFields.includes("Mother Name")) {
-          motherNameCount++;
-        }
-
-        if (piiFields.includes("Brother Name")) {
-          brotherNameCount++;
-        }
-
-        if (piiFields.includes("Sister Name")) {
-          sisterNameCount++;
-        }
-
-        if (piiFields.includes("Daughter Name")) {
-          daughterNameCount++;
-        }
-
-        if (piiFields.includes("Son Name")) {
-          sonNameCount++;
-        }
-
-        if (piiFields.includes("Order ID")) {
-          orderIDCount++;
-        }
-
-        if (piiFields.includes("Transaction ID")) {
-          transactionIDCount++;
-        }
-
-        if (piiFields.includes("Cookie Data")) {
-          cookieDataCount++;
-        }
+        console.log('piiFields', piiFields)           
       }
     }
   }
 
 
-  var piiLabelsArray = [];
-  var piiDataArray = [];
-  var piiBgColorsArray = [];
+ 
 
-  const pieColors1 = [
-    '#FF5733', '#33A02C', '#1F77B4', '#FF8C00', '#32CD32',
-    '#6495ED', '#FF4500', '#228B22', '#4169E1', '#FF6347',
-    '#7CFC00', '#8A2BE2', '#FFD700', '#00FFFF', '#FF1493',
-    '#ADFF2F', '#A0522D', '#20B2AA', '#FF69B4', '#F4A460',
-    '#9400D3', '#00CED1', '#E9967A', '#2E8B57', '#8B008B',
-    '#00FA9A', '#8B0000', '#9932CC', '#2F4F4F', '#FFD700',
-    '#40E0D0', '#7B68EE', '#32CD32', '#FF4500', '#D8BFD8'
-  ];
+  const piiCounts = {};
 
-  if (nameCount > 0) {
-    piiLabelsArray.push('Name');
-    piiDataArray.push(nameCount);
-    piiBgColorsArray.push(pieColors1[0]);
-  }
-  //
-  if (addressCount > 0) {
-    piiLabelsArray.push('Address');
-    piiDataArray.push(addressCount);
-    piiBgColorsArray.push(pieColors1[1]);
-  }
-  //
-  if (phoneCount > 0) {
-    piiLabelsArray.push('Phone');
-    piiDataArray.push(phoneCount);
-    piiBgColorsArray.push(pieColors1[2]);
-  }
-  //
-  if (ipCount > 0) {
-    piiLabelsArray.push('IP Address');
-    piiDataArray.push(ipCount);
-    piiBgColorsArray.push(pieColors1[3]);
-  }
-  //
-  if (macCount > 0) {
-    piiLabelsArray.push('MAC Address');
-    piiDataArray.push(macCount);
-    piiBgColorsArray.push(pieColors1[4]);
-  }
-  //
-  if (ssnCount > 0) {
-    piiLabelsArray.push('SSN');
-    piiDataArray.push(ssnCount);
-    piiBgColorsArray.push(pieColors1[5]);
-  }
-  //
-  if (passportNumCount > 0) {
-    piiLabelsArray.push('Passport Num');
-    piiDataArray.push(passportNumCount);
-    piiBgColorsArray.push(pieColors1[6]);
-  }
-  //
-  if (dlCount > 0) {
-    piiLabelsArray.push('DL Num');
-    piiDataArray.push(dlCount);
-    piiBgColorsArray.push(pieColors1[7]);
-  }
-  //
-  if (bankAccountNumCount > 0) {
-    piiLabelsArray.push('Bank Account Num');
-    piiDataArray.push(bankAccountNumCount);
-    piiBgColorsArray.push(pieColors1[8]);
-  }
-  //
-  if (creditDebitCardNumCount > 0) {
-    piiLabelsArray.push('Credit/Debit Card Num');
-    piiDataArray.push(creditDebitCardNumCount);
-    piiBgColorsArray.push(pieColors1[9]);
-  }
-  //
-  if (panNumCount > 0) {
-    piiLabelsArray.push('PAN Num');
-    piiDataArray.push(panNumCount);
-    piiBgColorsArray.push(pieColors1[10]);
-  }
-  //
-  if (aadhaarNumCount > 0) {
-    piiLabelsArray.push('Aadhaar Num');
-    piiDataArray.push(aadhaarNumCount);
-    piiBgColorsArray.push(pieColors1[11]);
-  }
-  //
-  if (voterIDNumCount > 0) {
-    piiLabelsArray.push('Voter ID Num');
-    piiDataArray.push(voterIDNumCount);
-    piiBgColorsArray.push(pieColors1[12]);
-  }
-  //
-  if (vehicleRegistrationNumCount > 0) {
-    piiLabelsArray.push('Vehicle Registration Num');
-    piiDataArray.push(vehicleRegistrationNumCount);
-    piiBgColorsArray.push(pieColors1[13]);
-  }
-  //
-  if (dobCount > 0) {
-    piiLabelsArray.push('DOB');
-    piiDataArray.push(dobCount);
-    piiBgColorsArray.push(pieColors1[14]);
-  }
-  //
-  if (pobCount > 0) {
-    piiLabelsArray.push('Place of Birth');
-    piiDataArray.push(pobCount);
-    piiBgColorsArray.push(pieColors1[15]);
-  }
-  //
-  if (raceCount > 0) {
-    piiLabelsArray.push('Race');
-    piiDataArray.push(raceCount);
-    piiBgColorsArray.push(pieColors1[16]);
-  }
-  //
-  if (religionCount > 0) {
-    piiLabelsArray.push('Religion');
-    piiDataArray.push(religionCount);
-    piiBgColorsArray.push(pieColors1[17]);
-  }
-  //
-  if (weightCount > 0) {
-    piiLabelsArray.push('Weight');
-    piiDataArray.push(weightCount);
-    piiBgColorsArray.push(pieColors1[18]);
-  }
-  //
-  if (heightCount > 0) {
-    piiLabelsArray.push('Height');
-    piiDataArray.push(heightCount);
-    piiBgColorsArray.push(pieColors1[19]);
-  }
-  //
-  if (latitudeCount > 0) {
-    piiLabelsArray.push('Latitude');
-    piiDataArray.push(latitudeCount);
-    piiBgColorsArray.push(pieColors1[20]);
-  }
-  //
-  if (longitudeCount > 0) {
-    piiLabelsArray.push('Longitude');
-    piiDataArray.push(longitudeCount);
-    piiBgColorsArray.push(pieColors1[21]);
-  }
-  //
-  if (employeeIDCount > 0) {
-    piiLabelsArray.push('Employee ID');
-    piiDataArray.push(employeeIDCount);
-    piiBgColorsArray.push(pieColors1[22]);
-  }
-  //
-  if (bmiCount > 0) {
-    piiLabelsArray.push('BMI');
-    piiDataArray.push(bmiCount);
-    piiBgColorsArray.push(pieColors1[23]);
-  }
-  //
-  if (heartRateCount > 0) {
-    piiLabelsArray.push('Heart Rate');
-    piiDataArray.push(heartRateCount);
-    piiBgColorsArray.push(pieColors1[24]);
-  }
-  //
-  if (bloodPressureCount > 0) {
-    piiLabelsArray.push('Blood Pressure');
-    piiDataArray.push(bloodPressureCount);
-    piiBgColorsArray.push(pieColors1[25]);
-  }
-  //
-  if (fatherNameCount > 0) {
-    piiLabelsArray.push('Father Name');
-    piiDataArray.push(fatherNameCount);
-    piiBgColorsArray.push(pieColors1[26]);
-  }
-  //
-  if (motherNameCount > 0) {
-    piiLabelsArray.push('Mother Name');
-    piiDataArray.push(motherNameCount);
-    piiBgColorsArray.push(pieColors1[27]);
-  }
-  //
-  if (brotherNameCount > 0) {
-    piiLabelsArray.push('Brother Name');
-    piiDataArray.push(brotherNameCount);
-    piiBgColorsArray.push(pieColors1[28]);
-  }
-  //
-  if (sisterNameCount > 0) {
-    piiLabelsArray.push('Sister Name');
-    piiDataArray.push(sisterNameCount);
-    piiBgColorsArray.push(pieColors1[29]);
-  }
-  //
-  if (daughterNameCount > 0) {
-    piiLabelsArray.push('Daughter Name');
-    piiDataArray.push(daughterNameCount);
-    piiBgColorsArray.push(pieColors1[30]);
-  }
-  //
-  if (sonNameCount > 0) {
-    piiLabelsArray.push('Son Name');
-    piiDataArray.push(sonNameCount);
-    piiBgColorsArray.push(pieColors1[31]);
-  }
-  //
-  if (orderIDCount > 0) {
-    piiLabelsArray.push('Order ID');
-    piiDataArray.push(orderIDCount);
-    piiBgColorsArray.push(pieColors1[32]);
-  }
-  //
-  if (transactionIDCount > 0) {
-    piiLabelsArray.push('Transaction ID');
-    piiDataArray.push(transactionIDCount);
-    piiBgColorsArray.push(pieColors1[33]);
-  }
-  //
-  if (cookieDataCount > 0) {
-    piiLabelsArray.push('Cookie Data');
-    piiDataArray.push(cookieDataCount);
-    piiBgColorsArray.push(pieColors1[34]);
-  }
+// Count each unique PII string
+totalPIIs.forEach(pii => {
+    if (piiCounts[pii] !== undefined) {
+        piiCounts[pii]++;
+    } else {
+        piiCounts[pii] = 1;
+    }
+});
+
+// Extract labels and counts into separate arrays
+const piiLabelsArray = Object.keys(piiCounts);
+const piiDataArray = Object.values(piiCounts);
+
+
 
 
   var data2 = {
@@ -1466,7 +1086,7 @@ if (!uniqueEndpoints.includes(endpointPart)) {
       {
         label: 'Sensitive Data',
         data: piiDataArray,
-        backgroundColor: piiBgColorsArray,
+        //backgroundColor: piiBgColorsArray,
         borderWidth: 1,
       },
     ],
@@ -1475,7 +1095,7 @@ if (!uniqueEndpoints.includes(endpointPart)) {
 
   const piichartOptions = {
     labels: piiLabelsArray,
-    colors: piiBgColorsArray,
+    //colors: piiBgColorsArray,
     legend: {
       position: 'bottom',
       verticalAlign: 'middle',
@@ -1788,33 +1408,30 @@ if (!uniqueEndpoints.includes(endpointPart)) {
             <AiFillCloseCircle size={30} color={'#000'} />
           </button>
 
-          {currentVulnerability &&
+          {currentVulnerability && currentVulnerability.vulnerability &&
 
             <div className="modalWindow" style={{ backgroundColor: '#E1E1E1' }}>
 
 
-              <h5 style={{ color: '#000' }}><strong>Vulnerability Name</strong>: {currentVulnerability.vulnerabilityName}</h5>
-              <h5 style={{ color: '#000' }}><strong>Severity</strong>: {currentVulnerability.riskScore}</h5>
+              <h5 style={{ color: '#000' }}><strong>Vulnerability Name</strong>: {currentVulnerability.vulnerability.vulnerabilityName}</h5>
+              <h5 style={{ color: '#000' }}><strong>Severity</strong>: {currentVulnerability.severity}</h5>
 
               <hr />
 
-              <h5 style={{ color: '#000' }}>REMEDIATIONS</h5>
+              <h5 style={{ color: '#000' }}>Remediations</h5>
               <hr />
 
-              {currentVulnerability && currentVulnerability.remediations.map((item) => (
-                <div style={{ backgroundColor: '#ebedef', padding: 10, marginTop: 10, borderRadius: 15 }}>
 
-                  <h5 style={{color:'#000'}}>{item.remediationHeading}</h5>
-                  <h5 style={{color:'#000', fontSize:16, fontWeight:'normal'}}>{item.remediationContent}</h5>
 
-                </div>
-              ))}
+              <div dangerouslySetInnerHTML={{__html:currentVulnerability.remediation}}  style={{ color: '#000' }}></div>
+
+              
 
             </div>
           }
 
-        </Modal>
 
+        </Modal>
         <Modal
           isOpen={acceptanceModalIsOpen}
           onRequestClose={closeAcceptanceModal}
@@ -1871,75 +1488,75 @@ if (!uniqueEndpoints.includes(endpointPart)) {
             <AiFillCloseCircle size={30} color={'#000'} />
           </button>
 
-          {currentVulnerability &&
+          {currentVulnerability && currentVulnerability.vulnerability &&
 
             <div className="modalWindow" style={{ backgroundColor: '#c2eef4', height:'100%' }}>
 
-            <h4>Cost of Breach for <strong>{currentVulnerability.owasp[0]}</strong></h4>
+            <h4>Cost of Breach for <strong>{currentVulnerability.vulnerability.owasp[0]}</strong></h4>
 
 
-        {currentVulnerability.owasp.includes('API1:2023 Broken Object Level Authorization') &&
+        {currentVulnerability.vulnerability.owasp.includes('API1:2023 Broken Object Level Authorization') &&
             <object type="text/html" data={global.baseUrl + "/breach-cost-html/brokenAuthentication.html"} width="100%" height="100%"
               style={{ alignSelf: 'center', borderWidth: 0, marginLeft:'0vw' }}>
             </object>     
         }   
 
-        {currentVulnerability.owasp.includes('API2:2023 Broken Authentication') &&
-            <object type="text/html" data={global.baseUrl + "/breach-cost-html/brokenAuthentication.html"} width="100%" height="100%"
-              style={{ alignSelf: 'center', borderWidth: 0, marginLeft:'0vw' }}>
-            </object>     
-        }   
-
-
-        {currentVulnerability.owasp.includes('API3:2023 Broken Object Property Level Authorization') &&
+        {currentVulnerability.vulnerability.owasp.includes('API2:2023 Broken Authentication') &&
             <object type="text/html" data={global.baseUrl + "/breach-cost-html/brokenAuthentication.html"} width="100%" height="100%"
               style={{ alignSelf: 'center', borderWidth: 0, marginLeft:'0vw' }}>
             </object>     
         }   
 
 
-        {currentVulnerability.owasp.includes('API4:2023 Unrestricted Resource Consumption') &&
+        {currentVulnerability.vulnerability.owasp.includes('API3:2023 Broken Object Property Level Authorization') &&
             <object type="text/html" data={global.baseUrl + "/breach-cost-html/brokenAuthentication.html"} width="100%" height="100%"
               style={{ alignSelf: 'center', borderWidth: 0, marginLeft:'0vw' }}>
             </object>     
         }   
 
 
-        {currentVulnerability.owasp.includes('API5:2023 Broken Function Level Authorization') &&
+        {currentVulnerability.vulnerability.owasp.includes('API4:2023 Unrestricted Resource Consumption') &&
             <object type="text/html" data={global.baseUrl + "/breach-cost-html/brokenAuthentication.html"} width="100%" height="100%"
               style={{ alignSelf: 'center', borderWidth: 0, marginLeft:'0vw' }}>
             </object>     
         }   
 
 
-        {currentVulnerability.owasp[0] == 'API6:2023 Unrestricted Access to Sensitive Business Flows' &&
+        {currentVulnerability.vulnerability.owasp.includes('API5:2023 Broken Function Level Authorization') &&
             <object type="text/html" data={global.baseUrl + "/breach-cost-html/brokenAuthentication.html"} width="100%" height="100%"
               style={{ alignSelf: 'center', borderWidth: 0, marginLeft:'0vw' }}>
             </object>     
         }   
 
 
-        {currentVulnerability.owasp.includes('API7:2023 Server Side Request Forgery') &&
+        {currentVulnerability.vulnerability.owasp[0] == 'API6:2023 Unrestricted Access to Sensitive Business Flows' &&
             <object type="text/html" data={global.baseUrl + "/breach-cost-html/brokenAuthentication.html"} width="100%" height="100%"
               style={{ alignSelf: 'center', borderWidth: 0, marginLeft:'0vw' }}>
             </object>     
         }   
 
 
-        {currentVulnerability.owasp.includes('API8:2023 Security Misconfiguration') &&
+        {currentVulnerability.vulnerability.owasp.includes('API7:2023 Server Side Request Forgery') &&
             <object type="text/html" data={global.baseUrl + "/breach-cost-html/brokenAuthentication.html"} width="100%" height="100%"
               style={{ alignSelf: 'center', borderWidth: 0, marginLeft:'0vw' }}>
             </object>     
         }   
 
 
-        {currentVulnerability.owasp.includes('API9:2023 Improper Inventory Management') &&
+        {currentVulnerability.vulnerability.owasp.includes('API8:2023 Security Misconfiguration') &&
             <object type="text/html" data={global.baseUrl + "/breach-cost-html/brokenAuthentication.html"} width="100%" height="100%"
               style={{ alignSelf: 'center', borderWidth: 0, marginLeft:'0vw' }}>
             </object>     
         }   
 
-        {currentVulnerability.owasp.includes('API10:2023 Unsafe Consumption of APIs') &&
+
+        {currentVulnerability.vulnerability.owasp.includes('API9:2023 Improper Inventory Management') &&
+            <object type="text/html" data={global.baseUrl + "/breach-cost-html/brokenAuthentication.html"} width="100%" height="100%"
+              style={{ alignSelf: 'center', borderWidth: 0, marginLeft:'0vw' }}>
+            </object>     
+        }   
+
+        {currentVulnerability.vulnerability.owasp.includes('API10:2023 Unsafe Consumption of APIs') &&
             <object type="text/html" data={global.baseUrl + "/breach-cost-html/brokenAuthentication.html"} width="100%" height="100%"
               style={{ alignSelf: 'center', borderWidth: 0, marginLeft:'0vw' }}>
             </object>     

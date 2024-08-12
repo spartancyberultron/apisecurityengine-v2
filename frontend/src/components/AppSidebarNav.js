@@ -260,13 +260,13 @@ export const AppSidebarNav = ({ items }) => {
             <Link className="menuLink" to="/threat-modelling" onClick={toggleRefreshFlag} style={{
               padding: 15, display: 'flex', flexDirection: 'row', textDecoration: 'none',
               background: (currentRoute == '/threat-modelling' 
-              || currentRoute == '/threat-modelling-scan-report') ? '#7367f0' : 'transparent', justifyContent: 'center'
+              || currentRoute.includes('/threat-modelling-scan-report')) ? '#7367f0' : 'transparent', justifyContent: 'center'
             }}>
 
               <FaTable size={22} color={(currentRoute == '/threat-modelling' 
               || currentRoute == '/threat-modelling-scan-report') ? '#fff' : '#b6bee3'} />
               <span className="headerText" style={{
-                marginLeft: 10, color: (currentRoute == '/threat-modelling' || currentRoute == '/threat-modelling-scan-report')
+                marginLeft: 10, color: (currentRoute == '/threat-modelling' || currentRoute.includes('/threat-modelling-scan-report'))
                   ? '#fff' : '#5D596C'
               }}>Threat Modelling</span>
             </Link>

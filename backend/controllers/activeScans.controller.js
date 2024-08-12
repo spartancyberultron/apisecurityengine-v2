@@ -11,6 +11,7 @@ const ApiEndpoint = require("../models/apiendpoint.model");
 const { User } = require('../models/user.model');
 const ActiveScan = require("../models/activescan.model");
 const ActiveScanVulnerability = require("../models/activescanvulnerability.model");
+const Organization = require("../models/organization.model");
 
 const { none } = require('../config/multerUpload');
 const APICollection = require('../models/apicollection.model');
@@ -26,6 +27,9 @@ const axios = require('axios');
 const { URL } = require('url');
 const crypto = require('crypto');
 const { v4: uuidv4 } = require('uuid');
+
+const remediations = require('./remediations/rest-remediations.json');
+
 
 const cron = require('node-cron');
 
@@ -62,9 +66,38 @@ const {
 } = require("../services/securityTests/helpers/findSSLIssues.service");
 
 
+function getObjectByIndex(index) {
+    // Find the object with the given index
+    const result = remediations.find(item => item.index === index);
+    return result || null; // Return null if no object is found
+}
+
+async function getVulnSeverityAndPriority(vulnId) {
+    try {
+        // Find the organization document that contains the specified vulnId
+        const organization = await Organization.findOne({
+            'vulnSeverityAndPriority.vulnId': vulnId
+        }, {
+            'vulnSeverityAndPriority.$': 1 // Project only the matching element from the array
+        }).exec();
+        
+        if (organization && organization.vulnSeverityAndPriority.length > 0) {
+            // Return the severity and priority for the specified vulnId
+            return organization.vulnSeverityAndPriority[0];
+        } else {
+            // If no matching element is found, return null
+            return null;
+        }
+    } catch (error) {
+        console.error('Error retrieving vulnerability details:', error);
+        throw error;
+    }
+}
+
 
 // Get all quick scans 
 module.exports.getAllActiveScans = asyncHandler(async (req, res) => {
+
 
     const pageNumber = parseInt(req.query.pageNumber) || 1; // Get the pageNumber from the query parameters (default to 1 if not provided)
     const pageSize = 10; // Number of active scans per page
@@ -105,35 +138,7 @@ module.exports.getAllActiveScans = asyncHandler(async (req, res) => {
 
         activeScans[i].vulnerabilities = vulnerabilities;
     }
-
-
-    // Retrieve the IDs of the active scans
-    const activeScanIds = activeScans.map((scan) => scan.theCollectionVersion._id);
-
-    /*
-    // Fetch counts of endpoints for each active scan
-    const endpointsCountsPromises = activeScanIds.map(async (scanId) => {
-        const count = await ApiEndpoint.countDocuments({ theCollectionVersion: scanId }).exec();
-        return { scanId, count };
-    });
-
-    const endpointsCounts = await Promise.all(endpointsCountsPromises);
-
-    // Create a map of active scan IDs and their corresponding endpoint counts
-    const endpointsCountMap = new Map();
-    endpointsCounts.forEach((countObj) => {
-        endpointsCountMap.set(countObj.scanId.toString(), countObj.count);
-    });*/
-
-    // Add the endpointsCount property to each active scan
-   /* activeScans.forEach((scan, index) => {
-        const endpointsCount = endpointsCountMap.get(scan.theCollectionVersion._id.toString()) || 0;
-        scan.endpointsCount = endpointsCount;
-        const globalIndex = skip + index + 1;
-        scan.index = globalIndex; // Numeric index starting from 1 for all records
-    });
-    */
-
+    
     // Return the active scans, currentPage, totalRecords, and totalPages in the response
     res.status(200).json({
         activeScans,
@@ -1764,9 +1769,6 @@ module.exports.startActiveScan = asyncHandler(async (req, res) => {
     });  
     
     await newScan.save();
-
-    console.log('scanScheduleType:',scanScheduleType)
-
    
 
     if (scanScheduleType === 'now') {
@@ -2299,6 +2301,9 @@ async function runActiveScan(user, theCollectionVersion, endpoints, scanId) {
         const theActiveScan = await ActiveScan.findById(scanId);
 
         console.log('theActiveScan:',theActiveScan)
+        console.log('user:',user)
+
+        const organization = await Organization.findById(user.organization)
 
        // theActiveScan.theCollectionVersion = theCollectionVersion;
         //theActiveScan.status = 'in progress';
@@ -2436,7 +2441,6 @@ async function runActiveScan(user, theCollectionVersion, endpoints, scanId) {
             }
 
 
-            console.log('hostsResults:', hostsResults)
 
 
             if (hostsResults) {
@@ -2451,7 +2455,6 @@ async function runActiveScan(user, theCollectionVersion, endpoints, scanId) {
                     // Find matching records from the JSON array
                     const matchingHosts = hostsResults.filter(hostResult => theEndpoints[i].url.includes(hostResult.host));
 
-                    console.log('matchingHosts:',matchingHosts)
             
                     // Only proceed if there are matching hosts
                     if (matchingHosts.length > 0) {                       
@@ -2460,6 +2463,9 @@ async function runActiveScan(user, theCollectionVersion, endpoints, scanId) {
                         const hostResult = hostsResults.find(hostResult => theEndpoints[i].url.includes(hostResult.host));
             
                         if (hostResult) {
+
+                            var remediation = '';
+                            
                             if (hostResult.certificateMissing) {
 
                                 findings.push({description:'SSL Certificate not installed', exploitability:''});
@@ -2478,6 +2484,8 @@ async function runActiveScan(user, theCollectionVersion, endpoints, scanId) {
                                additionalCWEs.push('CWE-259: Use of a Hardcoded Password') 
                                additionalCWEs.push('CWE-327: Broken or Risky Cryptographic Algorithm') 
 
+                               remediation = remediation + '<br/><br/>' + (getObjectByIndex(1)).remediation;
+
 
                             }
             
@@ -2493,6 +2501,8 @@ async function runActiveScan(user, theCollectionVersion, endpoints, scanId) {
                                 additionalCWEs.push('CWE-295: Improper Access Control') 
                                 additionalCWEs.push('CWE-300: Insufficient Cryptographic Strength') 
                                 additionalCWEs.push('CWE-758: Use of a Broken or Risky Cryptographic Algorithm') 
+
+                                remediation = remediation + '<br/><br/>' + (getObjectByIndex(7)).remediation;
                             }
             
                             if (hostResult.tls13EarlyCheckIssue) {
@@ -2505,6 +2515,8 @@ async function runActiveScan(user, theCollectionVersion, endpoints, scanId) {
                                 additionalCWEs.push('CWE-319: Cleartext Transmission of Sensitive Information') 
                                 additionalCWEs.push('CWE-352: Cross-Site Request Forgery (CSRF)') 
                                 additionalCWEs.push('CWE-294: Authentication Bypass by Capture-replay') 
+
+                                remediation = remediation + '<br/><br/>' + (getObjectByIndex(11)).remediation;
                             }
             
                             if (hostResult.openSSLCCSInjectionIssues) {
@@ -2517,6 +2529,8 @@ async function runActiveScan(user, theCollectionVersion, endpoints, scanId) {
 
                                 additionalCWEs.push('CWE-295: Improper Access Control') 
                                 additionalCWEs.push('CWE-894: Improper Control of TLS Communication') 
+
+                                remediation = remediation + '<br/><br/>' + (getObjectByIndex(6)).remediation;
                             }
             
                             if (hostResult.downgradePreventionIssue) {
@@ -2527,6 +2541,8 @@ async function runActiveScan(user, theCollectionVersion, endpoints, scanId) {
                                 findings.push({description, exploitability});
 
                                 additionalCWEs.push('CWE Reference: CWE-2001: Sensitive Information Disclosure') 
+
+                                remediation = remediation + '<br/><br/>' + (getObjectByIndex(10)).remediation;
                             }
             
                             if (hostResult.heartbleedIssues) {
@@ -2539,6 +2555,8 @@ async function runActiveScan(user, theCollectionVersion, endpoints, scanId) {
 
                                 additionalCWEs.push('CWE-311: Improper Restriction of Operation within the Bounds of a Memory Buffer') 
                                 additionalCWEs.push('CWE-255: Improper Check for Certificate Revocation') 
+
+                                remediation = remediation + '<br/><br/>' + (getObjectByIndex(2)).remediation;
                             }
             
                             if (hostResult.insecureNegotiationIssue) {
@@ -2549,6 +2567,8 @@ async function runActiveScan(user, theCollectionVersion, endpoints, scanId) {
                                 findings.push({description, exploitability});
 
                                 additionalCWEs.push('CWE-2001: Sensitive Information Not Protected') 
+
+                                remediation = remediation + '<br/><br/>' + (getObjectByIndex(9)).remediation;
                             }
             
                             if (hostResult.sessionResumptionIssues) {
@@ -2559,6 +2579,8 @@ async function runActiveScan(user, theCollectionVersion, endpoints, scanId) {
                                 findings.push({description, exploitability});
 
                                 additionalCWEs.push('CWE-319: Cleartext Transmission of Sensitive Information') 
+
+                                remediation = remediation + '<br/><br/>' + (getObjectByIndex(8)).remediation;
                             }
             
                             if (hostResult.ellipticCurvesIssues) {
@@ -2570,11 +2592,13 @@ async function runActiveScan(user, theCollectionVersion, endpoints, scanId) {
                                 findings.push({description, exploitability});
 
                                 additionalCWEs.push('CWE-326: Inadequate Encryption Strength') 
+
+                                remediation = remediation + '<br/><br/>' + (getObjectByIndex(3)).remediation;
                             }
                         }
 
-                        console.log('findings:', findings)
-                        console.log('additionalCWEs:', additionalCWEs)
+                       // console.log('findings:', findings)
+                       // console.log('additionalCWEs:', additionalCWEs)
             
                         // Ensure findings array is not empty before creating the vulnerability
                         if (findings.length > 0) {
@@ -2582,6 +2606,10 @@ async function runActiveScan(user, theCollectionVersion, endpoints, scanId) {
                             const vuln = await Vulnerability.findOne({ vulnerabilityCode: 4 });
             
                             var description = 'This host has SSL related problems';
+
+                            const result = await getVulnSeverityAndPriority(4);
+                            const severity = result ? result.severity : null;
+                            const priority = result ? result.priority : null;
             
                             const theActiveScanVulnerability = await ActiveScanVulnerability.create({
                                 activeScan: theActiveScan,
@@ -2589,7 +2617,10 @@ async function runActiveScan(user, theCollectionVersion, endpoints, scanId) {
                                 endpoint: theEndpoints[i],
                                 description: description,
                                 sslFindings: findings,
-                                additionalCWEs:additionalCWEs
+                                additionalCWEs:additionalCWEs,
+                                remediation:remediation,
+                                severity:severity,
+                                priority:priority
                             });
             
                             theVulns.push(theActiveScanVulnerability);
@@ -2600,14 +2631,11 @@ async function runActiveScan(user, theCollectionVersion, endpoints, scanId) {
                 }
             }
 
-
-
         } catch (error) {
 
             console.log('error:', error)
             console.log('execption occured in check for SSL issues')
         }
-
         
 
         try {
@@ -2627,6 +2655,12 @@ async function runActiveScan(user, theCollectionVersion, endpoints, scanId) {
 
                     var description = 'This API has basic authentication on it. A stronger authentication method like Bearer token, is recommended.'
 
+                    var remediation = (getObjectByIndex(20)).remediation;
+
+                    const result = await getVulnSeverityAndPriority(3);
+                    const severity = result ? result.severity : null;
+                    const priority = result ? result.priority : null;
+
                     const theActiveScanVulnerability = await ActiveScanVulnerability.create({
 
                         activeScan: theActiveScan,
@@ -2634,6 +2668,9 @@ async function runActiveScan(user, theCollectionVersion, endpoints, scanId) {
                         //projectName: projectName,
                         endpoint: theEndpoints[i],
                         description: description,
+                        remediation:remediation,
+                        severity:severity,
+                        priority:priority
                     });
 
                     theVulns.push(theActiveScanVulnerability);
@@ -2659,7 +2696,7 @@ async function runActiveScan(user, theCollectionVersion, endpoints, scanId) {
 
                 //var pIIData = await runTestForSensitiveDataInQueryParams(theEndpoints[i])
 
-                var result = await sensitiveDataInQueryParamsCheck(theEndpoints[i]);
+                var result = await sensitiveDataInQueryParamsCheck(theEndpoints[i], organization._id);
 
                 const anEndpoint = await ApiEndpoint.findById(theEndpoints[i]._id)
 
@@ -2681,6 +2718,12 @@ async function runActiveScan(user, theCollectionVersion, endpoints, scanId) {
 
                     const vuln = await Vulnerability.findOne({ vulnerabilityCode: 6 })
 
+                    var remediation = (getObjectByIndex(23)).remediation;
+
+                    const result = await getVulnSeverityAndPriority(6);
+                    const severity = result ? result.severity : null;
+                    const priority = result ? result.priority : null;
+
                     const theActiveScanVulnerability = await ActiveScanVulnerability.create({
 
                         activeScan: theActiveScan,
@@ -2688,7 +2731,10 @@ async function runActiveScan(user, theCollectionVersion, endpoints, scanId) {
                         //projectName: projectName,
                         endpoint: theEndpoints[i],
                         description: description,
-                        findings: piiArray
+                        findings: piiArray,
+                        remediation:remediation,
+                        severity:severity,
+                        priority:priority
 
                     });
 
@@ -2699,8 +2745,7 @@ async function runActiveScan(user, theCollectionVersion, endpoints, scanId) {
             }
         } catch (error) {
             console.log('execption occured in check for SENSITIVE DATA IN QUERY PARAMS')
-        }
-        
+        }       
 
 
         
@@ -2713,7 +2758,7 @@ async function runActiveScan(user, theCollectionVersion, endpoints, scanId) {
 
                 //var pIIData = await runTestForSensitiveDataInQueryParams(theEndpoints[i])
 
-                var result = await sensitiveDataInPathParamsCheck(theEndpoints[i]);
+                var result = await sensitiveDataInPathParamsCheck(theEndpoints[i], organization._id);
 
                 const anEndpoint = await ApiEndpoint.findById(theEndpoints[i]._id)
 
@@ -2735,6 +2780,12 @@ async function runActiveScan(user, theCollectionVersion, endpoints, scanId) {
 
                     const vuln = await Vulnerability.findOne({ vulnerabilityCode: 2 })
 
+                    var remediation = (getObjectByIndex(24)).remediation;
+
+                    const result = await getVulnSeverityAndPriority(2);
+                    const severity = result ? result.severity : null;
+                    const priority = result ? result.priority : null;
+
                     const theActiveScanVulnerability = await ActiveScanVulnerability.create({
 
                         activeScan: theActiveScan,
@@ -2742,7 +2793,10 @@ async function runActiveScan(user, theCollectionVersion, endpoints, scanId) {
                         //projectName: projectName,
                         endpoint: theEndpoints[i],
                         description: description,
-                        findings: piiArray
+                        findings: piiArray,
+                        remediation:remediation,
+                        severity:severity,
+                        priority:priority
                     });
 
                     theVulns.push(theActiveScanVulnerability);
@@ -2774,13 +2828,23 @@ async function runActiveScan(user, theCollectionVersion, endpoints, scanId) {
 
                     const vuln = await Vulnerability.findOne({ vulnerabilityCode: 18 })
 
+                    var remediation = (getObjectByIndex(34)).remediation;
+
+                    const result = await getVulnSeverityAndPriority(18);
+                    const severity = result ? result.severity : null;
+                    const priority = result ? result.priority : null;
+
+
                     const theActiveScanVulnerability = await ActiveScanVulnerability.create({
 
                         activeScan: theActiveScan,
                         vulnerability: vuln,
                         //projectName: projectName,
                         endpoint: theEndpoints[i],
-                        description: description
+                        description: description,
+                        remediation:remediation,
+                        severity:severity,
+                        priority:priority
                     });
 
                     theVulns.push(theActiveScanVulnerability);
@@ -2807,21 +2871,32 @@ async function runActiveScan(user, theCollectionVersion, endpoints, scanId) {
 
                 var result = await httpVerbTamperingPossibleCheck(theEndpoints[i]);
 
-                //console.log('tamperableMethods', tamperableMethods)
+                console.log('tamperableMethodsResult', result)
 
                 if (result.issueFound) {
+
                     const vuln = await Vulnerability.findOne({ vulnerabilityCode: 8 })
 
                     //var description = 'The method on this endpoint can be tampered to any of the following:' + tamperableMethods.join(',');
 
                     try {
+
+                        var remediation = (getObjectByIndex(26)).remediation;
+
+                        const result1 = await getVulnSeverityAndPriority(8);
+                        const severity = result1 ? result1.severity : null;
+                        const priority = result1 ? result1.priority : null;
+
                         const theActiveScanVulnerability = await ActiveScanVulnerability.create({
                             activeScan: theActiveScan,
                             vulnerability: vuln,
                             //projectName: projectName,
                             endpoint: theEndpoints[i],
                             description: result.description,
-                            findings: result.findings
+                            findings: result.findings,
+                            remediation:remediation,
+                            severity:severity,
+                            priority:priority
                         });
 
                         theVulns.push(theActiveScanVulnerability);
@@ -2869,6 +2944,7 @@ async function runActiveScan(user, theCollectionVersion, endpoints, scanId) {
             if(findingsArray){
 
             for (var i = 0; i < theEndpoints.length; i++) {
+
                 // Initialize the findings array
                 let findings = [];
             
@@ -2886,16 +2962,62 @@ async function runActiveScan(user, theCollectionVersion, endpoints, scanId) {
             
                     // Ensure findings array is not empty before creating the vulnerability
                     if (findings.length > 0) {
+
+                        console.log('findingsSecurityHeaders:',findings)
                         const vuln = await Vulnerability.findOne({ vulnerabilityCode: 10 });
             
                         var description = 'Some security headers are not enabled on this host.';
+
+                        var remediation = ''; 
+
+
+                        if(findings.includes("Content-Security-Policy")){
+                            remediation = remediation + '<br/><br>' +(getObjectByIndex(12)).remediation;
+                        }
+
+                        if(findings.includes("Strict-Transport-Security")){
+                            remediation = remediation + '<br/><br>' +(getObjectByIndex(13)).remediation;
+                        }
+
+                        if(findings.includes("X-Frame-Options")){
+                            remediation = remediation + '<br/><br>' +(getObjectByIndex(14)).remediation;
+                        }
+
+                        if(findings.includes("X-Content-Type-Options")){
+                            remediation = remediation + '<br/><br>' +(getObjectByIndex(15)).remediation;
+                        }
+
+                        if(findings.includes("X-XSS-Protection")){
+                            remediation = remediation + '<br/><br>' +(getObjectByIndex(16)).remediation;
+                        }
+
+                        if(findings.includes("Cross-Origin Resource Sharing")){
+                            remediation = remediation + '<br/><br>' +(getObjectByIndex(17)).remediation;
+                        }
+
+                        if(findings.includes("Referrer-Policy")){
+                            remediation = remediation + '<br/><br>' +(getObjectByIndex(18)).remediation;
+                        }
+
+                        if(findings.includes("Feature-Policy")){
+                            remediation = remediation + '<br/><br>' +(getObjectByIndex(19)).remediation;
+                        }
+
+                       // var remediation = (getObjectByIndex(12)).remediation;
+
+                        const result = await getVulnSeverityAndPriority(10);
+                        const severity = result ? result.severity : null;
+                        const priority = result ? result.priority : null;
             
                         const theActiveScanVulnerability = await ActiveScanVulnerability.create({
                             activeScan: theActiveScan,
                             vulnerability: vuln,
                             endpoint: theEndpoints[i],
                             description: description,
-                            findings: findings
+                            findings: findings,
+                            remediation:remediation,
+                            severity:severity,
+                            priority:priority
                         });
             
                         theVulns.push(theActiveScanVulnerability);

@@ -9,6 +9,16 @@ const bcrypt = require('bcryptjs');
 const axios = require('axios');
 const https = require('https');
 
+const remediations = require('./remediations/soap-graphql-remediations.json');
+
+
+function getObjectByVulnerability(vulnerability) {
+  // Find the object with the given index
+  const result = remediations.find(item => item.vulnerability === vulnerability);
+  return result || null; // Return null if no object is found
+}
+
+
 module.exports.getAllLLMScans = asyncHandler(async (req, res) => {
 
 

@@ -156,11 +156,11 @@ const UserDashboard = () => {
 
           <div className="theCards" style={{ display: 'flex', flexDirection: 'row', borderRadius: 10, padding: 20,  }}>
 
-            <Link to="/endpoints" style={{ textDecoration: 'none', background:'transparent', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+            <Link to="/api-inventory" style={{ textDecoration: 'none', background:'transparent', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
               <TbApi size={40} style={{ color: '#00cfe8', backgroundColor:'#d9f8fc', padding:'0.5rem', borderRadius:'50rem' }} />
             </Link>
 
-            <Link to="/endpoints" style={{ textDecoration: 'none' }}>
+            <Link to="/api-inventory" style={{ textDecoration: 'none' }}>
               <div className="dashboardLinkDiv">
                 {loadingStats ?
                   <div style={{display:'flex', flexDirection:'column', height:35, justifyContent:'space-between'}}>

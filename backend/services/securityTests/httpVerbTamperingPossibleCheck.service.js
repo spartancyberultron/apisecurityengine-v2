@@ -52,7 +52,7 @@ async function httpVerbTamperingPossibleCheck(endpoint, timeout = 10000) {
             } else {
                 // Error occurred during the request, consider the method as tamperable
                 tamperableMethods.push(method);
-                console.log('Error in runTestForHTTPVerbTamperingPossible:', error);
+                //console.log('Error in runTestForHTTPVerbTamperingPossible:', error);
             }
         }
     }

@@ -211,7 +211,6 @@ const Tickets = () => {
     "Source",
     "Related Scan ID",
     "Title",
-    "Description",
     "Priority",
     "Opened By",
     "Assigned To",
@@ -348,7 +347,7 @@ const Tickets = () => {
     dataItem.push(tickets[i].scanId);
 
     dataItem.push(tickets[i].title);
-    dataItem.push(tickets[i].description);
+    //dataItem.push(tickets[i].description);
     dataItem.push(tickets[i].priority);
 
     if(tickets[i].openedBy){

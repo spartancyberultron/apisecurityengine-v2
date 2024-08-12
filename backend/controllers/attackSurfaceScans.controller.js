@@ -28,6 +28,7 @@ const { v4: uuidv4 } = require('uuid');
 
 const { exec } = require('child_process');
 
+const remediations = require('./remediations/rest-remediations.json');
 
 // Fetch and save subdomains as endpoints
 const Subfinder = require("@sooluh/subfinder");

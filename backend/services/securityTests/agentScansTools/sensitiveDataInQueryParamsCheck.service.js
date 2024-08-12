@@ -1,5 +1,14 @@
+const Organization = require("../../../models/organization.model");
+
 /* Test for "Sensitive Data in Query Params" */
-async function sensitiveDataInQueryParamsCheck(queryParams) {
+async function sensitiveDataInQueryParamsCheck(queryParams, organizationId) {
+
+    console.log('organizationId:',organizationId)
+
+    const enabledPIIDataForOrg = await getEnabledPIIData(organizationId);
+
+    console.log('enabledPIIDataForOrg:',enabledPIIDataForOrg)
+
 
     let issueFound = false;
     let findings = [];
@@ -13,6 +22,21 @@ async function sensitiveDataInQueryParamsCheck(queryParams) {
             const theKey = key.toLowerCase();
             console.log('theKey:', theKey)
 
+
+            for(var j=0;j<enabledPIIDataForOrg.length;j++){
+          
+
+                console.log('theKey:',theKey)
+                console.log('enabledPIIDataForOrg[j]:',enabledPIIDataForOrg[j])
+        
+                if (enabledPIIDataForOrg[j].includes(theKey)){
+                    // First letter of each word caps
+                    pIIData.push(enabledPIIDataForOrg[j].split(' ').map(word => word.charAt(0).toUpperCase() + word.toLowerCase().slice(1)).join(' '));
+                }
+        
+                }       
+
+                /*
             if (theKey.includes('name')
                 || theKey.includes('first_name')
                 || theKey.includes('last_name')
@@ -316,6 +340,8 @@ async function sensitiveDataInQueryParamsCheck(queryParams) {
 
                 pIIData.push("Cookie Data")
             }
+
+            */
         }
     }
 
@@ -329,6 +355,24 @@ async function sensitiveDataInQueryParamsCheck(queryParams) {
         findings: findings,
     };
 }
+
+async function getEnabledPIIData(organizationId) {
+    try {
+      const organization = await Organization.findById(organizationId).exec();
+      if (!organization) {
+        throw new Error('Organization not found');
+      }
+  
+      // Extract enabled PII fields
+      return organization.piiField
+        .filter(field => field.enabled)
+        .map(field => field.piiField.toLowerCase()); // Convert to lowercase for consistency
+    } catch (error) {
+      console.error('Error fetching organization data:', error);
+      throw error;
+    }
+  }
+
 
 module.exports = {
     sensitiveDataInQueryParamsCheck,

@@ -1,5 +1,16 @@
+const Organization = require("../../../models/organization.model");
+
+
 /* Test for "Sensitive Data in Path Params" */
-async function sensitiveDataInPathParamsCheck(url) {
+async function sensitiveDataInPathParamsCheck(url, organizationId) {
+
+    console.log('organizationId:',organizationId)
+
+    const enabledPIIDataForOrg = await getEnabledPIIData(organizationId);
+
+
+    console.log('enabledPIIDataForOrg:',enabledPIIDataForOrg)
+
 
     let issueFound = false;
     let findings = [];
@@ -15,6 +26,22 @@ async function sensitiveDataInPathParamsCheck(url) {
     for (let i = 0; i < pathParams.length; i++) {
         const theParam = pathParams[i].replace(/[{}]/g, '').toLowerCase();
 
+
+        for(var j=0;j<enabledPIIDataForOrg.length;j++){
+          
+
+            console.log('theParam:',theParam)
+            console.log('enabledPIIDataForOrg[j]:',enabledPIIDataForOrg[j])
+    
+            if (enabledPIIDataForOrg[j].includes(theParam)){
+                // First letter of each word caps
+                pIIData.push(enabledPIIDataForOrg[j].split(' ').map(word => word.charAt(0).toUpperCase() + word.toLowerCase().slice(1)).join(' '));
+            }
+    
+            }    
+
+
+            /*
         if (
             theParam.includes('name') ||
             theParam.includes('first_name') ||
@@ -287,6 +314,8 @@ async function sensitiveDataInPathParamsCheck(url) {
             pIIData.push("Cookie Data")
         }
 
+        */
+
         // Continue checking for other sensitive data types in path parameters...
     }
 
@@ -303,6 +332,24 @@ async function sensitiveDataInPathParamsCheck(url) {
         findings: findings,
     };
 }
+
+async function getEnabledPIIData(organizationId) {
+    try {
+      const organization = await Organization.findById(organizationId).exec();
+      if (!organization) {
+        throw new Error('Organization not found');
+      }
+  
+      // Extract enabled PII fields
+      return organization.piiField
+        .filter(field => field.enabled)
+        .map(field => field.piiField.toLowerCase()); // Convert to lowercase for consistency
+    } catch (error) {
+      console.error('Error fetching organization data:', error);
+      throw error;
+    }
+  }
+
 
 module.exports = {
     sensitiveDataInPathParamsCheck,
