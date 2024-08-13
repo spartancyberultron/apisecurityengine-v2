@@ -15,6 +15,8 @@ const ActiveScanVulnerability = require("../models/activescanvulnerability.model
 const { none } = require('../config/multerUpload');
 const APICollection = require('../models/apicollection.model');
 const APICollectionVersion = require('../models/apicollectionversion.model');
+const OrgProject = require('../models/orgproject.model');
+
 const Vulnerability = require('../models/vulnerability.model');
 const jsyaml = require('js-yaml');
 const pdfkit = require('pdfkit-table');
@@ -32,22 +34,55 @@ const { v4: uuidv4 } = require('uuid');
 // Get all api collections
 module.exports.fetchAPICollections = asyncHandler(async (req, res) => {
 
-    const pageNumber = parseInt(req.query.pageNumber) || 1; // Get the pageNumber from the query parameters (default to 1 if not provided)
-    const pageSize = 10; // Number of active scans per page
+  //  const pageNumber = parseInt(req.query.pageNumber) || 1; // Get the pageNumber from the query parameters (default to 1 if not provided)
+  //  const pageSize = 10; // Number of active scans per page
 
-    const totalRecords = await APICollection.countDocuments({ user: req.user._id });
-    const totalPages = Math.ceil(totalRecords / pageSize);
+   // const totalRecords = await APICollection.countDocuments({ user: req.user._id });
+   // const totalPages = Math.ceil(totalRecords / pageSize);
+
+
+    const page = req.params.page ? parseInt(req.params.page, 10) : 1;
+    const rowsPerPage = req.params.rowsPerPage ? parseInt(req.params.rowsPerPage, 10) : 10;
+
+    console.log('page:',page)
+    console.log('rowsPerPage:',rowsPerPage)
+
+      // Validate and parse page and rowsPerPage
+      const pageNumber = parseInt(page, 10);
+      const rowsPerPageNumber = parseInt(rowsPerPage, 10);
+
+      if (isNaN(pageNumber) || isNaN(rowsPerPageNumber) || pageNumber < 1 || rowsPerPageNumber < 1) {
+          return res.status(400).json({ success: false, message: "Invalid pagination parameters" });
+      }
+
+      const skip = (pageNumber-1) * rowsPerPageNumber;
+      const limit = rowsPerPageNumber;
+
+      console.log("skip:",skip)
+      console.log("limit:",limit)
+
 
     // Calculate the skip value based on the pageNumber and pageSize
-    const skip = (pageNumber - 1) * pageSize;
+    //const skip = (pageNumber - 1) * pageSize;
 
-    const apiCollections = await APICollection.find({ user: req.user._id }).populate('orgProject')
-        .sort({ createdAt: -1 })
-        .skip(skip)
-        .limit(pageSize)
-        .lean();
+    // First, find all OrgProjects related to the user's organization
+const orgProjects = await OrgProject.find({ organization: req.user.organization })
+.select('_id')
+.lean();
+
+const orgProjectIds = orgProjects.map(project => project._id);
+
+// Then, count APICollections related to these OrgProjects
+const totalCount = await APICollection.countDocuments({ orgProject: { $in: orgProjectIds } });
 
 
+// Then, fetch APICollections related to these OrgProjects
+const apiCollections = await APICollection.find({ orgProject: { $in: orgProjectIds } })
+.populate('orgProject')
+.sort({ createdAt: -1 })
+.skip(skip)
+.limit(limit)
+.lean();
 
 
     for (var i = 0; i < apiCollections.length; i++) {
@@ -62,9 +97,10 @@ module.exports.fetchAPICollections = asyncHandler(async (req, res) => {
     // Return the active scans, currentPage, totalRecords, and totalPages in the response
     res.status(200).json({
         apiCollections,
-        currentPage: pageNumber,
-        totalRecords,
-        totalPages,
+        totalCount,
+        //currentPage: pageNumber,
+        //totalRecords,
+        //totalPages,
     });
 });
 

@@ -11,6 +11,8 @@ const Vulnerability = require('../models/vulnerability.model');
 const ActiveScan = require('../models/activescan.model');
 const ActiveScanVulnerability = require('../models/activescanvulnerability.model');
 const Project = require('../models/project.model');
+const OrgProject = require('../models/orgproject.model');
+
 const ProjectVulnerability = require('../models/projectVulnerability.model');
 const ProtectionHost = require('../models/protectionHost.model');
 const Organization = require('../models/organization.model');
@@ -223,35 +225,136 @@ module.exports.getUserDashboardCardsData = asyncHandler(async (req, res) => {
 
     const user = await User.findById(req.user._id);
 
-    const dashboardData = {};
+    const orgProjects = await OrgProject.find({ organization: user.organization })
+    .select('_id')
+    .lean();
+
+    // Step 2: Get the IDs of these OrgProjects
+    const orgProjectIds = orgProjects.map(project => project._id);
+
+    const dashboardData = {};    
+
+    //const collectionsCount = await APICollection.countDocuments({user:user._id})
+    const collectionsCount = await APICollection.countDocuments({
+        orgProject: { $in: orgProjectIds }
+    });
+
+
+    //const endpointsCount = await ApiEndpoint.countDocuments({user:user._id})
+    const apiCollections = await APICollection.find({
+        orgProject: { $in: orgProjectIds }
+    })
+    .select('_id')
+    .lean();
+    
+    // Step 4: Get the IDs of these APICollections
+    const apiCollectionIds = apiCollections.map(collection => collection._id);
+    
+    // Step 5: Find all APICollectionVersions for these APICollections
+    const apiCollectionVersions = await APICollectionVersion.find({
+        apiCollection: { $in: apiCollectionIds }
+    })
+    .select('_id')
+    .lean();
+    
+    // Step 6: Get the IDs of these APICollectionVersions
+    const apiCollectionVersionIds = apiCollectionVersions.map(version => version._id);
+    
+    // Step 7: Count ApiEndpoints for all these APICollectionVersions
+    const endpointsCount = await ApiEndpoint.countDocuments({
+        'theCollectionVersion': { $in: apiCollectionVersionIds }
+    });
+
+
+    //const agentsCount = await Project.countDocuments({user:user._id})
+    const agentsCount = await Project.countDocuments({
+        orgProject: { $in: orgProjectIds }
+    });
     
 
-    const collectionsCount = await APICollection.countDocuments({user:user._id})
-    const endpointsCount = await ApiEndpoint.countDocuments({user:user._id})
-    const agentsCount = await Project.countDocuments({user:user._id})
+    //const collectionsPromise = APICollection.find({ user: user._id }).select('_id').lean().exec();
 
-    const collectionsPromise = APICollection.find({ user: user._id }).select('_id').lean().exec();
-    const activeScansPromise = ActiveScan.find({ user: user._id }).select('_id').lean().exec();
+    const collectionsPromise = OrgProject.aggregate([
+        { $match: { organization: user.organization } },
+        {
+            $lookup: {
+                from: 'apicollections',  // Adjust if your collection name is different
+                localField: '_id',
+                foreignField: 'orgProject',
+                as: 'collections'
+            }
+        },
+        { $unwind: '$collections' },
+        {
+            $replaceRoot: { newRoot: '$collections' }
+        },
+        {
+            $project: { _id: 1 }
+        }
+    ]).exec();
+
+    //const activeScansPromise = ActiveScan.find({ user: user._id }).select('_id').lean().exec();
+    const activeScansPromise = OrgProject.aggregate([
+        { $match: { organization: user.organization } },
+        {
+            $lookup: {
+                from: 'apicollections',  // Adjust if your collection name is different
+                localField: '_id',
+                foreignField: 'orgProject',
+                as: 'collections'
+            }
+        },
+        { $unwind: '$collections' },
+        {
+            $lookup: {
+                from: 'apicollectionversions',  // Adjust if your collection name is different
+                localField: 'collections._id',
+                foreignField: 'apiCollection',
+                as: 'versions'
+            }
+        },
+        { $unwind: '$versions' },
+        {
+            $lookup: {
+                from: 'activescans',  // Adjust if your collection name is different
+                localField: 'versions._id',
+                foreignField: 'theCollectionVersion',
+                as: 'scans'
+            }
+        },
+        { $unwind: '$scans' },
+        {
+            $replaceRoot: { newRoot: '$scans' }
+        },
+        {
+            $project: { _id: 1 }
+        }
+    ]).exec();
+
     const [collections, activeScans] = await Promise.all([collectionsPromise, activeScansPromise]);
+
+
+    console.log('collections:',collections)
+
+    const collectionVersionIds = await APICollectionVersion.find(
+        { apiCollection: { $in: collections.map(collection => collection._id) } }
+    )
+    .select('_id')
+    .lean()
+    .then(versions => versions.map(v => v._id));
     
-  //  const endpointsPromise = ApiEndpoint.find({ theCollection: { $in: collections.map(collection => collection._id) } })
-        //.select('_id piiFields').lean().exec();
+    console.log("Number of collection versions found:", collectionVersionIds.length);
+    console.log("Collection Version IDs:", collectionVersionIds);
 
+    const endpointsArray = await ApiEndpoint.find({ 
+        theCollectionVersion: { $in: collectionVersionIds } 
+    })
+    .select('_id piiFields')
+    .lean();
+    
+    console.log("Number of endpoints found:", endpointsArray.length);
 
-        const endpointsPromise = ApiEndpoint.find({ 
-            'theCollectionVersion.apiCollection': { $in: collections.map(collection => collection._id) } 
-        })
-        .select('_id piiFields')
-        .lean()
-        .exec();
-        
-
-
-    //const activeScansVulnsPromise = ActiveScanVulnerability.find({ activeScan: { $in: activeScans.map(activeScan => activeScan._id) } }).lean().exec();
     const activeScansVulnsCount = await ActiveScanVulnerability.countDocuments({ activeScan: { $in: activeScans.map(activeScan => activeScan._id) } });
-
-
-    const [endpointsArray] = await Promise.all([endpointsPromise]);
 
     console.log('endpointsArray:',endpointsArray)
 
@@ -261,7 +364,9 @@ module.exports.getUserDashboardCardsData = asyncHandler(async (req, res) => {
     dashboardData.collectionsCount = collectionsCount;//collections.length;
     dashboardData.endPointsCount = endpointsCount;//endpointsArray.length;
     dashboardData.agentsCount = agentsCount;
+
     dashboardData.vulnerabilitiesCount = activeScansVulnsCount;//activeScansVulnsArray.length;
+    
     dashboardData.alertsCount = activeScansVulnsCount;//0;
     dashboardData.piiDataFieldsCount = piiFieldsCount;
     dashboardData.falsePositivesCount = 0;

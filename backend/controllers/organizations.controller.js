@@ -415,8 +415,8 @@ module.exports.getTickets = asyncHandler(async (req, res) => {
         // Find the user and populate the organization field
         const user = await User.findById(req.user._id).populate('organization');
 
-        const page = req.query.page ? parseInt(req.query.page, 10) : 1;
-        const rowsPerPage = req.query.rowsPerPage ? parseInt(req.query.rowsPerPage, 10) : 10;
+        const page = req.params.page ? parseInt(req.params.page, 10) : 1;
+        const rowsPerPage = req.params.rowsPerPage ? parseInt(req.params.rowsPerPage, 10) : 10;
 
 
         // Validate and parse page and rowsPerPage

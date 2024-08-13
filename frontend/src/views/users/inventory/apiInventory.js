@@ -35,6 +35,10 @@ const APIInventory = () => {
 
   const [itemOffset, setItemOffset] = useState(0);
 
+  const [page, setPage] = useState(0);
+  const [count, setCount] = useState(0);
+  const [rowsPerPage, setRowsPerPage] = useState(20);
+
   const customStyles = {
     content: {
       top: '30%',
@@ -179,20 +183,24 @@ const APIInventory = () => {
   const isFirstTime = useRef(true);
 
 
-  const fetchAPICollections = async (isFirstTime, pageNumber) => {
+  const fetchAPICollections = async (isFirstTime, page, rowsPerPage) => {
 
     if (isFirstTime) {
       setOnLoading(true);
     }
+
+    console.log('page:',page)
   
     const token = localStorage.getItem('ASIToken');
-    const response = await axios.get(`/api/v1/inventory/fetchAPICollections?pageNumber=${pageNumber}`, {
+    const response = await axios.get(`/api/v1/inventory/fetchAPICollections/${page}/${rowsPerPage}`, {
       headers: { Authorization: `Bearer ${token}` },
     });
   
     setAPICollections(response.data.apiCollections);
-    setCurrentPage(response.data.currentPage);
-    setTotalRecords(response.data.totalRecords);
+    setCount(response.data.totalCount);   
+
+   // setCurrentPage(response.data.currentPage);
+   // setTotalRecords(response.data.totalRecords);
   
     setOnLoading(false);
   };
@@ -203,13 +211,13 @@ const APIInventory = () => {
 
     const interval = setInterval(() => {
 
-      fetchAPICollections(false, currentPage);
+      fetchAPICollections(false, 1, 20);
 
     }, 30000);
     
 
     // Make the initial call immediately
-    fetchAPICollections(true, currentPage);
+    fetchAPICollections(true, 1, 20);
     isFirstTime.current = false;
 
     // Clean up the interval on component unmount
@@ -354,12 +362,28 @@ const APIInventory = () => {
     searchOpen: true,
     viewColumns: true,
     selectableRows: false, // <===== will turn off checkboxes in rows
-    rowsPerPage: 20,
-    rowsPerPageOptions: [],
-    pagination: false,
+    pagination: true,
     textLabels: {
       body: {
         noMatch: 'No collections created yet',
+      }
+    },
+    serverSide: true,
+    count: count,
+    page: page,
+    rowsPerPageOptions: [20,40,60,100],
+    rowsPerPage: rowsPerPage,
+    onTableChange: (action, tableState) => {
+      if (action === 'changePage' || action === 'changeRowsPerPage') {
+
+        console.log('tableState:',tableState)
+        const { page, rowsPerPage } = tableState;
+
+        console.log('pageee:',page)
+        
+        fetchAPICollections(true, page+1, rowsPerPage);
+        setPage(page+1);
+        setRowsPerPage(rowsPerPage);
       }
     }
   };
@@ -452,16 +476,7 @@ const APIInventory = () => {
               </ThemeProvider>
 
 
-              <ReactPaginate
-                breakLabel="..."
-                nextLabel=">"
-                onPageChange={handlePageClick}
-                pageRangeDisplayed={10}
-                pageCount={totalRecords / 10}
-                previousLabel="<"
-                forcePage={currentPage - 1}
-                renderOnZeroPageCount={null}
-              />
+             
             </>
           }
 

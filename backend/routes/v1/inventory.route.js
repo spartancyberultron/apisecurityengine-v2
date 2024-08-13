@@ -20,7 +20,7 @@ const router = express.Router();
 //base route /api/v1/activeScans/
 
 router.post('/addAPICollectionVersion', protectUser, jsonupload.single("file"), addAPICollectionVersion);
-router.get('/fetchAPICollections', protectUser, fetchAPICollections);
+router.get('/fetchAPICollections/:page/:rowsPerPage', protectUser, fetchAPICollections);
 router.get('/fetchAPICollectionVersions', protectUser, fetchAPICollectionVersions);
 router.get('/fetchEndpointsofAVersion', protectUser, fetchEndpointsofAVersion);
 router.post('/deleteAPICollection', protectUser, deleteAPICollection);
