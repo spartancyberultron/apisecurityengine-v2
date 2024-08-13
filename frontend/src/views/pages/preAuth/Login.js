@@ -54,6 +54,8 @@ const VendorLogin = () => {
   const [password, setPassword] = useState('')
   const [submitting, setSubmitting] = useState(false);
 
+  const [checking, setChecking] = useState(false);
+
   const [errorMessage, setErrorMessage] = useState('');
   const [isError, setIsError] = useState(false);
 
@@ -82,6 +84,8 @@ const VendorLogin = () => {
 
 
   useEffect(() => {
+
+    setChecking(true);
     // Check localStorage for user data
     const user = localStorage.getItem('ASIUser');
     if (user) {
@@ -89,11 +93,12 @@ const VendorLogin = () => {
 
       console.log('parsedUser:', parsedUser);
 
-
       if (parsedUser.userType === 'user') {
         //window.location.replace('/user-dashboard');
+       // setChecking(false);
         navigate('/user-dashboard')
       } else if (parsedUser.userType === 'admin') {
+       // setChecking(false);
         //window.location.replace('/admin-all-users');
         navigate('/admin-all-users')
       }
@@ -203,6 +208,8 @@ const VendorLogin = () => {
       className="min-vh-100 d-flex flex-row align-items-center"
       style={{  backgroundColor: '#fff' }}
     >
+
+    {!checking ?
 
       <CContainer style={{  backgroundColor: '#fff' }}>
 
@@ -343,6 +350,15 @@ const VendorLogin = () => {
           </CCol>
         </CRow>
       </CContainer>
+
+      :
+
+      <>
+      <div style={{width:'100%', height:'100%', display:'flex', alignItems:'center', justifyContent:'center'}}>
+      <CircularProgress color="primary" size={100} style={{ marginTop: 10, color: '#000' }} />
+      </div>
+      </>
+                        }
     </div>
   )
 }

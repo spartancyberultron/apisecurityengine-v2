@@ -448,7 +448,7 @@ const AttackSurfaceManagement = () => {
       dataItem.push('---');
     }
 
-    dataItem.push((attackSurfaceScans[i].vulnerabilities).length);   
+    dataItem.push(attackSurfaceScans[i].vulnCount);   
     
 
     if(attackSurfaceScans[i].status){

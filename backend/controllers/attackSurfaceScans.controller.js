@@ -14,6 +14,8 @@ const AttackSurfaceScanVulnerability = require("../models/attacksurfacescanvulne
 
 const { none } = require('../config/multerUpload');
 const Vulnerability = require('../models/vulnerability.model');
+const Organization = require('../models/organization.model');
+
 const jsyaml = require('js-yaml');
 const pdfkit = require('pdfkit-table');
 const YAML = require('yaml');
@@ -28,7 +30,6 @@ const { v4: uuidv4 } = require('uuid');
 
 const { exec } = require('child_process');
 
-const remediations = require('./remediations/rest-remediations.json');
 
 // Fetch and save subdomains as endpoints
 const Subfinder = require("@sooluh/subfinder");
@@ -65,6 +66,37 @@ const {
     getellipticCurvesIssue,
 } = require("../services/securityTests/helpers/findSSLIssues.service");
 
+const remediations = require('./remediations/rest-remediations.json');
+
+
+function getObjectByIndex(index) {
+    // Find the object with the given index
+    const result = remediations.find(item => item.index === index);
+    return result || null; // Return null if no object is found
+}
+
+async function getVulnSeverityAndPriority(vulnId) {
+    try {
+        // Find the organization document that contains the specified vulnId
+        const organization = await Organization.findOne({
+            'vulnSeverityAndPriority.vulnId': vulnId
+        }, {
+            'vulnSeverityAndPriority.$': 1 // Project only the matching element from the array
+        }).exec();
+
+        if (organization && organization.vulnSeverityAndPriority.length > 0) {
+            // Return the severity and priority for the specified vulnId
+            return organization.vulnSeverityAndPriority[0];
+        } else {
+            // If no matching element is found, return null
+            return null;
+        }
+    } catch (error) {
+        console.error('Error retrieving vulnerability details:', error);
+        throw error;
+    }
+}
+
 
 
 // Get all attack surface scans 
@@ -87,13 +119,14 @@ module.exports.getAllAttackSurfaceScans = asyncHandler(async (req, res) => {
         .lean()
         .populate('orgProject');
 
+        /*
     for (var i = 0; i < attackSurfaceScans.length; i++) {
 
-        var vulnerabilities = await AttackSurfaceScanVulnerability.find({ attackSurfaceScan: attackSurfaceScans[i]._id })
+        var vulnerabilitiesCount = await AttackSurfaceScanVulnerability.countDocuments({ attackSurfaceScan: attackSurfaceScans[i]._id })
 
         //console.log('vulnerabilities:',vulnerabilities)
 
-        attackSurfaceScans[i].vulnerabilities = vulnerabilities;
+        attackSurfaceScans[i].vulnerabilitiesCount = vulnerabilitiesCount;
     }
 
 
@@ -121,6 +154,8 @@ module.exports.getAllAttackSurfaceScans = asyncHandler(async (req, res) => {
         const globalIndex = skip + index + 1;
         scan.index = globalIndex; 
     });
+
+    */
 
     // Return the sttack surface scans, currentPage, totalRecords, and totalPages in the response
     res.status(200).json({
@@ -292,6 +327,9 @@ console.log('projectId:',projectId)
         
         
         console.log('endpoints:',endpoints)
+
+        attackSurfaceScan.endpointsCount = endpoints.length;
+        attackSurfaceScan.save();
         
         
         runAttackSurfaceScan(user, attackSurfaceScan, endpoints);
@@ -321,6 +359,8 @@ async function runAttackSurfaceScan(user, theAttackSurfaceScan, theEndpoints) {
         //console.log('theEndpoints:',theEndpoints);
 
         var theVulns = [];
+
+        const organization = await Organization.findById(user.organization);       
 
 
         // 1. Test for ENDPOINT NOT SECURED BY SSL
@@ -461,6 +501,9 @@ async function runAttackSurfaceScan(user, theAttackSurfaceScan, theEndpoints) {
                         const hostResult = hostsResults.find(hostResult => theEndpoints[i].url.includes(hostResult.host));
             
                         if (hostResult) {
+
+                            var remediation = '';
+
                             if (hostResult.certificateMissing) {
 
                                 findings.push({description:'SSL Certificate not installed', exploitability:''});
@@ -479,6 +522,7 @@ async function runAttackSurfaceScan(user, theAttackSurfaceScan, theEndpoints) {
                                additionalCWEs.push('CWE-259: Use of a Hardcoded Password') 
                                additionalCWEs.push('CWE-327: Broken or Risky Cryptographic Algorithm') 
 
+                               remediation = remediation + '<br/><br/>' + (getObjectByIndex(1)).remediation;
 
                             }
             
@@ -494,6 +538,8 @@ async function runAttackSurfaceScan(user, theAttackSurfaceScan, theEndpoints) {
                                 additionalCWEs.push('CWE-295: Improper Access Control') 
                                 additionalCWEs.push('CWE-300: Insufficient Cryptographic Strength') 
                                 additionalCWEs.push('CWE-758: Use of a Broken or Risky Cryptographic Algorithm') 
+
+                                remediation = remediation + '<br/><br/>' + (getObjectByIndex(7)).remediation;
                             }
             
                             if (hostResult.tls13EarlyCheckIssue) {
@@ -505,7 +551,9 @@ async function runAttackSurfaceScan(user, theAttackSurfaceScan, theEndpoints) {
 
                                 additionalCWEs.push('CWE-319: Cleartext Transmission of Sensitive Information') 
                                 additionalCWEs.push('CWE-352: Cross-Site Request Forgery (CSRF)') 
-                                additionalCWEs.push('CWE-294: Authentication Bypass by Capture-replay') 
+                                additionalCWEs.push('CWE-294: Authentication Bypass by Capture-replay')
+                                
+                                remediation = remediation + '<br/><br/>' + (getObjectByIndex(11)).remediation;
                             }
             
                             if (hostResult.openSSLCCSInjectionIssues) {
@@ -518,6 +566,8 @@ async function runAttackSurfaceScan(user, theAttackSurfaceScan, theEndpoints) {
 
                                 additionalCWEs.push('CWE-295: Improper Access Control') 
                                 additionalCWEs.push('CWE-894: Improper Control of TLS Communication') 
+
+                                remediation = remediation + '<br/><br/>' + (getObjectByIndex(6)).remediation;
                             }
             
                             if (hostResult.downgradePreventionIssue) {
@@ -528,6 +578,8 @@ async function runAttackSurfaceScan(user, theAttackSurfaceScan, theEndpoints) {
                                 findings.push({description, exploitability});
 
                                 additionalCWEs.push('CWE Reference: CWE-2001: Sensitive Information Disclosure') 
+
+                                remediation = remediation + '<br/><br/>' + (getObjectByIndex(10)).remediation;
                             }
             
                             if (hostResult.heartbleedIssues) {
@@ -540,6 +592,8 @@ async function runAttackSurfaceScan(user, theAttackSurfaceScan, theEndpoints) {
 
                                 additionalCWEs.push('CWE-311: Improper Restriction of Operation within the Bounds of a Memory Buffer') 
                                 additionalCWEs.push('CWE-255: Improper Check for Certificate Revocation') 
+
+                                remediation = remediation + '<br/><br/>' + (getObjectByIndex(2)).remediation;
                             }
             
                             if (hostResult.insecureNegotiationIssue) {
@@ -550,6 +604,8 @@ async function runAttackSurfaceScan(user, theAttackSurfaceScan, theEndpoints) {
                                 findings.push({description, exploitability});
 
                                 additionalCWEs.push('CWE-2001: Sensitive Information Not Protected') 
+
+                                remediation = remediation + '<br/><br/>' + (getObjectByIndex(9)).remediation;
                             }
             
                             if (hostResult.sessionResumptionIssues) {
@@ -560,6 +616,8 @@ async function runAttackSurfaceScan(user, theAttackSurfaceScan, theEndpoints) {
                                 findings.push({description, exploitability});
 
                                 additionalCWEs.push('CWE-319: Cleartext Transmission of Sensitive Information') 
+
+                                remediation = remediation + '<br/><br/>' + (getObjectByIndex(8)).remediation;
                             }
             
                             if (hostResult.ellipticCurvesIssues) {
@@ -571,6 +629,8 @@ async function runAttackSurfaceScan(user, theAttackSurfaceScan, theEndpoints) {
                                 findings.push({description, exploitability});
 
                                 additionalCWEs.push('CWE-326: Inadequate Encryption Strength') 
+
+                                remediation = remediation + '<br/><br/>' + (getObjectByIndex(3)).remediation;
                             }
                         }
 
@@ -583,6 +643,10 @@ async function runAttackSurfaceScan(user, theAttackSurfaceScan, theEndpoints) {
                             const vuln = await Vulnerability.findOne({ vulnerabilityCode: 4 });
             
                             var description = 'This host has SSL related problems';
+
+                            const result = await getVulnSeverityAndPriority(4);
+                            const severity = result ? result.severity : null;
+                            const priority = result ? result.priority : null;
             
                             const theAttackSurfaceScanVulnerability = await AttackSurfaceScanVulnerability.create({
                                 attackSurfaceScan: theAttackSurfaceScan,
@@ -590,8 +654,10 @@ async function runAttackSurfaceScan(user, theAttackSurfaceScan, theEndpoints) {
                                 endpoint: theEndpoints[i],
                                 description: description,
                                 sslFindings: findings,
-                                additionalCWEs:additionalCWEs
-                            });
+                                additionalCWEs:additionalCWEs,
+                                remediation: remediation,
+                                severity: severity,
+                                priority: priority                            });
             
                             theVulns.push(theAttackSurfaceScanVulnerability);
                             theEndpoints[i].vulnCount = (theEndpoints[i].vulnCount || 0) + 1;
@@ -626,7 +692,7 @@ async function runAttackSurfaceScan(user, theAttackSurfaceScan, theEndpoints) {
 
                 //var pIIData = await runTestForSensitiveDataInQueryParams(theEndpoints[i])
 
-                var result = await sensitiveDataInPathParamsCheck(theEndpoints[i]);
+                var result = await sensitiveDataInPathParamsCheck(theEndpoints[i], organization._id);
 
                 const anEndpoint = await ApiEndpoint.findById(theEndpoints[i]._id)
 
@@ -648,6 +714,12 @@ async function runAttackSurfaceScan(user, theAttackSurfaceScan, theEndpoints) {
 
                     const vuln = await Vulnerability.findOne({ vulnerabilityCode: 2 })
 
+                    var remediation = (getObjectByIndex(24)).remediation;
+
+                    const result = await getVulnSeverityAndPriority(2);
+                    const severity = result ? result.severity : null;
+                    const priority = result ? result.priority : null;
+
                     const theAttackSurfaceScanVulnerability = await AttackSurfaceScanVulnerability.create({
 
                         attackSurfaceScan: theAttackSurfaceScan,
@@ -655,7 +727,10 @@ async function runAttackSurfaceScan(user, theAttackSurfaceScan, theEndpoints) {
                         //projectName: projectName,
                         endpoint: theEndpoints[i],
                         description: description,
-                        findings: piiArray
+                        findings: piiArray,
+                        remediation: remediation,
+                        severity: severity,
+                        priority: priority
                     });
 
                     theVulns.push(theAttackSurfaceScanVulnerability);
@@ -689,13 +764,23 @@ async function runAttackSurfaceScan(user, theAttackSurfaceScan, theEndpoints) {
                     //var description = 'The method on this endpoint can be tampered to any of the following:' + tamperableMethods.join(',');
 
                     try {
+
+                        var remediation = (getObjectByIndex(26)).remediation;
+
+                        const result1 = await getVulnSeverityAndPriority(8);
+                        const severity = result1 ? result1.severity : null;
+                        const priority = result1 ? result1.priority : null;
+
                         const theAttackSurfaceScanVulnerability = await AttackSurfaceScanVulnerability.create({
                             attackSurfaceScan: theAttackSurfaceScan,
                             vulnerability: vuln,
                             //projectName: projectName,
                             endpoint: theEndpoints[i],
                             description: result.description,
-                            findings: result.findings
+                            findings: result.findings,
+                            remediation: remediation,
+                            severity: severity,
+                            priority: priority
                         });
 
                         theVulns.push(theAttackSurfaceScanVulnerability);
@@ -763,13 +848,55 @@ async function runAttackSurfaceScan(user, theAttackSurfaceScan, theEndpoints) {
                         const vuln = await Vulnerability.findOne({ vulnerabilityCode: 10 });
             
                         var description = 'Some security headers are not enabled on this host.';
+
+                        var remediation = '';
+
+                        
+                        if (findings.includes("Content-Security-Policy")) {
+                            remediation = remediation + '<br/><br>' + (getObjectByIndex(12)).remediation;
+                        }
+
+                        if (findings.includes("Strict-Transport-Security")) {
+                            remediation = remediation + '<br/><br>' + (getObjectByIndex(13)).remediation;
+                        }
+
+                        if (findings.includes("X-Frame-Options")) {
+                            remediation = remediation + '<br/><br>' + (getObjectByIndex(14)).remediation;
+                        }
+
+                        if (findings.includes("X-Content-Type-Options")) {
+                            remediation = remediation + '<br/><br>' + (getObjectByIndex(15)).remediation;
+                        }
+
+                        if (findings.includes("X-XSS-Protection")) {
+                            remediation = remediation + '<br/><br>' + (getObjectByIndex(16)).remediation;
+                        }
+
+                        if (findings.includes("Cross-Origin Resource Sharing")) {
+                            remediation = remediation + '<br/><br>' + (getObjectByIndex(17)).remediation;
+                        }
+
+                        if (findings.includes("Referrer-Policy")) {
+                            remediation = remediation + '<br/><br>' + (getObjectByIndex(18)).remediation;
+                        }
+
+                        if (findings.includes("Feature-Policy")) {
+                            remediation = remediation + '<br/><br>' + (getObjectByIndex(19)).remediation;
+                        }
+
+                        const result = await getVulnSeverityAndPriority(10);
+                        const severity = result ? result.severity : null;
+                        const priority = result ? result.priority : null;
             
                         const theAttackSurfaceScanVulnerability = await AttackSurfaceScanVulnerability.create({
                             attackSurfaceScan: theAttackSurfaceScan,
                             vulnerability: vuln,
                             endpoint: theEndpoints[i],
                             description: description,
-                            findings: findings
+                            findings: findings,
+                            remediation: remediation,
+                            severity: severity,
+                            priority: priority
                         });
             
                         theVulns.push(theAttackSurfaceScanVulnerability);
@@ -793,6 +920,7 @@ async function runAttackSurfaceScan(user, theAttackSurfaceScan, theEndpoints) {
         theAttackSurfaceScan.scanCompletedAt = new Date();
         theAttackSurfaceScan.status = 'completed';
         theAttackSurfaceScan.vulnerabilities = theVulns;
+        theAttackSurfaceScan.vulnCount = theVulns.length;
         await theAttackSurfaceScan.save();
 
 

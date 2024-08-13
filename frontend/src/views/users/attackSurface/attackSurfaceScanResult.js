@@ -328,7 +328,7 @@ const closeCostOfBreachModal = async () => {
         setSSLFindings(currentVuln.sslFindings);
     }
 
-    setCurrentVulnerability(currentVuln.vulnerability)
+    setCurrentVulnerability(currentVuln)
 
     setFindingsModalIsOpen(true);
   };
@@ -707,9 +707,7 @@ const closeCostOfBreachModal = async () => {
       dataItem.push("Internet (Non Intrusive)");
 
 
-      var endpointObject = attackSurfaceScan.vulnerabilities[i].endpoint;
-
-    
+      var endpointObject = attackSurfaceScan.vulnerabilities[i].endpoint;   
 
 
 
@@ -736,21 +734,7 @@ const closeCostOfBreachModal = async () => {
       }else{
         dataItem.push('---');
       }
-    
-
-      
-/*
-      if (endpointObject) {
-        if (endpointObject.url) {
-          dataItem.push(endpointObject.url);
-        } else {
-          dataItem.push('---');
-        }
-      } else {
-        dataItem.push('---');
-      }
-*/
-     
+         
 
       dataItem.push(attackSurfaceScan.vulnerabilities[i].description);
 
@@ -762,8 +746,8 @@ const closeCostOfBreachModal = async () => {
       
       dataItem.push((attackSurfaceScan.vulnerabilities[i].vulnerability.cwe).concat(attackSurfaceScan.vulnerabilities[i].additionalCWEs));
 
-      dataItem.push(attackSurfaceScan.vulnerabilities[i].vulnerability); // for cost of breach
-      dataItem.push(attackSurfaceScan.vulnerabilities[i].vulnerability); // for remediations
+      dataItem.push(attackSurfaceScan.vulnerabilities[i]); // for cost of breach
+      dataItem.push(attackSurfaceScan.vulnerabilities[i]); // for remediations
 
       dataItem.push(attackSurfaceScan.vulnerabilities[i]); // For risk acceptance
 
@@ -1056,42 +1040,58 @@ const closeCostOfBreachModal = async () => {
   const vulnDistroChartSeries = dataArray;
 
 
-  var nameCount = 0;
-  var addressCount = 0;
-  var phoneCount = 0;
-  var ipCount = 0;
-  var macCount = 0;
-  var ssnCount = 0;
-  var passportNumCount = 0;
-  var dlCount = 0;
-  var bankAccountNumCount = 0;
-  var creditDebitCardNumCount = 0;
-  var panNumCount = 0;
-  var aadhaarNumCount = 0;
-  var voterIDNumCount = 0;
-  var vehicleRegistrationNumCount = 0;
-  var dobCount = 0;
-  var pobCount = 0;
-  var raceCount = 0;
-  var religionCount = 0;
-  var weightCount = 0;
-  var heightCount = 0;
-  var latitudeCount = 0;
-  var longitudeCount = 0;
-  var employeeIDCount = 0;
-  var bmiCount = 0;
-  var heartRateCount = 0;
-  var bloodPressureCount = 0;
-  var fatherNameCount = 0;
-  var motherNameCount = 0;
-  var brotherNameCount = 0;
-  var sisterNameCount = 0;
-  var daughterNameCount = 0;
-  var sonNameCount = 0;
-  var orderIDCount = 0;
-  var transactionIDCount = 0;
-  var cookieDataCount = 0;
+  var totalPIIs = [];
 
+
+  if (attackSurfaceScan) {
+
+    for (var i = 0; i < attackSurfaceScan.vulnerabilities.length; i++) {
+
+      if (attackSurfaceScan.vulnerabilities[i].vulnerability.vulnerabilityCode == 2||
+        attackSurfaceScan.vulnerabilities[i].vulnerability.vulnerabilityCode == 5 ||
+        attackSurfaceScan.vulnerabilities[i].vulnerability.vulnerabilityCode == 6 ||
+        attackSurfaceScan.vulnerabilities[i].vulnerability.vulnerabilityCode == 7) {
+
+        
+        var piiFields = attackSurfaceScan.vulnerabilities[i].findings;
+
+        totalPIIs = totalPIIs.concat(piiFields);
+      }
+    }
+  }
+
+
+
+  const piiCounts = {};
+
+// Count each unique PII string
+totalPIIs.forEach(pii => {
+    if (piiCounts[pii] !== undefined) {
+        piiCounts[pii]++;
+    } else {
+        piiCounts[pii] = 1;
+    }
+});
+
+// Extract labels and counts into separate arrays
+const piiLabelsArray = Object.keys(piiCounts);
+const piiDataArray = Object.values(piiCounts);
+
+
+  const piichartOptions = {
+    labels: piiLabelsArray,
+    //colors: piiBgColorsArray,
+    legend: {
+      position: 'bottom',
+      verticalAlign: 'middle',
+    },
+
+  };
+
+  const piiChartSeries = piiDataArray; 
+
+
+/*
 
   if (attackSurfaceScan) {
 
@@ -1498,7 +1498,7 @@ const closeCostOfBreachModal = async () => {
   };
 
   const piiChartSeries = piiDataArray;
-
+*/
 
 
 
@@ -1918,27 +1918,24 @@ const closeCostOfBreachModal = async () => {
             <AiFillCloseCircle size={30} color={'#000'} />
           </button>
 
-          {currentVulnerability &&
+          {currentVulnerability && currentVulnerability.vulnerability &&
 
             <div className="modalWindow" style={{ backgroundColor: '#E1E1E1' }}>
 
 
-              <h5 style={{ color: '#000' }}><strong>Vulnerability Name</strong>: {currentVulnerability.vulnerabilityName}</h5>
-              <h5 style={{ color: '#000' }}><strong>Severity</strong>: {currentVulnerability.riskScore}</h5>
+              <h5 style={{ color: '#000' }}><strong>Vulnerability Name</strong>: {currentVulnerability.vulnerability.vulnerabilityName}</h5>
+              <h5 style={{ color: '#000' }}><strong>Severity</strong>: {currentVulnerability.severity}</h5>
 
               <hr />
 
               <h5 style={{ color: '#000' }}>Remediations</h5>
               <hr />
 
-              {currentVulnerability && currentVulnerability.remediations.map((item) => (
-                <div style={{ backgroundColor: '#ebedef', padding: 10, marginTop: 10, borderRadius: 15 }}>
 
-                  <h5 style={{ color: '#000' }}>{item.remediationHeading}</h5>
-                  <h5 style={{ color: '#000', fontSize: 16, fontWeight: 'normal' }}>{item.remediationContent}</h5>
 
-                </div>
-              ))}
+              <div dangerouslySetInnerHTML={{__html:currentVulnerability.remediation}}  style={{ color: '#000' }}></div>
+
+              
 
             </div>
           }
@@ -2002,76 +1999,76 @@ const closeCostOfBreachModal = async () => {
             <AiFillCloseCircle size={30} color={'#000'} />
           </button>
 
-          {currentVulnerability &&
+          {currentVulnerability && currentVulnerability.vulnerability &&
 
             <div className="modalWindow" style={{ backgroundColor: '#c2eef4', height:'100%' }}>
 
-            <h4>Cost of Breach for <strong>{currentVulnerability.owasp[0]}</strong></h4>
+            <h4>Cost of Breach for <strong>{currentVulnerability.vulnerability.owasp[0]}</strong></h4>
 
 
-        {currentVulnerability.owasp.includes('API1:2023 Broken Object Level Authorization') &&
-            <object type="text/html" data={global.baseUrl + "/breach-cost-html/brokenAuthentication.html"} width="100%" height="100%"
+        {currentVulnerability.vulnerability.owasp.includes('API1:2023 Broken Object Level Authorization') &&
+            <object type="text/html" data={global.baseUrl + "/breach-cost-html/brokenObjectLevelAuthorization.html"} width="100%" height="100%"
               style={{ alignSelf: 'center', borderWidth: 0, marginLeft:'0vw' }}>
             </object>     
         }   
 
-        {currentVulnerability.owasp.includes('API2:2023 Broken Authentication') &&
-            <object type="text/html" data={global.baseUrl + "/breach-cost-html/brokenAuthentication.html"} width="100%" height="100%"
-              style={{ alignSelf: 'center', borderWidth: 0, marginLeft:'0vw' }}>
-            </object>     
-        }   
-
-
-        {currentVulnerability.owasp.includes('API3:2023 Broken Object Property Level Authorization') &&
+        {currentVulnerability.vulnerability.owasp.includes('API2:2023 Broken Authentication') &&
             <object type="text/html" data={global.baseUrl + "/breach-cost-html/brokenAuthentication.html"} width="100%" height="100%"
               style={{ alignSelf: 'center', borderWidth: 0, marginLeft:'0vw' }}>
             </object>     
         }   
 
 
-        {currentVulnerability.owasp.includes('API4:2023 Unrestricted Resource Consumption') &&
-            <object type="text/html" data={global.baseUrl + "/breach-cost-html/brokenAuthentication.html"} width="100%" height="100%"
+        {currentVulnerability.vulnerability.owasp.includes('API3:2023 Broken Object Property Level Authorization') &&
+            <object type="text/html" data={global.baseUrl + "/breach-cost-html/brokenObjectPropertyLevelAuthorization.html"} width="100%" height="100%"
               style={{ alignSelf: 'center', borderWidth: 0, marginLeft:'0vw' }}>
             </object>     
         }   
 
 
-        {currentVulnerability.owasp.includes('API5:2023 Broken Function Level Authorization') &&
-            <object type="text/html" data={global.baseUrl + "/breach-cost-html/brokenAuthentication.html"} width="100%" height="100%"
+        {currentVulnerability.vulnerability.owasp.includes('API4:2023 Unrestricted Resource Consumption') &&
+            <object type="text/html" data={global.baseUrl + "/breach-cost-html/unrestrictedResourceConsumption.html"} width="100%" height="100%"
               style={{ alignSelf: 'center', borderWidth: 0, marginLeft:'0vw' }}>
             </object>     
         }   
 
 
-        {currentVulnerability.owasp[0] == 'API6:2023 Unrestricted Access to Sensitive Business Flows' &&
-            <object type="text/html" data={global.baseUrl + "/breach-cost-html/brokenAuthentication.html"} width="100%" height="100%"
+        {currentVulnerability.vulnerability.owasp.includes('API5:2023 Broken Function Level Authorization') &&
+            <object type="text/html" data={global.baseUrl + "/breach-cost-html/brokenFunctionLevelAuthorization.html"} width="100%" height="100%"
               style={{ alignSelf: 'center', borderWidth: 0, marginLeft:'0vw' }}>
             </object>     
         }   
 
 
-        {currentVulnerability.owasp.includes('API7:2023 Server Side Request Forgery') &&
-            <object type="text/html" data={global.baseUrl + "/breach-cost-html/brokenAuthentication.html"} width="100%" height="100%"
+        {currentVulnerability.vulnerability.owasp[0] == 'API6:2023 Unrestricted Access to Sensitive Business Flows' &&
+            <object type="text/html" data={global.baseUrl + "/breach-cost-html/unrestrictedAccessToSensitiveBusinessFlows.html"} width="100%" height="100%"
               style={{ alignSelf: 'center', borderWidth: 0, marginLeft:'0vw' }}>
             </object>     
         }   
 
 
-        {currentVulnerability.owasp.includes('API8:2023 Security Misconfiguration') &&
-            <object type="text/html" data={global.baseUrl + "/breach-cost-html/brokenAuthentication.html"} width="100%" height="100%"
+        {currentVulnerability.vulnerability.owasp.includes('API7:2023 Server Side Request Forgery') &&
+            <object type="text/html" data={global.baseUrl + "/breach-cost-html/serverSideRequestForgery.html"} width="100%" height="100%"
               style={{ alignSelf: 'center', borderWidth: 0, marginLeft:'0vw' }}>
             </object>     
         }   
 
 
-        {currentVulnerability.owasp.includes('API9:2023 Improper Inventory Management') &&
-            <object type="text/html" data={global.baseUrl + "/breach-cost-html/brokenAuthentication.html"} width="100%" height="100%"
+        {currentVulnerability.vulnerability.owasp.includes('API8:2023 Security Misconfiguration') &&
+            <object type="text/html" data={global.baseUrl + "/breach-cost-html/securityMisconfiguration.html"} width="100%" height="100%"
               style={{ alignSelf: 'center', borderWidth: 0, marginLeft:'0vw' }}>
             </object>     
         }   
 
-        {currentVulnerability.owasp.includes('API10:2023 Unsafe Consumption of APIs') &&
-            <object type="text/html" data={global.baseUrl + "/breach-cost-html/brokenAuthentication.html"} width="100%" height="100%"
+
+        {currentVulnerability.vulnerability.owasp.includes('API9:2023 Improper Inventory Management') &&
+            <object type="text/html" data={global.baseUrl + "/breach-cost-html/improperInventoryManagement.html"} width="100%" height="100%"
+              style={{ alignSelf: 'center', borderWidth: 0, marginLeft:'0vw' }}>
+            </object>     
+        }   
+
+        {currentVulnerability.vulnerability.owasp.includes('API10:2023 Unsafe Consumption of APIs') &&
+            <object type="text/html" data={global.baseUrl + "/breach-cost-html/unsafeConsumptionOfAPIs.html"} width="100%" height="100%"
               style={{ alignSelf: 'center', borderWidth: 0, marginLeft:'0vw' }}>
             </object>     
         }                
@@ -2081,6 +2078,8 @@ const closeCostOfBreachModal = async () => {
 
 
         </Modal>        
+
+
 
 
 
@@ -2096,7 +2095,7 @@ const closeCostOfBreachModal = async () => {
           </button>
 
           {/* Security headers not enabled on host */}
-          {currentVulnerability && currentVulnerability.vulnerabilityCode == 10 &&
+          {currentVulnerability && currentVulnerability.vulnerability && currentVulnerability.vulnerability.vulnerabilityCode == 10 &&
           <div style={{display:'flex', flexDirection:'column'}} >
 
            <h4>Missing Headers</h4>
@@ -2125,7 +2124,7 @@ const closeCostOfBreachModal = async () => {
 
 
         {/* HTTP Verb tampering possible */}
-        {currentVulnerability && currentVulnerability.vulnerabilityCode == 8 &&
+        {currentVulnerability && currentVulnerability.vulnerability && currentVulnerability.vulnerability.vulnerabilityCode == 8 &&
           <div style={{display:'flex', flexDirection:'column'}} >
 
            <h4>Methods on which HTTP Verb Tampering is possible</h4>
@@ -2154,7 +2153,7 @@ const closeCostOfBreachModal = async () => {
 
 
          {/* Endpoint not secure by SSL */}
-         {currentVulnerability && currentVulnerability.vulnerabilityCode == 4 &&
+         {currentVulnerability && currentVulnerability.vulnerability && currentVulnerability.vulnerability.vulnerabilityCode == 4 &&
           <div style={{display:'flex', flexDirection:'column'}} >
 
            <h4>SSL related issues on the host</h4>
@@ -2178,7 +2177,7 @@ const closeCostOfBreachModal = async () => {
 
 
         {/* Sensitive data in query params */}
-        {currentVulnerability && currentVulnerability.vulnerabilityCode == 6 &&
+        {currentVulnerability && currentVulnerability.vulnerability && currentVulnerability.vulnerability.vulnerabilityCode == 6 &&
           <div style={{display:'flex', flexDirection:'column'}} >
 
            <h4>Sensitive data found in query params</h4>
@@ -2207,7 +2206,7 @@ const closeCostOfBreachModal = async () => {
 
 
         {/* Sensitive data in path params */}
-        {currentVulnerability && currentVulnerability.vulnerabilityCode == 2 &&
+        {currentVulnerability && currentVulnerability.vulnerability && currentVulnerability.vulnerability.vulnerabilityCode == 2 &&
           <div style={{display:'flex', flexDirection:'column'}} >
 
            <h4>Sensitive data found in path params</h4>
@@ -2232,9 +2231,7 @@ const closeCostOfBreachModal = async () => {
                 />
             ))}
         </div>      
-        }
-
-            
+        }    
           
 
 

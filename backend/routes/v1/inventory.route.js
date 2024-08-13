@@ -23,8 +23,8 @@ router.post('/addAPICollectionVersion', protectUser, jsonupload.single("file"), 
 router.get('/fetchAPICollections', protectUser, fetchAPICollections);
 router.get('/fetchAPICollectionVersions', protectUser, fetchAPICollectionVersions);
 router.get('/fetchEndpointsofAVersion', protectUser, fetchEndpointsofAVersion);
-router.get('/deleteAPICollection', protectUser, deleteAPICollection);
-router.get('/deleteAPICollectionVersion', protectUser, deleteAPICollectionVersion);
+router.post('/deleteAPICollection', protectUser, deleteAPICollection);
+router.post('/deleteAPICollectionVersion', protectUser, deleteAPICollectionVersion);
 //router.get('/editAPICollection', protectUser, editAPICollection);
 router.get('/startActiveScanOfACollectionVersion', protectUser, startActiveScanOfACollectionVersion);
 router.get('/fetchActiveScansOfACollectionVersion', protectUser, fetchActiveScansOfACollectionVersion);

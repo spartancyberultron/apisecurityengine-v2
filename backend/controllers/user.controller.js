@@ -24,7 +24,6 @@ const LLMScanVulnerability = require('../models/llmScanVulnerability.model');
 const moment = require('moment');
 const AttackSurfaceScanVulnerability = require('../models/attacksurfacescanvulnerability.model');
 
-
 // Sign Up 
 module.exports.signUp = asyncHandler(async (req, res) => {
 
@@ -253,6 +252,8 @@ module.exports.getUserDashboardCardsData = asyncHandler(async (req, res) => {
 
 
     const [endpointsArray] = await Promise.all([endpointsPromise]);
+
+    console.log('endpointsArray:',endpointsArray)
 
     // Calculate PII fields count
     const piiFieldsCount = endpointsArray.reduce((count, endpoint) => count + endpoint.piiFields.length, 0);

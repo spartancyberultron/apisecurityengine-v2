@@ -16,6 +16,7 @@ const attackSurfaceScanSchema = new mongoose.Schema({
   orgProject: { 
     type: mongoose.Schema.Types.ObjectId,
     ref: 'OrgProject',
+    index: true
   },
   projectName: {
     type: String,
@@ -37,7 +38,14 @@ const attackSurfaceScanSchema = new mongoose.Schema({
   },
   securityHeadersCheckDone:{
     type: Boolean,
-  }
+  },
+  vulnCount:{
+    type: Number,
+  },
+  endpointsCount:{
+    type: Number,
+  },
+
 }, {
   timestamps: true,
 });

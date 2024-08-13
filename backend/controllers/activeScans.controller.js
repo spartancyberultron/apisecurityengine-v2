@@ -2314,24 +2314,7 @@ async function runActiveScan(user, theCollectionVersion, endpoints, scanId) {
         console.log('theActiveScan:', theActiveScan)
         console.log('user:', user)
 
-        const organization = await Organization.findById(user.organization)
-
-        // theActiveScan.theCollectionVersion = theCollectionVersion;
-        //theActiveScan.status = 'in progress';
-
-        // Create an Active Scan object
-        /*  const theActiveScan = await ActiveScan.create({
-  
-              user: user,
-              theCollectionVersion: theCollectionVersion,
-              
-              //projectName: projectName,
-              //emailToSendReportTo: email,
-              status: 'in progress'
-          });
-  
-          theActiveScan.save(); */
-
+        const organization = await Organization.findById(user.organization);        
 
         const theEndpoints = await ApiEndpoint.find({ _id: { $in: endpoints } });
 
