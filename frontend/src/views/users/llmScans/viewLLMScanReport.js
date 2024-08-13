@@ -64,7 +64,7 @@ const getRemediation = (vulnerabilityName) => {
   const result = remediationData.find(item => item.vulnerability === vulnerabilityName);
 
   if (result) {
-    return result.recommendation;
+    return result;
   } else {
     return 'Vulnerability not found.';
   }
@@ -477,6 +477,54 @@ console.log('currentVulnerability:', currentVulnerability)
       }
     },
     {
+      label: "Severity",
+      options: {
+        filter: true,
+        download: true,
+        customBodyRender: (value, tableMeta, updateValue) => {
+
+          let bgColor;
+          let theColor;
+
+          if (value == 'CRITICAL') {
+
+            bgColor = '#FF0000';
+            theColor = '#fff';
+
+          } else if (value == 'HIGH') {
+
+            bgColor = '#A6001B';
+            theColor = '#fff';
+
+          } else if (value == 'MEDIUM') {
+
+            bgColor = '#FFC300';
+            theColor = 'black';
+
+          } else if (value == 'LOW') {
+
+            bgColor = '#B3FFB3';
+            theColor = 'fff';
+          }
+
+
+          return (
+            <div style={{
+              display: "flex",
+              alignItems: "center"
+            }} >
+
+              <div style={{
+                padding: 5, backgroundColor: bgColor, color: theColor, width: 120,
+                textAlign: 'center', borderRadius: 10, fontSize: 12, fontWeight: 'normal'
+              }}>{value}</div>
+
+            </div>
+          )
+        }
+      }
+    },
+    {
       label: "OWASP",
       options: {
         filter: true,
@@ -704,6 +752,11 @@ console.log('currentVulnerability:', currentVulnerability)
       dataItem.push(vulnDetails.vulnerability); // Vulnerability 
 
       dataItem.push(vulnDetails.description); // Description
+
+      dataItem.push((getRemediation(vulnDetails.vulnerability)).severity); // Description
+
+      
+
 
       dataItem.push([vulnDetails.owasp]); // OWASP
       dataItem.push(vulnDetails.cwe); // CWE
@@ -1135,7 +1188,7 @@ console.log('currentVulnerability:', currentVulnerability)
              
 
                   <h5 style={{ color: '#000', fontSize: 16, fontWeight: 'normal' }} 
-                  dangerouslySetInnerHTML={{__html:processContent(getRemediation(currentVulnerability.vulnerability))}}>
+                  dangerouslySetInnerHTML={{__html:processContent((getRemediation(currentVulnerability.vulnerability)).remediation)}}>
                   </h5>
 
                

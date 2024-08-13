@@ -11,6 +11,15 @@ const Organization = require("../models/organization.model")
 
 const { User } = require('../models/user.model');
 const bcrypt = require('bcryptjs');
+const crypto = require('crypto');
+
+function generateClientId() {
+    return crypto.randomBytes(16).toString('hex'); // Generate a random 32-character hex string
+}
+
+function generateClientSecret() {
+    return crypto.randomBytes(32).toString('hex'); // Generate a random 64-character hex string
+}
 
 // Controller function to add a new user
 module.exports.addUser = asyncHandler(async (req, res) => {
@@ -40,9 +49,18 @@ module.exports.addUser = asyncHandler(async (req, res) => {
         primaryUser: user._id,
         logoURL: logoURL,  // Set the logo URL
     });
-
+    
+    // Check if clientId and clientSecret are present
+    if (!organization.clientId || !organization.clientSecret) {
+        
+        organization.clientId = generateClientId();
+        organization.clientSecret = generateClientSecret();
+    }
+    
+    // Assign the organization ID to the user
     user.organization = organization._id;
-
+    
+    // Save the organization
     await organization.save();
     await user.save();
 
@@ -75,9 +93,18 @@ module.exports.updateUser = asyncHandler(async (req, res) => {
     user.email = email;
 
     const organization = await Organization.findById(user.organization);
+
     if (organization) {
         organization.name = organizationName;
         organization.logoURL = logoURL;
+
+        // Check if clientId and clientSecret are present
+        if (!organization.clientId || !organization.clientSecret) {
+        
+            organization.clientId = generateClientId();
+            organization.clientSecret = generateClientSecret();
+        }
+
         await organization.save();
     }
 

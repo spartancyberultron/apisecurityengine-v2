@@ -234,7 +234,18 @@ module.exports.getUserDashboardCardsData = asyncHandler(async (req, res) => {
     const collectionsPromise = APICollection.find({ user: user._id }).select('_id').lean().exec();
     const activeScansPromise = ActiveScan.find({ user: user._id }).select('_id').lean().exec();
     const [collections, activeScans] = await Promise.all([collectionsPromise, activeScansPromise]);
-    const endpointsPromise = ApiEndpoint.find({ theCollection: { $in: collections.map(collection => collection._id) } }).select('_id piiFields').lean().exec();
+    
+  //  const endpointsPromise = ApiEndpoint.find({ theCollection: { $in: collections.map(collection => collection._id) } })
+        //.select('_id piiFields').lean().exec();
+
+
+        const endpointsPromise = ApiEndpoint.find({ 
+            'theCollectionVersion.apiCollection': { $in: collections.map(collection => collection._id) } 
+        })
+        .select('_id piiFields')
+        .lean()
+        .exec();
+        
 
 
     //const activeScansVulnsPromise = ActiveScanVulnerability.find({ activeScan: { $in: activeScans.map(activeScan => activeScan._id) } }).lean().exec();

@@ -33,6 +33,11 @@ const Tickets = () => {
 
   const [itemOffset, setItemOffset] = useState(0);
 
+
+  const [page, setPage] = useState(0);
+  const [count, setCount] = useState(0);
+  const [rowsPerPage, setRowsPerPage] = useState(10);
+
   const customStyles = {
     content: {
       top: '30%',
@@ -174,16 +179,17 @@ const Tickets = () => {
   const isFirstTime = useRef(true);
 
 
-  const fetchTickets = async () => {
+  const fetchTickets = async (page, rowsPerPage) => {
 
     setOnLoading(true);    
   
     const token = localStorage.getItem('ASIToken');
-    const response = await axios.get(`/api/v1/organizations/getTickets`, {
+    const response = await axios.get(`/api/v1/organizations/getTickets/${page}/${rowsPerPage}`, {
       headers: { Authorization: `Bearer ${token}` },
     });
   
-    setTickets(response.data.tickets);    
+    setTickets(response.data.tickets); 
+    setCount(response.data.totalCount);   
   
     setOnLoading(false);
   };
@@ -199,7 +205,7 @@ const Tickets = () => {
 
   useEffect(() => {    
 
-      fetchTickets();  
+      fetchTickets(1, 20);  
 
   }, []);
 
@@ -210,6 +216,7 @@ const Tickets = () => {
     "Category",
     "Source",
     "Related Scan ID",
+    "Project Name",
     "Title",
     "Priority",
     "Opened By",
@@ -328,6 +335,18 @@ const Tickets = () => {
       body: {
         noMatch: 'No tickets found',
       }
+    },
+    serverSide: true,
+    count: count,
+    page: page,
+    rowsPerPage: rowsPerPage,
+    onTableChange: (action, tableState) => {
+      if (action === 'changePage' || action === 'changeRowsPerPage') {
+        const { page, rowsPerPage } = tableState;
+        setPage(page);
+        setRowsPerPage(rowsPerPage);
+        fetchTickets(page, rowsPerPage);
+      }
     }
   };
 
@@ -345,6 +364,8 @@ const Tickets = () => {
 
     dataItem.push(tickets[i].source);
     dataItem.push(tickets[i].scanId);
+    dataItem.push(tickets[i].projectName);
+
 
     dataItem.push(tickets[i].title);
     //dataItem.push(tickets[i].description);

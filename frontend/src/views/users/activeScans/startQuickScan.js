@@ -233,16 +233,11 @@ const StartQuickScan = () => {
 
     <div className="theCards" style={{ display:'flex', overflow: "scroll", position: 'relative', overflowY: 'hidden', overflowX:'hidden' }}>
 
-
-
-
       <div style={{ width: '60%' }}>
 
-        <div>
-         
+        <div>        
 
-          <div  style={{  padding: 15 }}>
-
+          <div style={{  padding: 15 }}>
          
             <CFormLabel htmlFor="formFileSm" style={{ marginTop: 30, color:'white'  }}>Project Name</CFormLabel>
             <CInputGroup className="" style={{ flexDirection: 'column' }}>
@@ -253,7 +248,6 @@ const StartQuickScan = () => {
                 onChange={(e) => setProjectname(e.target.value)}
                 style={{ width: '100%' }}
               />
-
 
             </CInputGroup>
 
@@ -310,9 +304,7 @@ const StartQuickScan = () => {
 
             <span style={{color:'blue', fontSize:13}}>Must be a URL of a raw file containing a Postman/Swagger/OpenAPI collection</span><br/>
 
-            </CInputGroup>
-
-            
+            </CInputGroup>     
 
 
             <CButton

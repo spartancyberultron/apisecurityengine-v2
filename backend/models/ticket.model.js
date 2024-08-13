@@ -21,7 +21,7 @@ const ticketSchema = mongoose.Schema({
   organization: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'Organization',
-  },
+  },  
   assignedTo: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'User',

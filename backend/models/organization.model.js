@@ -17,6 +17,9 @@ const organizationSchema = mongoose.Schema({
   logoURL:{
     type: String,
   },
+  postmanAPIKey:{
+    type: String,
+  },
   vulnSeverityAndPriority: [{
     vulnId: {
       type: Number,

@@ -308,6 +308,54 @@ const ViewSOAPGraphQLScanReport = () => {
       }
     },
     {
+      label: "Severity",
+      options: {
+        filter: true,
+        download: true,
+        customBodyRender: (value, tableMeta, updateValue) => {
+
+          let bgColor;
+          let theColor;
+
+          if (value == 'CRITICAL') {
+
+            bgColor = '#FF0000';
+            theColor = '#fff';
+
+          } else if (value == 'HIGH') {
+
+            bgColor = '#A6001B';
+            theColor = '#fff';
+
+          } else if (value == 'MEDIUM') {
+
+            bgColor = '#FFC300';
+            theColor = 'black';
+
+          } else if (value == 'LOW') {
+
+            bgColor = '#B3FFB3';
+            theColor = 'fff';
+          }
+
+
+          return (
+            <div style={{
+              display: "flex",
+              alignItems: "center"
+            }} >
+
+              <div style={{
+                padding: 5, backgroundColor: bgColor, color: theColor, width: 120,
+                textAlign: 'center', borderRadius: 10, fontSize: 12, fontWeight: 'normal'
+              }}>{value}</div>
+
+            </div>
+          )
+        }
+      }
+    },
+    {
       label: "Exploitability",
       options: {
         filter: false,
@@ -537,6 +585,8 @@ const ViewSOAPGraphQLScanReport = () => {
 
       dataItem.push(soapOrGraphQLScan.vulnerabilities[i].testCaseName);
       dataItem.push(soapOrGraphQLScan.vulnerabilities[i].description);
+      dataItem.push(soapOrGraphQLScan.vulnerabilities[i].severity);
+
 
       dataItem.push(soapOrGraphQLScan.vulnerabilities[i].exploitability);
 

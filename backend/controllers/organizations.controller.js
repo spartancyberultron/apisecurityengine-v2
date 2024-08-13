@@ -6,12 +6,24 @@ const { User } = require('../models/user.model');
 
 const Ticket = require("../models/ticket.model");
 const TicketUpdate = require("../models/ticketupdate.model");
+const ActiveScan = require("../models/activescan.model");
+
+
 
 const Team = require("../models/team.model");
 const Workspace = require("../models/workspace.model");
 const OrgProject = require("../models/orgproject.model");
 
+const Project = require("../models/project.model");
+const LLMScan = require("../models/llmScan.model");
+const SBOMScan = require("../models/sbomScan.model");
+const SOAPOrGraphQLScan = require("../models/soapOrGraphQLScan.model");
+const AttackSurfaceScan = require("../models/attacksurfacescan.model");
+
+
 const path = require('path');
+const AttackSurfaceScanVulnerability = require('../models/attacksurfacescanvulnerability.model');
+const SOAPOrGraphQLScanVulnerability = require('../models/soapOrGraphQLScanVulnerability.model');
 
 // Get organization details
 module.exports.getOrganizationDetails = asyncHandler(async (req, res) => {
@@ -68,19 +80,19 @@ module.exports.getTeams = asyncHandler(async (req, res) => {
     const user = await User.findById(req.user._id).populate('organization');
 
     const teams = await Team.find({ organization: user.organization._id })
-  .populate({
-    path: 'users', // The field in the Team schema that references User documents
-    select: 'firstName lastName email' // Optional: specify which fields to return
-  }).lean();
+        .populate({
+            path: 'users', // The field in the Team schema that references User documents
+            select: 'firstName lastName email' // Optional: specify which fields to return
+        }).lean();
 
- 
-   
 
-   for(var i=0;i<teams.length;i++){
+
+
+    for (var i = 0; i < teams.length; i++) {
 
         const workspaces = await Workspace.find({ teams: teams[i]._id });
         teams[i].workspaces = workspaces;
-   }  
+    }
 
 
     res.status(200).json({ success: true, teams });
@@ -172,17 +184,17 @@ module.exports.getWorkspaces = asyncHandler(async (req, res) => {
     const user = await User.findById(req.user._id).populate('organization');
 
     const workspaces = await Workspace.find({ organization: user.organization._id })
-    .populate({
-        path: 'teams', 
-        select: 'name' 
-      }).lean();
+        .populate({
+            path: 'teams',
+            select: 'name'
+        }).lean();
 
 
-   for(var i=0;i<workspaces.length;i++){
+    for (var i = 0; i < workspaces.length; i++) {
 
-    const projects = await OrgProject.find({ workspace:  workspaces[i]._id});
-    workspaces[i].projects = projects;
-   }  
+        const projects = await OrgProject.find({ workspace: workspaces[i]._id });
+        workspaces[i].projects = projects;
+    }
 
 
 
@@ -247,7 +259,7 @@ module.exports.editWorkspace = asyncHandler(async (req, res) => {
 
 
 // Delete a workspace
-module.exports.deleteWorkspace= asyncHandler(async (req, res) => {
+module.exports.deleteWorkspace = asyncHandler(async (req, res) => {
 
     try {
 
@@ -272,10 +284,10 @@ module.exports.getProjects = asyncHandler(async (req, res) => {
 
     const user = await User.findById(req.user._id).populate('organization');
 
-    const projects = await OrgProject.find({ organization: user.organization._id }).populate('workspace').lean(); 
+    const projects = await OrgProject.find({ organization: user.organization._id }).populate('workspace').lean();
 
 
-    for(var i=0;i<projects.length;i++){
+    for (var i = 0; i < projects.length; i++) {
 
         const workspace = await Workspace.findById(projects[i].workspace._id).populate('teams');
 
@@ -305,7 +317,7 @@ module.exports.addProject = asyncHandler(async (req, res) => {
         const newProject = new OrgProject({
             name: name,
             organization: organization._id,
-            workspace:workspace,
+            workspace: workspace,
         });
 
         // Save the new record to the database
@@ -348,7 +360,7 @@ module.exports.editProject = asyncHandler(async (req, res) => {
 
 
 // Delete a project
-module.exports.deleteProject= asyncHandler(async (req, res) => {
+module.exports.deleteProject = asyncHandler(async (req, res) => {
 
     try {
 
@@ -377,14 +389,14 @@ module.exports.getOrganizationUsers = asyncHandler(async (req, res) => {
 
     const users = await User.find({ organization: user.organization._id }).lean();
 
-    for(var i=0;i<users.length;i++){
+    for (var i = 0; i < users.length; i++) {
 
         const teams = await Team.find({ users: users[i]._id });
         users[i].teams = teams;
-     }  
+    }
 
 
-     console.log('users:',users)
+    console.log('users:', users)
 
 
 
@@ -398,20 +410,126 @@ module.exports.getOrganizationUsers = asyncHandler(async (req, res) => {
 
 // Get tickets
 module.exports.getTickets = asyncHandler(async (req, res) => {
-    
+
     try {
         // Find the user and populate the organization field
         const user = await User.findById(req.user._id).populate('organization');
+
+        const page = req.query.page ? parseInt(req.query.page, 10) : 1;
+        const rowsPerPage = req.query.rowsPerPage ? parseInt(req.query.rowsPerPage, 10) : 10;
+
+
+        // Validate and parse page and rowsPerPage
+        const pageNumber = parseInt(page, 10);
+        const rowsPerPageNumber = parseInt(rowsPerPage, 10);
+
+        if (isNaN(pageNumber) || isNaN(rowsPerPageNumber) || pageNumber < 1 || rowsPerPageNumber < 1) {
+            return res.status(400).json({ success: false, message: "Invalid pagination parameters" });
+        }
+
+        const skip = (pageNumber - 1) * rowsPerPageNumber;
+        const limit = rowsPerPageNumber;
+
+        const totalCount = await Ticket.countDocuments({ organization: user.organization._id });
+
 
         // Fetch the latest 100 tickets for the user's organization
         const tickets = await Ticket.find({ organization: user.organization._id })
             .populate('openedBy')
             .populate('assignedTo')
             .sort({ createdAt: -1 }) // Sort by createdAt in descending order
-            .limit(100); // Limit to 100 tickets
+            //.limit(100); // Limit to 100 tickets
+            .skip(skip)
+            .limit(limit)
+            .lean();
+
+        for (var i = 0; i < tickets.length; i++) {
+
+
+            if (tickets[i].source == 'REST API Scan') {
+
+                const activeScan = await ActiveScan.findById(tickets[i].scanId)
+                    .populate({
+                        path: 'theCollectionVersion',
+                        populate: {
+                            path: 'apiCollection',
+                            populate: {
+                                path: 'orgProject'
+                            }
+                        }
+                    });
+
+                console.log('activeScan:', activeScan)
+
+                if (activeScan) {
+
+                    tickets[i].projectName = activeScan.theCollectionVersion.apiCollection ? activeScan.theCollectionVersion.apiCollection.orgProject.name : '---';
+                }
+
+            }else if(tickets[i].source == 'Attack Surface Scan'){
+
+                const attackSurfaceScan = await AttackSurfaceScan.findById(tickets[i].scanId).populate('orgProject')
+                    
+                console.log('attackSurfaceScan:', attackSurfaceScan)
+
+                if (attackSurfaceScan) {
+
+                    tickets[i].projectName = attackSurfaceScan.orgProject? attackSurfaceScan.orgProject.name : '---';
+                }
+
+            }else if(tickets[i].source == 'LLM Scan'){
+
+                const llmScan = await LLMScan.findById(tickets[i].scanId).populate('orgProject')
+                    
+                console.log('llmScan:', llmScan)
+
+                if (llmScan) {
+
+                    tickets[i].projectName = llmScan.orgProject? llmScan.orgProject.name : '---';
+                }
+
+            }else if(tickets[i].source == 'SOAP Scan' || tickets[i].source == 'GraphQL Scan'){
+
+                const soapOrGraphQLScan = await SOAPOrGraphQLScan.findById(tickets[i].scanId).populate('orgProject')
+                    
+                console.log('soapOrGraphQLScan:', soapOrGraphQLScan)
+
+                if (soapOrGraphQLScan) {
+
+                    tickets[i].projectName = soapOrGraphQLScan.orgProject? soapOrGraphQLScan.orgProject.name : '---';
+                }
+
+            }else if(tickets[i].source == 'SBOM Scan'){
+
+                const sbomScan = await SBOMScan.findById(tickets[i].scanId).populate('orgProject')
+                    
+                console.log('sbomScan:', sbomScan)
+
+                if (sbomScan) {
+
+                    tickets[i].projectName = sbomScan.orgProject? sbomScan.orgProject.name : '---';
+                }
+
+            }else if(tickets[i].source == 'API Traffic Scan'){
+
+                const project = await Project.findById(tickets[i].scanId).populate('orgProject')
+                    
+                console.log('project:', project)
+
+                if (project) {
+
+                    tickets[i].projectName = project.orgProject? project.orgProject.name : '---';
+                }
+
+            }
+
+
+            
+        }
+
 
         // Return the tickets
-        res.status(200).json({ success: true, tickets });
+        res.status(200).json({ success: true, tickets, totalCount });
     } catch (err) {
         res.status(500).json({ success: false, message: err.message });
     }
@@ -436,30 +554,30 @@ module.exports.addTicket = asyncHandler(async (req, res) => {
         let highestTicketId;
         let newTicketId;
 
-        if(highestTicket){
+        if (highestTicket) {
             highestTicketId = highestTicket.ticketId;
             newTicketId = highestTicketId + 1;
-        }else{
+        } else {
             newTicketId = 1;
         }
 
-        
 
-            console.log('highestTicket:', highestTicket);
-            console.log('highestTicketId:', highestTicketId);
-            console.log('newTicketId:', newTicketId);
+
+        console.log('highestTicket:', highestTicket);
+        console.log('highestTicketId:', highestTicketId);
+        console.log('newTicketId:', newTicketId);
 
         // Create a new ticket record
         const newTicket = new Ticket({
             title: title,
             description: description,
             assignedTo: assignedTo,
-            openedBy:currentUser._id,
+            openedBy: currentUser._id,
             status: status,
-            category:category,
-            priority:priority,
-            note:note,
-            ticketId:newTicketId,
+            category: category,
+            priority: priority,
+            note: note,
+            ticketId: newTicketId,
             organization: organization._id,
             attachments: req.files.map(file => path.join('./ticket-attachments/', file.filename)),
         });
@@ -501,7 +619,7 @@ module.exports.addTicketUpdate = asyncHandler(async (req, res) => {
         const newTicketUpdate = new TicketUpdate({
             updateText: updateText,
             assignedTo: assignedTo,
-            updatedBy:currentUser._id,
+            updatedBy: currentUser._id,
             status: status,
             ticket: ticketId,
             attachments: req.files.map(file => path.join('./ticket-update-attachments/', file.filename)),
@@ -511,10 +629,10 @@ module.exports.addTicketUpdate = asyncHandler(async (req, res) => {
         await newTicketUpdate.save();
 
         const updatedTicket = await Ticket.findById(ticketId).lean();
-        const ticketUpdates = await TicketUpdate.find({ticket:ticketId}).lean();
+        const ticketUpdates = await TicketUpdate.find({ ticket: ticketId }).lean();
         updatedTicket.ticketUpdates = ticketUpdates;
 
-        res.status(200).json({ success: true, ticket:updatedTicket });
+        res.status(200).json({ success: true, ticket: updatedTicket });
 
     } catch (error) {
         // Handle errors appropriately
@@ -529,50 +647,50 @@ module.exports.addTicketUpdate = asyncHandler(async (req, res) => {
 // Edit a ticket
 module.exports.editTicket = asyncHandler(async (req, res) => {
 
-   try {
+    try {
 
         const { id, title, description, assignedTo, status, category, priority, note } = req.body;
 
-console.log('body:', req.body);
+        console.log('body:', req.body);
 
         const currentUser = await User.findById(req.user._id);
 
         const user = await User.findById(req.user._id).populate('organization');
         const organization = await Organization.findById(user.organization._id)
 
-       // const highestTicket = await Ticket.findOne().sort({ ticketId: -1 }).exec();
-      //var highestTicketId = highestTicket.ticketId;
-       // var newTicketId = highestTicketId + 1;
+        // const highestTicket = await Ticket.findOne().sort({ ticketId: -1 }).exec();
+        //var highestTicketId = highestTicket.ticketId;
+        // var newTicketId = highestTicketId + 1;
 
-         //   console.log('highestTicket:', highestTicket);
-          //  console.log('highestTicketId:', highestTicketId);
-           // console.log('newTicketId:', newTicketId);
+        //   console.log('highestTicket:', highestTicket);
+        //  console.log('highestTicketId:', highestTicketId);
+        // console.log('newTicketId:', newTicketId);
 
-const ticket = await Ticket.findById(id);
+        const ticket = await Ticket.findById(id);
 
-           ticket.title = title;
-           ticket.description = description;
-           ticket.assignedTo = assignedTo;
-           ticket.status = status;
-           ticket.category = category;
-           ticket.priority = priority;
-           ticket.note = note;
-//         ticket.save();
+        ticket.title = title;
+        ticket.description = description;
+        ticket.assignedTo = assignedTo;
+        ticket.status = status;
+        ticket.category = category;
+        ticket.priority = priority;
+        ticket.note = note;
+        //         ticket.save();
 
         // Create a new ticket record
-  /*      const newTicket = new Ticket({
-            title: title,
-            description: description,
-            assignedTo: assignedTo,
-            openedBy:currentUser._id,
-            status: status,
-            category:category,
-            priority:priority,
-            note:note,
-           // ticketId:newTicketId,
-            organization: organization._id,
-            attachments: req.files.map(file => path.join('./ticket-attachments/', file.filename)),
-        });  */
+        /*      const newTicket = new Ticket({
+                  title: title,
+                  description: description,
+                  assignedTo: assignedTo,
+                  openedBy:currentUser._id,
+                  status: status,
+                  category:category,
+                  priority:priority,
+                  note:note,
+                 // ticketId:newTicketId,
+                  organization: organization._id,
+                  attachments: req.files.map(file => path.join('./ticket-attachments/', file.filename)),
+              });  */
 
         // Save the new record to the database
         await ticket.save();
@@ -692,7 +810,7 @@ module.exports.addUser = asyncHandler(async (req, res) => {
                 userType: userType,
                 location: location,
                 organization: organization._id,
-                status:status
+                status: status
             });
 
             // Save the new record to the database
@@ -882,7 +1000,7 @@ module.exports.getTicketDetails = asyncHandler(async (req, res) => {
         // Fetch ticket details from the database
         const ticket = await Ticket.findById(id).populate('assignedTo').lean();
 
-        const ticketUpdates = await TicketUpdate.find({ticket:ticket._id}).populate('updatedBy');
+        const ticketUpdates = await TicketUpdate.find({ ticket: ticket._id }).populate('updatedBy');
         ticket.ticketUpdates = ticketUpdates;
 
         if (!ticket) {
@@ -902,6 +1020,18 @@ module.exports.getTicketDetails = asyncHandler(async (req, res) => {
 });
 
 
+module.exports.savePostmanAPIKey = asyncHandler(async (req, res) => {
+
+    const { postmanAPIKey } = req.body;
+
+    const org = await Organization.findOne({ primaryUser: req.user._id });
+    org.postmanAPIKey = postmanAPIKey;
+    org.save();
+
+    res.status(200).json(org);
+
+});
+
 // Save organization settings
 module.exports.saveOrganizationSettings = asyncHandler(async (req, res) => {
 
@@ -912,11 +1042,29 @@ module.exports.saveOrganizationSettings = asyncHandler(async (req, res) => {
 
     console.log('orgId:', orgId);
 
-    console.log('piiSettings:',piiSettings)
+    console.log('piiSettings:', piiSettings)
 
     try {
         // Update the organization settings
-       /* const updatedOrganization = await Organization.findByIdAndUpdate(
+        /* const updatedOrganization = await Organization.findByIdAndUpdate(
+             orgId,
+             {
+                 $set: {
+                     'vulnSeverityAndPriority': Object.entries(settings).map(([key, { vulnId, severity, priority }]) => ({
+                         vulnId: Number(vulnId), // Ensure this is a Number as per schema
+                         severity,
+                         priority,
+                     })),
+                     'piiField': piiSettings.map(piiField => ({
+                         piiField,
+                         enabled: true
+                     }))
+                 },
+             },
+             { new: true, runValidators: true }
+         ); */
+
+        const updatedOrganization = await Organization.findByIdAndUpdate(
             orgId,
             {
                 $set: {
@@ -926,31 +1074,13 @@ module.exports.saveOrganizationSettings = asyncHandler(async (req, res) => {
                         priority,
                     })),
                     'piiField': piiSettings.map(piiField => ({
-                        piiField,
-                        enabled: true
+                        piiField: piiField.piiField, // Assuming this is the correct field name
+                        enabled: piiField.enabled // Ensure this is a Boolean
                     }))
-                },
+                }
             },
             { new: true, runValidators: true }
-        ); */
-
-        const updatedOrganization = await Organization.findByIdAndUpdate(
-            orgId,
-            {
-              $set: {
-                'vulnSeverityAndPriority': Object.entries(settings).map(([key, { vulnId, severity, priority }]) => ({
-                  vulnId: Number(vulnId), // Ensure this is a Number as per schema
-                  severity,
-                  priority,
-                })),
-                'piiField': piiSettings.map(piiField => ({
-                  piiField: piiField.piiField, // Assuming this is the correct field name
-                  enabled: piiField.enabled // Ensure this is a Boolean
-                }))
-              }
-            },
-            { new: true, runValidators: true }
-          );
+        );
 
         // Check if organization was found
         if (!updatedOrganization) {

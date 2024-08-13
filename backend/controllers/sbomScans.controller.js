@@ -93,7 +93,7 @@ module.exports.startSBOMScan = asyncHandler(async (req, res) => {
         process.chdir(targetDirectory);
 
         const toolCommand = '/usr/bin/bomber scan '+filePath+' --output=json > '+newScan._id+'_result.json';
-        //exec(toolCommand);
+        console.log('toolCommand:',toolCommand);
 
         const resultFilePath = path.join(__dirname, "..", "uploads", "sbom-files", "sbom-scan-result-files", `${newScan._id}_result.json`);       
         

@@ -1,5 +1,4 @@
 import React, { useState, useEffect, useRef } from "react";
-import { CFormInput, CButton, CFormSelect, CTable, CToast, CToastBody, CToaster } from '@coreui/react'
 import MUIDataTable from "mui-datatables";
 import { createTheme, ThemeProvider } from '@mui/material/styles';
 import { useParams, useNavigate } from 'react-router-dom'
@@ -21,16 +20,41 @@ import golangLogo from '../../../assets/images/golang-logo.png'
 import SyntaxHighlighter from 'react-syntax-highlighter';
 import { docco } from 'react-syntax-highlighter/dist/esm/styles/hljs';
 import { dark } from 'react-syntax-highlighter/dist/esm/styles/prism';
+import { ToastContainer, toast } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
+import { CircularProgress } from '@mui/material';
 
+import {
+  CButton,
+  CCard,
+  CCardBody,
+  CCardGroup,
+  CCol,
+  CContainer,
+  CForm,
+  CFormInput,
+  CInputGroup,
+  CRow,
+  CFormLabel,
+  CToast,
+  CToastBody,
+} from '@coreui/react'
+
+import axios from 'axios';
 
 const Integrations = () => {
 
-    const [toast, addToast] = useState(0)
     const navigate = useNavigate()
 
     const [candidates, setCandidates] = useState([])
     const [onLoading, setOnLoading] = useState(false);
     const [currentlySelectedJob, setCurrentlySelectedJob] = useState(null)
+    const [postmanAPIKey, setPostmanAPIKey] = useState('')
+    const [clientId, setClientId] = useState('')
+    const [clientSecret, setClientSecret] = useState('')
+
+    const [loading, setLoading] = useState(false)
+
 
     const toaster = useRef()
     const exampleToast = (
@@ -39,6 +63,74 @@ const Integrations = () => {
         </CToast>
     )
 
+
+    const fetchPostmanKey = async () => {
+
+      setOnLoading(true);
+      try {
+          const token = localStorage.getItem('ASIToken');
+          const response = await axios.get('api/v1/users/getOrganizationDetails/', {
+              headers: { Authorization: `Bearer ${token}` },
+          });
+  
+          setPostmanAPIKey(response.data.organization.postmanAPIKey);
+          setClientId(response.data.organization.clientId);
+          setClientSecret(response.data.organization.clientSecret);
+  
+  
+      } catch (error) {
+          console.error("Failed to fetch key", error);
+      }
+      setOnLoading(false);
+  };
+  
+  const savePostmanAPIKey = async () => {
+
+    setOnLoading(true);
+
+    try {
+        const token = localStorage.getItem('ASIToken'); 
+        
+        // Send transformed settings to the server
+        await axios.post('api/v1/organizations/savePostmanAPIKey/', {
+            postmanAPIKey: postmanAPIKey,
+        }, {
+            headers: { Authorization: `Bearer ${token}` },
+        });  
+  
+        toast('Postman API key saved', {
+          position: "top-right",
+          autoClose: 5000,
+          hideProgressBar: false,
+          closeOnClick: true,
+          pauseOnHover: true,
+          draggable: true,
+          progress: undefined,
+          theme: "light",
+        });
+
+    } catch (error) {
+        console.error("Failed to save key", error);
+  
+        toast.error('Failed to save key', {
+          position: "top-right",
+          autoClose: 5000,
+          hideProgressBar: false,
+          closeOnClick: true,
+          pauseOnHover: true,
+          draggable: true,
+          progress: undefined,
+          theme: "light",
+        });
+    }
+    setOnLoading(false);
+  };
+    
+  
+    useEffect(() => {
+      fetchPostmanKey();
+    }, []);
+  
 
     const javaCode = `    import java.util.UUID;
     import java.util.Date;
@@ -275,6 +367,11 @@ public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
 
                             <Tab style={{ width: 200, borderWidth: 0, textAlign:'center' }}>
 
+                              Postman Integration
+                            </Tab>
+
+                            <Tab style={{ width: 200, borderWidth: 0, textAlign:'center' }}>
+
                                Burpsuite Extension
                             </Tab>
 
@@ -289,27 +386,27 @@ public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
                                 Node JS
                             </Tab>
 
-                            <Tab style={{ width: 150, borderWidth: 0, textAlign:'center' }}>
+                            <Tab style={{ width: 120, borderWidth: 0, textAlign:'center' }}>
                                 <img src={pythonLogo} style={{ height: 80, width: 80, objectFit: 'contain',display:'none' }} alt="Python" />
                                 Python
                             </Tab>
 
-                            <Tab style={{ width: 150, borderWidth: 0 ,textAlign:'center'}}>
+                            <Tab style={{ width: 120, borderWidth: 0 ,textAlign:'center'}}>
                                 <img src={phpLogo} style={{ height: 80, width: 80, objectFit: 'contain',display:'none' }} alt="PHP" />
                                 PHP
                             </Tab>
 
-                            <Tab style={{ width: 150, borderWidth: 0 ,textAlign:'center'}}>
+                            <Tab style={{ width: 120, borderWidth: 0 ,textAlign:'center'}}>
                                 <img src={javaLogo} style={{ height: 80, width: 80, objectFit: 'contain',display:'none' }} alt="Java" />
                                 Java
                             </Tab>
 
-                            <Tab style={{ width: 150, borderWidth: 0, textAlign:'center' }}>
+                            <Tab style={{ width: 120, borderWidth: 0, textAlign:'center' }}>
                                 <img src={dotnetLogo} style={{ height: 80, width: 80, objectFit: 'contain',display:'none' }} alt=".NET" />
                                 .NET
                             </Tab>
 
-                            <Tab style={{ width: 150, borderWidth: 0,textAlign:'center' }}>
+                            <Tab style={{ width: 120, borderWidth: 0,textAlign:'center' }}>
                                 <img src={golangLogo} style={{ height: 80, width: 80, objectFit: 'contain',display:'none' }} alt="Go" />
                                 Go
                             </Tab>
@@ -319,6 +416,15 @@ public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
 {/* CLI Agent  */}
 <TabPanel style={{ padding: 30, backgroundColor: 'white', borderRadius: 5 }}>  
 
+<h4 style={{ color: '#333' }}>CLI Agent</h4>
+
+
+     <p>The APISecurityEngine CLI Agent is a python script that can capture API traffic from an application running on a Linux/Mac/Windows machine and 
+      send to APISecurityEngine for security analysis. The results can be viewed under Mirroring Agents section of the APISecurityEngine portal. </p>
+
+
+<div style={{background:'#d9d5fa', padding:10}}>
+      <h5 style={{ color: '#333' }}>For Linux/Mac</h5>
 
       <p style={{ fontSize: '16px', color: '#555' }}>
         Follow these steps to clone the project from GitHub and set up the API Security Engine:
@@ -358,6 +464,116 @@ public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
       <p style={{ fontSize: '16px', color: '#555' }}>
         The <code>--port</code> parameter defines the port number on the host for traffic capture. Set this to the port your application uses, in this case, <code>5002</code>.
       </p>
+
+      </div>
+
+      <hr/>
+
+
+      <div style={{background:'#FFE5B4', padding:10}}>
+
+
+      <h5 style={{ color: '#7367f0' }}>For Windows</h5>
+
+
+
+
+      <p style={{ fontSize: '16px', color: '#555' }}>
+        Follow these steps to clone the project from GitHub and set up the API Security Engine:
+      </p>
+      <ol style={{ fontSize: '16px', color: '#555' }}>
+        <li>
+          <strong>Clone the GitHub Repository:</strong> 
+          <pre style={{ backgroundColor: '#eaeaea', padding: '10px', borderRadius: '5px', overflowX: 'auto' }}>
+            git clone https://github.com/spartancyberultron/apisecurityengine-cli-agent-windows
+          </pre>
+        </li>
+        <li>
+          <strong>Navigate to the Project Directory:</strong>
+          <pre style={{ backgroundColor: '#eaeaea', padding: '10px', borderRadius: '5px', overflowX: 'auto' }}>
+            cd apisecurityengine-cli-agent
+          </pre>
+        </li>
+        <li>
+          <strong>Install the Required Python Packages:</strong>
+          <pre style={{ backgroundColor: '#eaeaea', padding: '10px', borderRadius: '5px', overflowX: 'auto' }}>
+            pip install pydivert requests
+          </pre>
+        </li>
+        <li>
+          <strong>Run the Script in Powershell (as administrator):</strong>
+          <pre style={{ backgroundColor: '#eaeaea', padding: '10px', borderRadius: '5px', overflowX: 'auto' }}>
+            python3 apisecengine-cli-agent.py --api_key=8FRAOGSIPHS6KYWFKTY7 --host=localhost --port=5002
+          </pre>
+        </li>
+      </ol>
+      <p style={{ fontSize: '16px', color: '#555' }}>
+        The <code>--api_key</code> parameter is your unique integration key for APISecurityEngine. Replace it with your actual key to authenticate and authorize traffic capture.
+      </p>
+      <p style={{ fontSize: '16px', color: '#555' }}>
+        The <code>--host</code> parameter specifies the hostname or IP address where the traffic is captured from. Use <code>localhost</code> for traffic from the local machine.
+      </p>
+      <p style={{ fontSize: '16px', color: '#555' }}>
+        The <code>--port</code> parameter defines the port number on the host for traffic capture. Set this to the port your application uses, in this case, <code>5002</code>.
+      </p>
+
+      </div>
+
+
+
+</TabPanel>
+
+
+{/* CLI Agent  */}
+<TabPanel style={{ padding: 30, backgroundColor: 'white', borderRadius: 5 }}>  
+
+<h4 style={{ color: '#333' }}>Postman Integration</h4>
+<hr/>
+<span style={{ color: '#333' }}>Client ID : {clientId}</span><br/>
+<span style={{ color: '#333' }}>Client Secret : {clientSecret}</span><br/>
+
+    
+<CFormLabel htmlFor="formFileSm" style={{ marginTop: 30, color:'#000', fontWeight:'bold'  }}>Postman API Key</CFormLabel>
+<p>Enter your Postman API key here. You can find it in your Postman account</p>
+            <CInputGroup className="" style={{ flexDirection: 'column' }}>
+              <CFormInput
+                placeholder="Postman API Key"
+                autoComplete="projectName"
+                className="white-input"
+                value={postmanAPIKey}
+                onChange={(e) => setPostmanAPIKey(e.target.value)}
+                style={{ width: '50%' }}
+              />
+              </CInputGroup>
+
+
+            <CButton
+              style={{
+                width: '50%',
+                marginTop: '3%',
+                marginBottom: '2%',
+                borderWidth: 0,
+                fontSize: 20,
+                background: '#7367f0'
+              }}
+              color="primary"
+              className="px-3"
+              onClick={savePostmanAPIKey}
+            >              
+
+
+              {loading ?
+                            <CircularProgress color="primary" size={24} style={{ marginTop: 10, color: '#fff' }} />
+                            :
+                            'Save Postman API Key'
+                          }
+
+
+            </CButton>
+
+
+
+            <p>Then follow the instructions in the below video to run security scans on your API collections from Postman application</p>
 
 
 </TabPanel>
@@ -538,7 +754,7 @@ EOT`}
                         <p style={{color:'black'}}>Install the APISec agent into your Node JS based project:-</p>
 
 
-    <pre style={{color:'black'}}>npm i apisec-agent</pre>
+    <pre style={{color:'black'}}>npm i apisecurityengine-agent</pre>
 
 <p style={{color:'black'}}>Add an environmental variable called APISEC_API_KEY with the value as the Integration API Key
    of your project created in the APISec Dashboard.</p>
@@ -564,7 +780,7 @@ EOT`}
                        <p style={{color:'black'}}> Install the APISec agent into your Python based project:-</p>
 
 
-<pre style={{color:'black'}}>pip install apisec-agent</pre>
+<pre style={{color:'black'}}>pip install apisecurityengine-agent==1.0.0</pre>
 
 
 <p style={{color:'black'}}>Add an environmental variable called APISec with the value as the Integration API 

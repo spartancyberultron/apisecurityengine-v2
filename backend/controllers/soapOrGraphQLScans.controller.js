@@ -8,9 +8,9 @@ const { exec } = require('child_process');
 
 const remediations = require('./remediations/soap-graphql-remediations.json');
 
-function getObjectByCategory(testCaseCategory) {
+function getObjectByName(name) {
     // Find the object with the given index
-    const result = remediations.find(item => item.testCaseCategory === testCaseCategory);
+    const result = remediations.find(item => item.testCaseName === name);
     return result || null; // Return null if no object is found
 }
 
@@ -103,7 +103,9 @@ async function parseScanResults(filename, soapOrGraphQLScan) {
 
             if (result.hasOwnProperty('testCaseName')) {
 
-               var obj = getObjectByCategory(result.testCaseName);
+               var obj = getObjectByName(result.testCaseName);
+
+               console.log('obj:',obj)
 
                 // Save the vulnerabilities
                 const newVuln = new SOAPOrGraphQLScanVulnerability({

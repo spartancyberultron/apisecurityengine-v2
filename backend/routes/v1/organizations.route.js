@@ -30,7 +30,8 @@ const {
       getWorkspaceDetails,    
       getProjectDetails,
       addTicketUpdate,
-      saveOrganizationSettings
+      saveOrganizationSettings,
+      savePostmanAPIKey
     } = require('../../controllers/organizations.controller');
 
 const { protectUser } = require('../../middlewares/authMiddleware');
@@ -71,9 +72,10 @@ router.get('/getProjectDetails/:id', protectUser, getProjectDetails);
 
 
 router.post('/saveOrganizationSettings', protectUser, saveOrganizationSettings);
+router.post('/savePostmanAPIKey', protectUser, savePostmanAPIKey);
 
 
-router.get('/getTickets', protectUser, getTickets);
+router.get('/getTickets/:page/:rowsPerPage', protectUser, getTickets);
 router.post('/addTicket', protectUser, uploadTicketAttachments.array('ticketAttachments', 10), addTicket);
 router.post('/editTicket', protectUser, editTicket);
 router.post('/deleteTicket', protectUser, deleteTicket);
