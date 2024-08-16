@@ -55,6 +55,7 @@ const {
   getThreatTrends,
   getRiskScore,
   getTopRisks,
+  getSSDLCScore,
 } = require('../../controllers/user.controller');
 
 
@@ -90,6 +91,11 @@ router.get('/getThreatAlerts', protectUser, getThreatAlerts);
 router.get('/getThreatTrends', protectUser, getThreatTrends);
 router.get('/getRiskScore', protectUser, getRiskScore);
 router.get('/getTopRisks', protectUser, getTopRisks);
+router.get('/getSSDLCScore', protectUser, getSSDLCScore);
+
+
+
+
 
 
 router.get('/getAllEndpoints', protectUser, getAllEndpoints);

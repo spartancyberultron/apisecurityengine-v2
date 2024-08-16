@@ -239,7 +239,6 @@ const handleCheckboxChange = (event) => {
         formData.append('version', 'new');
         formData.append('collectionUrl', collectionUrl);
         formData.append('collectionId', collectionId);
-        formData.append('projectPhase', projectPhase);        
         
 
         // Make the API call
@@ -540,8 +539,8 @@ const handleCheckboxChange = (event) => {
           scanScheduleType:scanScheduleType,
           specificDateTime:specificDateTime,
           recurringSchedule:recurringSchedule,
-          selectedEndpointIdsToScan:selectedEndpointIdsToScan
-
+          selectedEndpointIdsToScan:selectedEndpointIdsToScan,
+          projectPhase:projectPhase
         }
 
         

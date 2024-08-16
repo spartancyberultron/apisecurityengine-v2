@@ -1754,6 +1754,8 @@ module.exports.startActiveScan = asyncHandler(async (req, res) => {
         _id: { $in: selectedEndpointIdsToScan }
     });
 
+    console.log('projectPhase:',projectPhase)
+
     // console.log('selectedEndpointIdsToScan:',selectedEndpointIdsToScan)
     //console.log('endpoints:',endpoints)
 

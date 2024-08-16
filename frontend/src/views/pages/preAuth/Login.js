@@ -95,13 +95,15 @@ const VendorLogin = () => {
 
       if (parsedUser.userType === 'user') {
         //window.location.replace('/user-dashboard');
-       // setChecking(false);
+        setChecking(false);
         navigate('/user-dashboard')
       } else if (parsedUser.userType === 'admin') {
-       // setChecking(false);
+        setChecking(false);
         //window.location.replace('/admin-all-users');
         navigate('/admin-all-users')
       }
+    }else{
+      setChecking(false);
     }
   }, []);
 

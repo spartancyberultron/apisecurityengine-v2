@@ -9,6 +9,8 @@ const APICollectionVersion = require('../models/apicollectionversion.model');
 const ApiEndpoint = require('../models/apiendpoint.model');
 const Vulnerability = require('../models/vulnerability.model');
 const ActiveScan = require('../models/activescan.model');
+const LLMScan = require('../models/llmScan.model');
+
 const ActiveScanVulnerability = require('../models/activescanvulnerability.model');
 const Project = require('../models/project.model');
 const OrgProject = require('../models/orgproject.model');
@@ -1745,6 +1747,111 @@ module.exports.getAuditFindings = asyncHandler(async (req, res) => {
 });
 
 
+// Get SSDLC Score
+module.exports.getSSDLCScore = asyncHandler(async (req, res) => {
+
+    const user = req.user;
+    
+    if (!user || !user.organization) {
+        return res.status(400).json({
+            success: false,
+            message: 'User or user organization not found'
+        });
+    }
+
+    const organizationId = await Organization.findById(user.organization);
+    const projectPhases = ['Development', 'Design', 'Testing', 'Maintenance'];
+
+  // Initialize counts for each phase
+  const counts = {
+    ActiveScanVulnerability: {},
+    SOAPOrGraphQLScanVulnerability: {},
+    SBOMScanVulnerability: {},
+    LLMScan: {}
+  };
+
+  projectPhases.forEach(phase => {
+    counts.ActiveScanVulnerability[phase] = 0;
+    counts.SOAPOrGraphQLScanVulnerability[phase] = 0;
+    counts.SBOMScanVulnerability[phase] = 0;
+    counts.LLMScan[phase] = 0;
+  });
+
+  // Fetch ActiveScanVulnerabilities and count by projectPhase
+  const activeScanVulnerabilities = await ActiveScanVulnerability.find({})
+    .populate({
+      path: 'activeScan',
+      match: { organization: organizationId } // Assuming there's a reference to organization
+    });
+
+  activeScanVulnerabilities.forEach(vuln => {
+    const phase = vuln.activeScan.projectPhase; // Use 'Development' if projectPhase is not present
+    if(phase=='Maintenance'){
+    console.log('phase:',phase)
+    }else{
+        console.log('no phase')
+    }
+    if (projectPhases.includes(phase)) {
+      counts.ActiveScanVulnerability[phase]++;
+    }
+  });
+
+  // Fetch SOAPOrGraphQLScanVulnerabilities and count by projectPhase
+  const soapOrGraphQLScanVulnerabilities = await SOAPOrGraphQLScanVulnerability.find({})
+    .populate({
+      path: 'soapOrGraphQLScan',
+      match: { organization: organizationId } // Assuming there's a reference to organization
+    });
+
+  soapOrGraphQLScanVulnerabilities.forEach(vuln => {
+    const phase = vuln.soapOrGraphQLScan.projectPhase; // Use 'Development' if projectPhase is not present
+    if (projectPhases.includes(phase)) {
+      counts.SOAPOrGraphQLScanVulnerability[phase]++;
+    }
+  });
+
+  // Fetch SBOMScanVulnerabilities and count by projectPhase
+  const sbomScanVulnerabilities = await SBOMScanVulnerability.find({})
+    .populate({
+      path: 'sbomScan',
+      match: { organization: organizationId } // Assuming there's a reference to organization
+    });
+
+  sbomScanVulnerabilities.forEach(vuln => {
+    const phase = vuln.sbomScan?.projectPhase; // Use 'Development' if projectPhase is not present
+    if (projectPhases.includes(phase)) {
+      counts.SBOMScanVulnerability[phase]++;
+    }
+  });
+
+  // Fetch LLMScans and count by resultFileContents length
+  const llmScans = await LLMScan.find({});
+  
+  llmScans.forEach(scan => {
+    const phase = scan.projectPhase; // Use 'Development' if projectPhase is not present
+    const numVulns = scan.resultFileContents.length; // Count of vulnerabilities
+    if (projectPhases.includes(phase)) {
+      counts.LLMScan[phase] = (counts.LLMScan[phase] || 0) + numVulns; // Aggregate vulnerabilities by projectPhase
+    }else{
+        counts.LLMScan[phase] = 0;
+    }
+  });
+
+
+    console.log('counts:',counts)
+  
+   // return counts;
+   
+
+
+
+    res.status(200).json({
+        success: true,
+        ssdlcScore:counts
+    });
+});
+
+
 // Get threat alerts
 module.exports.getThreatAlerts = asyncHandler(async (req, res) => {
 
@@ -1815,6 +1922,8 @@ const complianceStandards = [
     if(vulnerabilities){
     vulnerabilities.forEach(vuln => {
 
+        //console.log('haahha:',vuln.vulnerability)
+
         if(vuln.vulnerability && vuln.vulnerability.owasp){
         vuln.vulnerability.owasp.forEach(apiItem => {
             // Check if the OWASP API item corresponds to compliance standards
@@ -1830,15 +1939,127 @@ const complianceStandards = [
 
 }
 
-const activeScanVulnerabilities = await ActiveScanVulnerability.find({}).populate('vulnerability');
-const soapOrGraphQLScanVulnerabilities = await SOAPOrGraphQLScanVulnerability.find({});
+// Fetching ActiveScanVulnerabilities that belong to the given organization
+const activeScanVulnerabilities = await ActiveScanVulnerability.find({})
+    .populate({
+        path: 'activeScan',
+        populate: {
+            path: 'theCollectionVersion',
+            populate: {
+                path: 'apiCollection',
+                populate: {
+                    path: 'orgProject',
+                    match: { organization: organization } // Filter by organization
+                }
+            }
+        }
+    }).populate('vulnerability');
+
+// Log results to debug
+console.log("Populated Vulnerabilities:", activeScanVulnerabilities.length);
+
+// Filter out documents where orgProject is null or undefined
+const filteredVulnerabilities = activeScanVulnerabilities.filter(vuln => 
+    vuln.activeScan?.theCollectionVersion?.apiCollection?.orgProject
+);
+
+// Log filtered results
+console.log("Filtered Vulnerabilities:", filteredVulnerabilities.length);
+
+// Fetching SOAPOrGraphQLScanVulnerabilities that belong to the given organization
+const soapOrGraphQLScanVulnerabilities = await SOAPOrGraphQLScanVulnerability.find({})
+    .populate({
+        path: 'soapOrGraphQLScan',
+        populate: {
+            path: 'orgProject',
+            match: { organization: organization } // Filter by organization
+        }
+    })
+    .then(vulns => vulns.filter(vuln => vuln.soapOrGraphQLScan?.orgProject)); // Filter out null results
+
+    const llmScans = await LLMScan.find({})
+    .populate({
+        path: 'orgProject',
+        match: { organization: organization } // Filter by organization
+    })
+    .then(scans => scans.filter(scan => scan.orgProject)); // Filter out null results
+
+    const uniqueAffectedProbes = [];
+
+    for(var i=0;i<llmScans.length;i++){
+
+        if((JSON.stringify(llmScans[i].resultFileContents)).includes('blank')){
+            uniqueAffectedProbes.push('blank')
+        }
+        if((JSON.stringify(llmScans[i].resultFileContents)).includes('atkgen')){
+            uniqueAffectedProbes.push('atkgen')
+        }
+        if((JSON.stringify(llmScans[i].resultFileContents)).includes('continuation')){
+            uniqueAffectedProbes.push('continuation')
+        }
+        if((JSON.stringify(llmScans[i].resultFileContents)).includes('dan')){
+            uniqueAffectedProbes.push('dan')
+        }
+        if((JSON.stringify(llmScans[i].resultFileContents)).includes('donotanswer')){
+            uniqueAffectedProbes.push('donotanswer')
+        }
+        if((JSON.stringify(llmScans[i].resultFileContents)).includes('encoding')){
+            uniqueAffectedProbes.push('encoding')
+        }
+        if((JSON.stringify(llmScans[i].resultFileContents)).includes('gcg')){
+            uniqueAffectedProbes.push('gcg')
+        }
+        if((JSON.stringify(llmScans[i].resultFileContents)).includes('glitch')){
+            uniqueAffectedProbes.push('glitch')
+        }
+        if((JSON.stringify(llmScans[i].resultFileContents)).includes('goodside')){
+            uniqueAffectedProbes.push('goodside')
+        }
+        if((JSON.stringify(llmScans[i].resultFileContents)).includes('knownbadsignatures')){
+            uniqueAffectedProbes.push('knownbadsignatures')
+        }
+        if((JSON.stringify(llmScans[i].resultFileContents)).includes('leakerplay')){
+            uniqueAffectedProbes.push('leakerplay')
+        }
+        if((JSON.stringify(llmScans[i].resultFileContents)).includes('lmrc')){
+            uniqueAffectedProbes.push('lmrc')
+        }
+        if((JSON.stringify(llmScans[i].resultFileContents)).includes('malwaregen')){
+            uniqueAffectedProbes.push('malwaregen')
+        }
+        if((JSON.stringify(llmScans[i].resultFileContents)).includes('misleading')){
+            uniqueAffectedProbes.push('misleading')
+        }
+        if((JSON.stringify(llmScans[i].resultFileContents)).includes('packagehallucination')){
+            uniqueAffectedProbes.push('packagehallucination')
+        }
+        if((JSON.stringify(llmScans[i].resultFileContents)).includes('promptinject')){
+            uniqueAffectedProbes.push('promptinject')
+        }
+        if((JSON.stringify(llmScans[i].resultFileContents)).includes('realtoxicityprompts')){
+            uniqueAffectedProbes.push('realtoxicityprompts')
+        }
+        if((JSON.stringify(llmScans[i].resultFileContents)).includes('snowball')){
+            uniqueAffectedProbes.push('snowball')
+        }
+        if((JSON.stringify(llmScans[i].resultFileContents)).includes('xss')){
+            uniqueAffectedProbes.push('xss')
+        }
+    }
+
+   // const uniqueProbes = [...new Set(uniqueAffectedProbes)];
+
+
+   // console.log('uniqueProbes:',uniqueProbes)
+
+    
 
 console.log('#########activeScanVulnerabilities:',activeScanVulnerabilities.length)
 console.log('#########soapOrGraphQLScanVulnerabilities:',soapOrGraphQLScanVulnerabilities.length)
 
 
 // Assuming activeScanVulnerabilities, soapOrGraphQLScanVulnerabilities, and llmVulnerabilities are arrays of vulnerabilities
-processVulnerabilities1(activeScanVulnerabilities, restCounts);
+processVulnerabilities1(filteredVulnerabilities, restCounts);
 processVulnerabilities(soapOrGraphQLScanVulnerabilities, soapGraphQLCounts);
 
 // Prepare the response
@@ -1849,6 +2070,19 @@ const response = {
     ],
     rest: Object.values(restCounts),
     soapGraphQL: Object.values(soapGraphQLCounts),
+    llm:[uniqueAffectedProbes.length,
+        uniqueAffectedProbes.length,
+        uniqueAffectedProbes.length,
+        uniqueAffectedProbes.length,
+        uniqueAffectedProbes.length,
+        uniqueAffectedProbes.length,
+        uniqueAffectedProbes.length,
+        uniqueAffectedProbes.length,
+        uniqueAffectedProbes.length,
+        uniqueAffectedProbes.length,
+        uniqueAffectedProbes.length,
+        uniqueAffectedProbes.length,
+        uniqueAffectedProbes.length, ]
 };
 
 console.log(response);

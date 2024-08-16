@@ -17,7 +17,70 @@ import {
 const ComplianceStatus = () => {
 
 
+    
     const [loading, setLoading] = useState(false)
+
+    const [threatAlerts, setThreatAlerts] = useState(null)
+
+    useEffect(() => {
+      getResponse();
+    }, []);
+
+    function getAggregatedCount(standardName) {
+        // Find the index of the standard in the categories array
+        const index = threatAlerts.categories.indexOf(standardName);
+        
+        // Check if the standard exists in the categories array
+        if (index === -1) {
+          throw new Error('Standard name not found in categories');
+        }
+      
+        // Ensure index is within bounds of all arrays
+        if (index >= threatAlerts.rest.length || index >= threatAlerts.soapGraphQL.length || index >= threatAlerts.llm.length) {
+          throw new Error('Index out of bounds in data arrays');
+        }
+      
+        // Sum the values from rest, soapGraphQL, and llm at the same index
+        const aggregatedCount = (
+          (threatAlerts.rest[index] || 0) +
+          (threatAlerts.soapGraphQL[index] || 0) +
+          (threatAlerts.llm[index] || 0)
+        );
+      
+        return aggregatedCount;
+      }
+
+    const getResponse = () => {
+      // Set from localStorage cache
+      if (localStorage.getItem('threatAlerts')) {
+        setThreatAlerts(JSON.parse(localStorage.getItem('threatAlerts')));
+      } else {
+        setThreatAlerts(true);
+      }
+
+      const endpoint = 'api/v1/users/getThreatAlerts';
+      const token = localStorage.getItem('ASIToken');
+
+      axios.get(endpoint, {
+        headers: {
+          Authorization: `Bearer ${token}`
+        }
+      })
+        .then(response => {
+
+          setThreatAlerts(response.data);
+
+          // Save into local storage to show from cache while it loads next time
+          localStorage.setItem('threatAlerts', JSON.stringify(response.data));
+
+          setLoading(false)
+        })
+        .catch(error => {
+          setLoading(false)
+        });
+    };
+
+
 
     return (
 
@@ -70,6 +133,7 @@ const ComplianceStatus = () => {
                             <div style={{ flex: 1, minWidth: 0, marginTop: 10 }}>
 
 
+{threatAlerts &&
                                 <table style={{width:'100%'}}>
 
                                     <thead>
@@ -81,97 +145,150 @@ const ComplianceStatus = () => {
                                         <tr>
                                             <td>ISO 27001</td>
                                             <td>
+                                            {getAggregatedCount('ISO 27001') == 0 ?
                                                 <span style={{padding:5, backgroundColor:'#28C76F', fontSize:12, color:'#fff', borderRadius:5 }}>Compliant</span>
+                                                :
+                                                <span style={{padding:5, backgroundColor:'#ea5455', fontSize:12, color:'#fff', borderRadius:5 }}>Non-Compliant</span>
+
+                                                }
                                             </td>
                                         </tr>
 
                                         <tr>
                                             <td>NIST CISF</td>
                                             <td>
-                                            <span style={{padding:5, backgroundColor:'#ea5455', fontSize:12, color:'#fff', borderRadius:5 }}>Non-Compliant</span>
-                                            </td>
+                                            {getAggregatedCount('NIST CISF') == 0 ?
+                                                <span style={{padding:5, backgroundColor:'#28C76F', fontSize:12, color:'#fff', borderRadius:5 }}>Compliant</span>
+                                                :
+                                                <span style={{padding:5, backgroundColor:'#ea5455', fontSize:12, color:'#fff', borderRadius:5 }}>Non-Compliant</span>
+
+                                                }                                            </td>
                                         </tr>
 
                                         <tr>
                                             <td>GDPR</td>
                                             <td>
-                                            <span style={{padding:5, backgroundColor:'#28C76F', fontSize:12, color:'#fff', borderRadius:5 }}>Compliant</span>
-                                            </td>
+                                            {getAggregatedCount('GDPR') == 0 ?
+                                                <span style={{padding:5, backgroundColor:'#28C76F', fontSize:12, color:'#fff', borderRadius:5 }}>Compliant</span>
+                                                :
+                                                <span style={{padding:5, backgroundColor:'#ea5455', fontSize:12, color:'#fff', borderRadius:5 }}>Non-Compliant</span>
+
+                                                }                                            </td>
                                         </tr>
 
                                         <tr>
                                             <td>PCI DSS</td>
                                             <td>
-                                            <span style={{padding:5, backgroundColor:'#ea5455', fontSize:12, color:'#fff', borderRadius:5 }}>Non-Compliant</span>
-                                            </td>
+                                            {getAggregatedCount('PCI DSS') == 0 ?
+                                                <span style={{padding:5, backgroundColor:'#28C76F', fontSize:12, color:'#fff', borderRadius:5 }}>Compliant</span>
+                                                :
+                                                <span style={{padding:5, backgroundColor:'#ea5455', fontSize:12, color:'#fff', borderRadius:5 }}>Non-Compliant</span>
+
+                                                }                                            </td>
                                         </tr>
 
                                         <tr>
                                             <td>HIPAA</td>
                                             <td>
-                                            <span style={{padding:5, backgroundColor:'#28C76F', fontSize:12, color:'#fff', borderRadius:5 }}>Compliant</span>
-                                            </td>
+                                            {getAggregatedCount('HIPAA') == 0 ?
+                                                <span style={{padding:5, backgroundColor:'#28C76F', fontSize:12, color:'#fff', borderRadius:5 }}>Compliant</span>
+                                                :
+                                                <span style={{padding:5, backgroundColor:'#ea5455', fontSize:12, color:'#fff', borderRadius:5 }}>Non-Compliant</span>
+
+                                                }                                            </td>
                                         </tr>
 
                                         <tr>
                                             <td>MITRE ATT&CK</td>
                                             <td>
-                                            <span style={{padding:5, backgroundColor:'#ea5455', fontSize:12, color:'#fff', borderRadius:5 }}>Non-Compliant</span>
-                                            </td>
+                                            {getAggregatedCount('MITRE ATT&CK') == 0 ?
+                                                <span style={{padding:5, backgroundColor:'#28C76F', fontSize:12, color:'#fff', borderRadius:5 }}>Compliant</span>
+                                                :
+                                                <span style={{padding:5, backgroundColor:'#ea5455', fontSize:12, color:'#fff', borderRadius:5 }}>Non-Compliant</span>
+
+                                                }                                            </td>
                                         </tr>
 
                                         <tr>
                                             <td>NIST 800-53</td>
                                             <td>
-                                            <span style={{padding:5, backgroundColor:'#28C76F', fontSize:12, color:'#fff', borderRadius:5 }}>Compliant</span>
-                                            </td>
+                                            {getAggregatedCount('NIST 800-53') == 0 ?
+                                                <span style={{padding:5, backgroundColor:'#28C76F', fontSize:12, color:'#fff', borderRadius:5 }}>Compliant</span>
+                                                :
+                                                <span style={{padding:5, backgroundColor:'#ea5455', fontSize:12, color:'#fff', borderRadius:5 }}>Non-Compliant</span>
+
+                                                }                                            </td>
                                         </tr>
 
                                         <tr>
                                             <td>ASVS</td>
                                             <td>
-                                            <span style={{padding:5, backgroundColor:'#ea5455', fontSize:12, color:'#fff', borderRadius:5 }}>Non-Compliant</span>
-                                            </td>
+                                            {getAggregatedCount('ASVS') == 0 ?
+                                                <span style={{padding:5, backgroundColor:'#28C76F', fontSize:12, color:'#fff', borderRadius:5 }}>Compliant</span>
+                                                :
+                                                <span style={{padding:5, backgroundColor:'#ea5455', fontSize:12, color:'#fff', borderRadius:5 }}>Non-Compliant</span>
+
+                                                }                                            </td>
                                         </tr>
 
 
                                         <tr>
                                             <td>CMMC</td>
                                             <td>
-                                            <span style={{padding:5, backgroundColor:'#ea5455', fontSize:12, color:'#fff', borderRadius:5 }}>Non-Compliant</span>
-                                            </td>
+                                            {getAggregatedCount('CMMC') == 0 ?
+                                                <span style={{padding:5, backgroundColor:'#28C76F', fontSize:12, color:'#fff', borderRadius:5 }}>Compliant</span>
+                                                :
+                                                <span style={{padding:5, backgroundColor:'#ea5455', fontSize:12, color:'#fff', borderRadius:5 }}>Non-Compliant</span>
+
+                                                }                                            </td>
                                         </tr>
 
                                         <tr>
                                             <td>CCPA</td>
                                             <td>
-                                            <span style={{padding:5, backgroundColor:'#28C76F', fontSize:12, color:'#fff', borderRadius:5 }}>Compliant</span>
-                                            </td>
+                                            {getAggregatedCount('CCPA') == 0 ?
+                                                <span style={{padding:5, backgroundColor:'#28C76F', fontSize:12, color:'#fff', borderRadius:5 }}>Compliant</span>
+                                                :
+                                                <span style={{padding:5, backgroundColor:'#ea5455', fontSize:12, color:'#fff', borderRadius:5 }}>Non-Compliant</span>
+
+                                                }                                            </td>
                                         </tr>
 
                                         <tr>
                                             <td>FIPS</td>
                                             <td>
-                                            <span style={{padding:5, backgroundColor:'#28C76F', fontSize:12, color:'#fff', borderRadius:5 }}>Compliant</span>
-                                            </td>
+                                            {getAggregatedCount('FIPS') == 0 ?
+                                                <span style={{padding:5, backgroundColor:'#28C76F', fontSize:12, color:'#fff', borderRadius:5 }}>Compliant</span>
+                                                :
+                                                <span style={{padding:5, backgroundColor:'#ea5455', fontSize:12, color:'#fff', borderRadius:5 }}>Non-Compliant</span>
+
+                                                }                                            </td>
                                         </tr>
 
                                         <tr>
                                             <td>FISMA</td>
                                             <td>
-                                            <span style={{padding:5, backgroundColor:'#28C76F', fontSize:12, color:'#fff', borderRadius:5 }}>Compliant</span>
-                                            </td>
+                                            {getAggregatedCount('FISMA') == 0 ?
+                                                <span style={{padding:5, backgroundColor:'#28C76F', fontSize:12, color:'#fff', borderRadius:5 }}>Compliant</span>
+                                                :
+                                                <span style={{padding:5, backgroundColor:'#ea5455', fontSize:12, color:'#fff', borderRadius:5 }}>Non-Compliant</span>
+
+                                                }                                            </td>
                                         </tr>
 
                                         <tr>
                                             <td>RBI CSF</td>
                                             <td>
-                                            <span style={{padding:5, backgroundColor:'#28C76F', fontSize:12, color:'#fff', borderRadius:5 }}>Compliant</span>
-                                            </td>
+                                            {getAggregatedCount('RBI CSF') == 0 ?
+                                                <span style={{padding:5, backgroundColor:'#28C76F', fontSize:12, color:'#fff', borderRadius:5 }}>Compliant</span>
+                                                :
+                                                <span style={{padding:5, backgroundColor:'#ea5455', fontSize:12, color:'#fff', borderRadius:5 }}>Non-Compliant</span>
+
+                                                }                                            </td>
                                         </tr>
                                     </tbody>
                                 </table>
-
+}
 
                             </div>
 

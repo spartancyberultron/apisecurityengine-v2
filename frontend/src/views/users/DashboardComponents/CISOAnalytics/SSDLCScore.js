@@ -1,91 +1,170 @@
 import React, { useState, useEffect } from "react";
 import Chart from 'react-apexcharts';
 import { Shimmer, Breathing } from 'react-shimmer'
+import axios from 'axios';
 
 
 const SSDLCScore = () => {
+
     const [loading, setLoading] = useState(false);
 
-    // Example data
-    const data = {
-        categories: ['Design', 'Development', 'Testing', 'Maintenance'],
-        series: [
-            {
-                name: 'REST API',
-                data: [10, 20, 15, 5], // Example values for REST API
-            },
-            {
-                name: 'SOAP/GraphQL API',
-                data: [15, 10, 20, 10], // Example values for SOAP/GraphQL API
-            },
-            {
-                name: 'LLM API',
-                data: [5, 25, 10, 15], // Example values for LLM API
-            },
-        ],
+
+    const [ssdlcScore, setSsdlcScore] = useState(null)
+
+    useEffect(() => {
+      getResponse();
+    }, []);
+
+   
+    const getResponse = () => {
+      // Set from localStorage cache
+      if (localStorage.getItem('ssdlcScore')) {
+        setSsdlcScore(JSON.parse(localStorage.getItem('ssdlcScore')));
+      } else {
+        setSsdlcScore(true);
+      }
+
+      const endpoint = 'api/v1/users/getSSDLCScore';
+      const token = localStorage.getItem('ASIToken');
+
+      axios.get(endpoint, {
+        headers: {
+          Authorization: `Bearer ${token}`
+        }
+      })
+        .then(response => {
+
+          setSsdlcScore(response.data.ssdlcScore);
+
+          // Save into local storage to show from cache while it loads next time
+          localStorage.setItem('ssdlcScore', JSON.stringify(response.data.ssdlcScore));
+
+          setLoading(false)
+        })
+        .catch(error => {
+          setLoading(false)
+        });
     };
 
-    const chartOptions = {
-        chart: {
-            type: 'bar',
-            height: 350,
-            stacked: true, // Stack bars
-        },
-        plotOptions: {
-            bar: {
-                horizontal: true, // Horizontal bars
-                barHeight: '80%',
-                endingShape: 'rounded',
-            },
-        },
-        dataLabels: {
-            enabled: false,
-        },
-        stroke: {
-            show: true,
-            width: 1,
-            colors: ['#fff'],
-        },
-        xaxis: {
-          categories: data.categories,
-          title: {
-              text: 'Number of Vulnerabilities',
-              style: {
-                  color: '#000', // Black color for x-axis title
-              },
-          },
-          labels: {
-              style: {
-                  colors: '#000', // Black color for x-axis labels
-              },
-          },
-      },
-      yaxis: {
-          title: {
-              text: '',
-              style: {
-                  color: '#000', // Black color for y-axis title
-              },
-          },
-          labels: {
-              style: {
-                  colors: '#000', // Black color for y-axis labels
-              },
-          },
-      },
-        fill: {
-            opacity: 1,
-        },
-        tooltip: {
-            y: {
-                formatter: function (val) {
-                    return val;
-                },
-            },
-        },
-    };
+    console.log('ssdlcScore:',ssdlcScore)
 
-    const chartSeries = data.series;
+
+    let data;
+    let chartOptions;
+let chartSeries;
+
+    if(ssdlcScore){
+  // Adapt the data for the chart
+data = {
+    categories: ['Development', 'Design', 'Testing', 'Maintenance'],
+    series: [
+        {
+            name: 'REST',
+            data: [
+                ssdlcScore.ActiveScanVulnerability.Development,
+                ssdlcScore.ActiveScanVulnerability.Design,
+                ssdlcScore.ActiveScanVulnerability.Testing,
+                ssdlcScore.ActiveScanVulnerability.Maintenance
+            ],
+        },
+        {
+            name: 'SOAP/GraphQL',
+            data: [
+                ssdlcScore.SOAPOrGraphQLScanVulnerability.Development,
+                ssdlcScore.SOAPOrGraphQLScanVulnerability.Design,
+                ssdlcScore.SOAPOrGraphQLScanVulnerability.Testing,
+                ssdlcScore.SOAPOrGraphQLScanVulnerability.Maintenance
+            ],
+        },
+        {
+            name: 'SBOM',
+            data: [
+                ssdlcScore.SBOMScanVulnerability.Development,
+                ssdlcScore.SBOMScanVulnerability.Design,
+                ssdlcScore.SBOMScanVulnerability.Testing,
+                ssdlcScore.SBOMScanVulnerability.Maintenance
+            ],
+        },
+        {
+            name: 'LLM',
+            data: [
+                ssdlcScore.LLMScan.Development,
+                ssdlcScore.LLMScan.Development?ssdlcScore.LLMScan.Design:0, // No data for Design
+                ssdlcScore.LLMScan.Development?ssdlcScore.LLMScan.Testing:0, // No data for Testing
+                ssdlcScore.LLMScan.Development?ssdlcScore.LLMScan.Maintenance:0  // No data for Maintenance
+            ],
+        },
+    ],
+};
+
+// Chart options
+chartOptions = {
+    chart: {
+        type: 'bar',
+        height: 350,
+        stacked: true, // Stack bars
+    },
+    plotOptions: {
+        bar: {
+            horizontal: true, // Horizontal bars
+            barHeight: '80%',
+            endingShape: 'rounded',
+        },
+    },
+    dataLabels: {
+        enabled: false,
+    },
+    stroke: {
+        show: true,
+        width: 1,
+        colors: ['#fff'],
+    },
+    xaxis: {
+        categories: data.categories,
+        title: {
+            text: 'Number of Vulnerabilities',
+            style: {
+                color: '#000', // Black color for x-axis title
+            },
+        },
+        labels: {
+            style: {
+                colors: '#000', // Black color for x-axis labels
+            },
+        },
+    },
+    yaxis: {
+        title: {
+            text: '',
+            style: {
+                color: '#000', // Black color for y-axis title
+            },
+        },
+        labels: {
+            style: {
+                colors: '#000', // Black color for y-axis labels
+            },
+        },
+    },
+    fill: {
+        opacity: 1,
+    },
+    tooltip: {
+        y: {
+            formatter: function (val) {
+                return val;
+            },
+        },
+    },
+};
+
+chartSeries = data.series;
+
+
+    }
+// Use `data.series` and `chartOptions` in your chart rendering logic
+
+  
 
     return (
         <div className="theCards" style={{
@@ -117,6 +196,7 @@ const SSDLCScore = () => {
                             height:'100%',
                         }}
                     >
+                        {ssdlcScore &&
                         <Chart
                             options={chartOptions}
                             series={chartSeries}
@@ -124,6 +204,7 @@ const SSDLCScore = () => {
                             width={450}
                             height={350}
                         />
+                        }
                     </div>
                 )}
             </div>
