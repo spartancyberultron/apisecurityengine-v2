@@ -27,6 +27,8 @@ const ComplianceStatus = () => {
     }, []);
 
     function getAggregatedCount(standardName) {
+
+        if(threatAlerts.categories){
         // Find the index of the standard in the categories array
         const index = threatAlerts.categories.indexOf(standardName);
         
@@ -46,8 +48,10 @@ const ComplianceStatus = () => {
           (threatAlerts.soapGraphQL[index] || 0) +
           (threatAlerts.llm[index] || 0)
         );
+        
       
         return aggregatedCount;
+        }
       }
 
     const getResponse = () => {
