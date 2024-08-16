@@ -55,23 +55,7 @@ const APIInventory = () => {
 
   const itemsPerPage = 10;
 
-  // Invoke when user click to request another page.
-  const handlePageClick = (event) => {
-
-    var requestedPage = event.selected + 1;
-
-    //console.log('requestedPage', requestedPage)
-
-    fetchAPICollections(true, requestedPage);
-
-    const newOffset = (event.selected * itemsPerPage) % totalRecords;
-    //console.log(
-    //  `User requested page number ${event.selected}, which is offset ${newOffset}`
-    //);
-    setItemOffset(newOffset);
-
-  };
-
+  
 
   // Function to handle the button click and show the confirm dialog
   const handleClick = (user) => {

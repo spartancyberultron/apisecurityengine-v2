@@ -96,16 +96,12 @@ const ThreatAlerts = () => {
             data: threatAlerts ? threatAlerts.rest : [],
         },
         {
-            name: 'SOAP',
-            data: threatAlerts ? threatAlerts.soap : [],
-        },
+            name: 'SOAP/GraphQL',
+            data: threatAlerts ? threatAlerts.soapGraphQL : [],
+        },        
         {
-            name: 'GraphQL',
-            data: threatAlerts ? threatAlerts.graphql : [],
-        },
-        {
-            name: 'SBOM',
-            data: threatAlerts ? threatAlerts.sbom : [],
+            name: 'LLM',
+            data: threatAlerts ? threatAlerts.llm : [],
         },
     ];
 

@@ -418,9 +418,11 @@ module.exports.getTickets = asyncHandler(async (req, res) => {
         const page = req.params.page ? parseInt(req.params.page, 10) : 1;
         const rowsPerPage = req.params.rowsPerPage ? parseInt(req.params.rowsPerPage, 10) : 10;
 
+        console.log('page:', page)
+        console.log('rowsPerPage:', rowsPerPage)
 
         // Validate and parse page and rowsPerPage
-        const pageNumber = parseInt(page, 10);
+        const pageNumber = parseInt(page, 10) + 1;
         const rowsPerPageNumber = parseInt(rowsPerPage, 10);
 
         if (isNaN(pageNumber) || isNaN(rowsPerPageNumber) || pageNumber < 1 || rowsPerPageNumber < 1) {
@@ -443,6 +445,9 @@ module.exports.getTickets = asyncHandler(async (req, res) => {
             .limit(limit)
             .lean();
 
+            console.log('tickets:',tickets.length)
+            console.log('totalCount:',totalCount)
+
         for (var i = 0; i < tickets.length; i++) {
 
 
@@ -459,9 +464,9 @@ module.exports.getTickets = asyncHandler(async (req, res) => {
                         }
                     });
 
-                console.log('activeScan:', activeScan)
+             //   console.log('activeScan:', activeScan)
 
-                if (activeScan) {
+                if (activeScan && activeScan.theCollectionVersion) {
 
                     tickets[i].projectName = activeScan.theCollectionVersion.apiCollection ? activeScan.theCollectionVersion.apiCollection.orgProject.name : '---';
                 }
@@ -470,7 +475,7 @@ module.exports.getTickets = asyncHandler(async (req, res) => {
 
                 const attackSurfaceScan = await AttackSurfaceScan.findById(tickets[i].scanId).populate('orgProject')
                     
-                console.log('attackSurfaceScan:', attackSurfaceScan)
+               // console.log('attackSurfaceScan:', attackSurfaceScan)
 
                 if (attackSurfaceScan) {
 
@@ -481,7 +486,7 @@ module.exports.getTickets = asyncHandler(async (req, res) => {
 
                 const llmScan = await LLMScan.findById(tickets[i].scanId).populate('orgProject')
                     
-                console.log('llmScan:', llmScan)
+            //    console.log('llmScan:', llmScan)
 
                 if (llmScan) {
 
@@ -492,7 +497,7 @@ module.exports.getTickets = asyncHandler(async (req, res) => {
 
                 const soapOrGraphQLScan = await SOAPOrGraphQLScan.findById(tickets[i].scanId).populate('orgProject')
                     
-                console.log('soapOrGraphQLScan:', soapOrGraphQLScan)
+              //  console.log('soapOrGraphQLScan:', soapOrGraphQLScan)
 
                 if (soapOrGraphQLScan) {
 
@@ -503,7 +508,7 @@ module.exports.getTickets = asyncHandler(async (req, res) => {
 
                 const sbomScan = await SBOMScan.findById(tickets[i].scanId).populate('orgProject')
                     
-                console.log('sbomScan:', sbomScan)
+             //   console.log('sbomScan:', sbomScan)
 
                 if (sbomScan) {
 
@@ -514,7 +519,7 @@ module.exports.getTickets = asyncHandler(async (req, res) => {
 
                 const project = await Project.findById(tickets[i].scanId).populate('orgProject')
                     
-                console.log('project:', project)
+               // console.log('project:', project)
 
                 if (project) {
 

@@ -205,13 +205,14 @@ const Tickets = () => {
 
   useEffect(() => {    
 
-      fetchTickets(1, 20);  
+      fetchTickets(1, rowsPerPage);  
 
   }, []);
 
   
 
   const columns = [
+    "#",
     "ID",
     "Category",
     "Source",
@@ -329,7 +330,7 @@ const Tickets = () => {
     searchOpen: true,
     viewColumns: true,
     selectableRows: false, // <===== will turn off checkboxes in rows
-    rowsPerPageOptions: [20,40,60,100],
+    rowsPerPageOptions: [10, 20, 60, 100, 150],
     pagination: true,
     textLabels: {
       body: {
@@ -358,6 +359,8 @@ const Tickets = () => {
   for (var i = 0; i < tickets.length; i++) {
 
     var dataItem = [];
+
+    dataItem.push(((page) * 10) + (i+1));
 
     dataItem.push(tickets[i].ticketId);
     dataItem.push(tickets[i].category);

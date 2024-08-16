@@ -356,6 +356,103 @@ module.exports.getUserDashboardCardsData = asyncHandler(async (req, res) => {
 
     const activeScansVulnsCount = await ActiveScanVulnerability.countDocuments({ activeScan: { $in: activeScans.map(activeScan => activeScan._id) } });
 
+    const attackSurfaceVulns = await AttackSurfaceScanVulnerability.aggregate([
+        {
+          $lookup: {
+            from: 'attacksurfacescans', // Ensure this matches the actual collection name
+            localField: 'attackSurfaceScan',
+            foreignField: '_id',
+            as: 'attackSurfaceScan'
+          }
+        },
+        { $unwind: '$attackSurfaceScan' },
+        {
+          $match: {
+            'attackSurfaceScan.orgProject': { $in: orgProjectIds }
+          }
+        },
+        {
+          $count: 'totalCount'
+        }
+      ]);
+      const attackSurfaceVulnCount = attackSurfaceVulns.length > 0 ? attackSurfaceVulns[0].totalCount : 0;
+
+//////////////////
+      const projectVulns = await ProjectVulnerability.aggregate([
+        {
+          $lookup: {
+            from: 'projects', // Ensure this matches the actual collection name
+            localField: 'project',
+            foreignField: '_id',
+            as: 'project'
+          }
+        },
+        { $unwind: '$project' },
+        {
+          $match: {
+            'project.orgProject': { $in: orgProjectIds }
+          }
+        },
+        {
+          $count: 'totalCount'
+        }
+      ]);
+      
+      const projectVulnsCount = projectVulns.length > 0 ? projectVulns[0].totalCount : 0;
+/////////////////////
+
+
+const soapGraphQLVulns = await SOAPOrGraphQLScanVulnerability.aggregate([
+    {
+      $lookup: {
+        from: 'soaporgraphqlscans', // Ensure this matches the actual collection name
+        localField: 'soapOrGraphQLScan',
+        foreignField: '_id',
+        as: 'soapOrGraphQLScan'
+      }
+    },
+    { $unwind: '$soapOrGraphQLScan' },
+    {
+      $match: {
+        'soapOrGraphQLScan.orgProject': { $in: orgProjectIds }
+      }
+    },
+    {
+      $count: 'totalCount'
+    }
+  ]);
+
+  console.log('soapGraphQLVulns:',soapGraphQLVulns)
+  
+  const soapGraphQLVulnsCount = soapGraphQLVulns.length > 0 ? soapGraphQLVulns[0].totalCount : 0;
+  ////////////////////////////
+
+
+  const sbomScanVulns = await SBOMScanVulnerability.aggregate([
+    {
+      $lookup: {
+        from: 'sbomscans', // Ensure this matches the actual collection name
+        localField: 'sbomScan',
+        foreignField: '_id',
+        as: 'sbomScan'
+      }
+    },
+    { $unwind: '$sbomScan' },
+    {
+      $match: {
+        'sbomScan.orgProject': { $in: orgProjectIds }
+      }
+    },
+    {
+      $count: 'totalCount'
+    }
+  ]);
+  
+  const sbomScanVulnsCount = sbomScanVulns.length > 0 ? sbomScanVulns[0].totalCount : 0;
+
+  //////////////////
+
+
     console.log('endpointsArray:',endpointsArray)
 
     // Calculate PII fields count
@@ -365,7 +462,14 @@ module.exports.getUserDashboardCardsData = asyncHandler(async (req, res) => {
     dashboardData.endPointsCount = endpointsCount;//endpointsArray.length;
     dashboardData.agentsCount = agentsCount;
 
-    dashboardData.vulnerabilitiesCount = activeScansVulnsCount;//activeScansVulnsArray.length;
+    console.log('activeScansVulnsCount:',activeScansVulnsCount)
+    console.log('attackSurfaceVulnCount:',attackSurfaceVulnCount)
+    console.log('projectVulnsCount:',projectVulnsCount)
+    console.log('soapGraphQLVulnsCount:',soapGraphQLVulnsCount)
+    console.log('sbomScanVulnsCount:',sbomScanVulnsCount)
+
+    dashboardData.vulnerabilitiesCount = activeScansVulnsCount + attackSurfaceVulnCount + projectVulnsCount+
+    soapGraphQLVulnsCount + sbomScanVulnsCount;//activeScansVulnsArray.length;
     
     dashboardData.alertsCount = activeScansVulnsCount;//0;
     dashboardData.piiDataFieldsCount = piiFieldsCount;
@@ -1511,38 +1615,89 @@ module.exports.getNumberOfOpenVulnerabilities = asyncHandler(async (req, res) =>
 
     //console.log('User organization:', user.organization);
 
-    // First, let's check if there are any open tickets at all
-    const openTicketsCount = await Ticket.countDocuments({
+    // REST
+    const openTicketsCountRest = await Ticket.countDocuments({
         organization: user.organization,
-        status: 'OPEN'
+        status: 'OPEN',
+        'source':"REST API Scan"
     });
 
-    //console.log('Total open tickets:', openTicketsCount);
+    console.log('REST tickets:', openTicketsCountRest);
 
-    const vulnerabilityCounts = await Ticket.aggregate([
-    {
-        $group: {
-            _id: '$title',
-            count: { $sum: 1 }
-        }
-    },
-    {
-        $project: {
-            _id: 0,
-            title: '$_id',
-            count: 1
-        }
-    },
-    {
-        $sort: { count: -1 }
-    }
-]);
+
+    // Attack Surface
+    const openTicketsCountAttackSurface = await Ticket.countDocuments({
+        organization: user.organization,
+        status: 'OPEN',
+        'source':"Attack Surface Scan"
+    });
+
+    console.log('openTicketsCountAttackSurface:', openTicketsCountAttackSurface);
+
+    // Agent Traffic
+    const openTicketsCountAPITrafficScan = await Ticket.countDocuments({
+        organization: user.organization,
+        status: 'OPEN',
+        'source':"API Traffic Scan"
+    });
+
+    console.log('openTicketsCountAPITrafficScan:', openTicketsCountAPITrafficScan);
+
+
+    // SOAP
+    const openTicketsCountSOAPScan = await Ticket.countDocuments({
+        organization: user.organization,
+        status: 'OPEN',
+        'source':"SOAP Scan"
+    });
+
+    console.log('openTicketsCountSOAPScan:', openTicketsCountSOAPScan);
+
+
+    // GraphQL
+    const openTicketsCountGraphQLScan = await Ticket.countDocuments({
+        organization: user.organization,
+        status: 'OPEN',
+        'source':"GraphQL Scan"
+    });
+
+    console.log('openTicketsCountGraphQLScan:', openTicketsCountGraphQLScan);
+
+
+    // SBOM
+    const openTicketsCountSBOMScan = await Ticket.countDocuments({
+        organization: user.organization,
+        status: 'OPEN',
+        'source':"SBOM Scan"
+    });
+
+    console.log('openTicketsCountSBOMScan:', openTicketsCountSBOMScan);
+
+
+    // LLM
+    const openTicketsCountLLMScan = await Ticket.countDocuments({
+        organization: user.organization,
+        status: 'OPEN',
+        'source':"LLM Scan"
+    });
+
+    console.log('openTicketsCountLLMScan:', openTicketsCountLLMScan);    
 
     //console.log('Vulnerability counts:', vulnerabilityCounts);
 
+    var vulnerabilities ={};
+    vulnerabilities.openTicketsCountRest = openTicketsCountRest;
+    vulnerabilities.openTicketsCountAttackSurface = openTicketsCountAttackSurface;
+    vulnerabilities.openTicketsCountAPITrafficScan = openTicketsCountAPITrafficScan;
+    vulnerabilities.openTicketsCountSOAPScan = openTicketsCountSOAPScan;
+    vulnerabilities.openTicketsCountGraphQLScan = openTicketsCountGraphQLScan;
+    vulnerabilities.openTicketsCountSBOMScan = openTicketsCountSBOMScan;
+    vulnerabilities.openTicketsCountLLMScan = openTicketsCountLLMScan;
+
+
     res.status(200).json({
         success: true,
-        vulnerabilities: vulnerabilityCounts
+        vulnerabilities   
     });
 });
 
@@ -1560,7 +1715,7 @@ module.exports.getAuditFindings = asyncHandler(async (req, res) => {
         });
     }
 
-    const categories = ['REST', 'SOAP', 'GraphQL', 'LLM'];
+    const categories = ['REST API Scan', 'Attack Surface Scan', 'API Traffic Scan', 'SOAP Scan', 'GraphQL Scan', 'SBOM Scan','LLM Scan' ];
     
     const auditFindings = await Promise.all(categories.map(async (category) => {
         const sourceRegex = new RegExp(category, 'i'); // 'i' flag for case-insensitive
@@ -1593,86 +1748,112 @@ module.exports.getAuditFindings = asyncHandler(async (req, res) => {
 // Get threat alerts
 module.exports.getThreatAlerts = asyncHandler(async (req, res) => {
 
-    const apiComplianceMap = {
-        'API1:2023 Broken Object Level Authorization': 'API1:2023',
-        'API2:2023 Broken Authentication': 'API2:2023',
-        'API3:2023 Broken Object Property Level Authorization': 'API3:2023',
-        'API4:2023 Unrestricted Resource Consumption': 'API4:2023',
-        'API5:2023 Broken Function Level Authorization': 'API5:2023',
-        'API6:2023 - Unrestricted Access to Sensitive Business Flows': 'API6:2023',
-        'API7:2023 - Server Side Request Forgery': 'API7:2023',
-        'API8:2023 Security Misconfiguration': 'API8:2023',
-        'API9:2023 Improper Inventory Management': 'API9:2023',
-        'API10:2023 Unsafe Consumption of APIs': 'API10:2023'
-    };
 
-    const llmComplianceMap = {
-        'LLM01:2023 - Prompt Injections': 'LLM01:2023',
-        'LLM02:2023 - Data Leakage': 'LLM02:2023',
-        'LLM 03:2023 - Inadequate Sandboxing': 'LLM03:2023',
-        'LLM 04:2023 - Unauthorised Code Execution': 'LLM04:2023',
-        'LLM05:2023 - SSRF Vulnerabilities': 'LLM05:2023',
-        'LLM 06:2023 - Over Reliance on LLM-generated Content': 'LLM06:2023',
-        'LLM 07:2023 - Inadequate AI Alignment': 'LLM07:2023',
-        'LLM 08:2023 - Insufficient Access Controls': 'LLM08:2023',
-        'LLM 09:2023 - Improper Error Handling': 'LLM09:2023',
-        'LLM 10:2023 - Training Data Poisoning': 'LLM10:2023'
-    };
+    const user = req.user;
+    
+    if (!user || !user.organization) {
+        return res.status(400).json({
+            success: false,
+            message: 'User or user organization not found'
+        });
+    }
 
-    // Initialize counters
-    const restCounts = {};
-    const soapCounts = {};
-    const graphqlCounts = {};
+    const organization = await Organization.findById(user.organization);
 
-    // Count vulnerabilities from ActiveScanVulnerability
-    const activeScanVulnerabilities = await ActiveScanVulnerability.find();
-    activeScanVulnerabilities.forEach(vulnerability => {
-        if (vulnerability.vulnerability && vulnerability.vulnerability.owasp) {
-            vulnerability.vulnerability.owasp.forEach(owasp => {
-                if (apiComplianceMap[owasp]) {
-                    restCounts[apiComplianceMap[owasp]] = (restCounts[apiComplianceMap[owasp]] || 0) + 1;
-                }
-                if (llmComplianceMap[owasp]) {
-                    restCounts[llmComplianceMap[owasp]] = (restCounts[llmComplianceMap[owasp]] || 0) + 1;
-                }
-            });
-        }
+   
+
+    // Initialize counters for each compliance standard
+const restCounts = {
+    iso27001: 0, nistCSF: 0, gdpr: 0, pciDSS: 0, hipaa: 0, mitreATTACK: 0,
+    nist80053: 0, asvs: 0, cmmc: 0, ccpa: 0, fips: 0, fisma: 0, rbiCSF: 0
+};
+const soapGraphQLCounts = {
+    iso27001: 0, nistCSF: 0, gdpr: 0, pciDSS: 0, hipaa: 0, mitreATTACK: 0,
+    nist80053: 0, asvs: 0, cmmc: 0, ccpa: 0, fips: 0, fisma: 0, rbiCSF: 0
+};
+
+
+
+
+// Iterate through ActiveScanVulnerability and SOAPOrGraphQLScanVulnerability
+function processVulnerabilities(vulnerabilities, countsObject) {
+
+    // List of all compliance standards for easier iteration
+const complianceStandards = [
+    "iso27001", "nistCSF", "gdpr", "pciDSS", "hipaa", "mitreATTACK",
+    "nist80053", "asvs", "cmmc", "ccpa", "fips", "fisma", "rbiCSF"
+];
+
+
+    if(vulnerabilities){
+    vulnerabilities.forEach(vuln => {
+
+        if(vuln.owasp){
+        vuln.owasp.forEach(apiItem => {
+            // Check if the OWASP API item corresponds to compliance standards
+            if (apiItem.startsWith("API")) {
+                complianceStandards.forEach(standard => {
+                    countsObject[standard]++;
+                });
+            }
+        });
+    }
     });
+}
 
-    // Count vulnerabilities from SOAPOrGraphQLScanVulnerability
-    const soapGraphQLVulnerabilities = await SOAPOrGraphQLScanVulnerability.find();
-    soapGraphQLVulnerabilities.forEach(vulnerability => {
-        if (vulnerability.owasp) {
-            vulnerability.owasp.forEach(owasp => {
-                if (apiComplianceMap[owasp]) {
-                    if (vulnerability.scanType === 'SOAP') {
-                        soapCounts[apiComplianceMap[owasp]] = (soapCounts[apiComplianceMap[owasp]] || 0) + 1;
-                    } else if (vulnerability.scanType === 'GraphQL') {
-                        graphqlCounts[apiComplianceMap[owasp]] = (graphqlCounts[apiComplianceMap[owasp]] || 0) + 1;
-                    }
-                }
-                if (llmComplianceMap[owasp]) {
-                    if (vulnerability.scanType === 'SOAP') {
-                        soapCounts[llmComplianceMap[owasp]] = (soapCounts[llmComplianceMap[owasp]] || 0) + 1;
-                    } else if (vulnerability.scanType === 'GraphQL') {
-                        graphqlCounts[llmComplianceMap[owasp]] = (graphqlCounts[llmComplianceMap[owasp]] || 0) + 1;
-                    }
-                }
-            });
-        }
+}
+
+function processVulnerabilities1(vulnerabilities, countsObject) {
+
+    // List of all compliance standards for easier iteration
+const complianceStandards = [
+    "iso27001", "nistCSF", "gdpr", "pciDSS", "hipaa", "mitreATTACK",
+    "nist80053", "asvs", "cmmc", "ccpa", "fips", "fisma", "rbiCSF"
+];
+
+
+    if(vulnerabilities){
+    vulnerabilities.forEach(vuln => {
+
+        if(vuln.vulnerability && vuln.vulnerability.owasp){
+        vuln.vulnerability.owasp.forEach(apiItem => {
+            // Check if the OWASP API item corresponds to compliance standards
+            if (apiItem.startsWith("API")) {
+                complianceStandards.forEach(standard => {
+                    countsObject[standard]++;
+                });
+            }
+        });
+    }
     });
+}
 
-    // Prepare the response
-    const response = {
-        categories: [
-            "ISO 27001", "NIST CISF", "GDPR", "PCI DSS", "HIPAA", "MITRE ATT&CK",
-            "NIST 800-53", "ASVS", "CMMC", "CCPA", "FIPS", "FISMA", "RBI CSF"
-        ],
-        rest: Object.values(restCounts),
-        soap: Object.values(soapCounts),
-        graphql: Object.values(graphqlCounts),
-        sbom: new Array(13).fill(0) // Ignoring SBOM as per instructions
-    };
+}
+
+const activeScanVulnerabilities = await ActiveScanVulnerability.find({}).populate('vulnerability');
+const soapOrGraphQLScanVulnerabilities = await SOAPOrGraphQLScanVulnerability.find({});
+
+console.log('#########activeScanVulnerabilities:',activeScanVulnerabilities.length)
+console.log('#########soapOrGraphQLScanVulnerabilities:',soapOrGraphQLScanVulnerabilities.length)
+
+
+// Assuming activeScanVulnerabilities, soapOrGraphQLScanVulnerabilities, and llmVulnerabilities are arrays of vulnerabilities
+processVulnerabilities1(activeScanVulnerabilities, restCounts);
+processVulnerabilities(soapOrGraphQLScanVulnerabilities, soapGraphQLCounts);
+
+// Prepare the response
+const response = {
+    categories: [
+        "ISO 27001", "NIST CISF", "GDPR", "PCI DSS", "HIPAA", "MITRE ATT&CK",
+        "NIST 800-53", "ASVS", "CMMC", "CCPA", "FIPS", "FISMA", "RBI CSF"
+    ],
+    rest: Object.values(restCounts),
+    soapGraphQL: Object.values(soapGraphQLCounts),
+};
+
+console.log(response);
+
+
 
     res.json(response);
 });

@@ -20,6 +20,13 @@ const NumberOfOpenVulnerabilities = () => {
     const [loading, setLoading] = useState(false)
 
     const [vulnerabilities, setVulnerabilities] = useState([]);
+  /*  const [openTicketsCountRest, setOpenTicketsCountRest] = useState(0);
+    const [openTicketsCountAttackSurface, setOpenTicketsCountAttackSurface] = useState(0);
+    const [openTicketsCountAPITrafficScan, setOpenTicketsCountAPITrafficScan] = useState(0);
+    const [openTicketsCountSOAPScan, setOpenTicketsCountSOAPScan] = useState(0);
+    const [openTicketsCountGraphQLScan, setOpenTicketsCountGraphQLScan] = useState(0);
+    const [openTicketsCountSBOMScan, setOpenTicketsCountSBOMScan] = useState(0);
+    const [openTicketsCountLLMScan, setOpenTicketsCountLLMScan] = useState(0);  */     
 
 
 
@@ -27,18 +34,17 @@ const NumberOfOpenVulnerabilities = () => {
 
       getResponse();
   
-    }, []);
-  
-    
+    }, []);    
   
   
     const getResponse = () => {
   
       // Set from localStorage cache
-      if (localStorage.getItem('vulnerabilities')) {
+      console.log('localStorage.getItem(vulnerabilities):', localStorage.getItem('vulnerabilities'))
+      if (localStorage.getItem('vulnerabilities') && localStorage.getItem('vulnerabilities') !== 'undefined') {
         setVulnerabilities(JSON.parse(localStorage.getItem('vulnerabilities')));
       } else {
-        setVulnerabilities([]);
+        setVulnerabilities({});
       }
   
   
@@ -54,7 +60,9 @@ const NumberOfOpenVulnerabilities = () => {
   
   
           setVulnerabilities(response.data.vulnerabilities);
-  
+         
+
+
           // Save into local storage to show from cache while it loads next time
           localStorage.setItem('vulnerabilities', JSON.stringify(response.data.vulnerabilities));
   
@@ -68,62 +76,79 @@ const NumberOfOpenVulnerabilities = () => {
 
 
 
-    const labelsArray = vulnerabilities.map(v => v.title);
-    
-    const countsArray = vulnerabilities.map(v => v.count);   
-     
-    
-      const chartOptions = {
-        chart: {
-          type: 'bar'
-        },
-        plotOptions: {
-          bar: {
-            horizontal: false,
-            distributed:true,
-            barHeight: 15,
-          }
-        },
-        xaxis: {
-          categories: labelsArray,
-          title: {
-            text: 'Vulnerability Types',
-            style: {
+    // Define the labels for the x-axis
+const labelsArray = [
+  'REST Scans',
+  'Attack Surface Scans',
+  'API Traffic Scans',
+  'SOAP Scans',
+  'GraphQL Scans',
+  'SBOM Scans',
+  'LLM Scans'
+];
+
+// Define the corresponding counts for each label
+const countsArray = [
+  vulnerabilities.openTicketsCountRest,
+  vulnerabilities.openTicketsCountAttackSurface,
+  vulnerabilities.openTicketsCountAPITrafficScan,
+  vulnerabilities.openTicketsCountSOAPScan,
+  vulnerabilities.openTicketsCountGraphQLScan,
+  vulnerabilities.openTicketsCountSBOMScan,
+  vulnerabilities.openTicketsCountLLMScan
+];
+
+const chartOptions = {
+  chart: {
+      type: 'bar'
+  },
+  plotOptions: {
+      bar: {
+          horizontal: false,
+          distributed: true,
+          barHeight: 15,
+      }
+  },
+  xaxis: {
+      categories: labelsArray,
+      title: {
+          text: 'Vulnerability Types',
+          style: {
               color: '#000',
               fontSize: '12px',
               fontWeight: 'bold'
-            }
-          },
-          labels: {
-            show: false,
-            style: {
-              colors: '#000' 
-            }
           }
-        },
-        legend: {
-            labels: {
-              colors: '#5D596C' 
-            },
-            containerMargin: {
-              top: 100 
-            }
-        },
-        tooltip: {
-            theme: 'light', 
-            style: {
-              color: '#000000' 
-            }
-        }
+      },
+      labels: {
+          show: false,
+          style: {
+              colors: '#000'
+          }
+      }
+  },
+  legend: {
+      labels: {
+          colors: '#5D596C'
+      },
+      containerMargin: {
+          top: 100
+      }
+  },
+  tooltip: {
+      theme: 'light',
+      style: {
+          color: '#000000'
+      }
+  }
+};
 
-      };
-    
-      const chartSeries = [
-        {
-          name: 'Number of Vulnerabilities',
-          data: countsArray
-        }
-      ];
+const chartSeries = [
+  {
+      name: 'Number of Vulnerabilities',
+      data: countsArray
+  }
+];
+
 
 
     return (
@@ -178,6 +203,8 @@ const NumberOfOpenVulnerabilities = () => {
                                 height: '50vh',
                             }}>
 
+                              { vulnerabilities.openTicketsCountRest &&
+
                             <div style={{ flex: 1, minWidth: 0, marginTop: 100 }}>
  <Chart
         options={chartOptions}
@@ -186,8 +213,10 @@ const NumberOfOpenVulnerabilities = () => {
         height={500}
         width={'100%'}
       />
+                              
 
                             </div>
+}
 
                         </div>
 

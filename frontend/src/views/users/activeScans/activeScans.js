@@ -488,12 +488,14 @@ const QuickScans = () => {
 
   for (var i = 0; i < activeScans.length; i++) {
 
+    if(activeScans[i].theCollectionVersion){
+
     var dataItem = [];
 
     dataItem.push(i+1);
-    dataItem.push(activeScans[i].theCollectionVersion.apiCollection.orgProject?activeScans[i].theCollectionVersion.apiCollection.orgProject.name:'---');
+    dataItem.push(activeScans[i].theCollectionVersion && activeScans[i].theCollectionVersion.apiCollection.orgProject?activeScans[i].theCollectionVersion.apiCollection.orgProject.name:'---');
 
-    dataItem.push(activeScans[i].theCollectionVersion.apiCollection.collectionName?activeScans[i].theCollectionVersion.apiCollection.collectionName:'<Name not found>');
+    dataItem.push(activeScans[i].theCollectionVersion && activeScans[i].theCollectionVersion.apiCollection.collectionName?activeScans[i].theCollectionVersion.apiCollection.collectionName:'<Name not found>');
 
     dataItem.push(activeScans[i].endpointsScanned);
 
@@ -538,6 +540,7 @@ const QuickScans = () => {
     dataItem.push(activeScans[i]._id); // for delete
 
     tableData.push(dataItem);
+  }
   }
 
   const goToStartQuickScan = (e) => {
