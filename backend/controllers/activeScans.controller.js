@@ -150,6 +150,64 @@ module.exports.getAllActiveScans = asyncHandler(async (req, res) => {
 
 
 
+// Get all scans of an api collection version
+module.exports.fetchAPICollectionVersionScans = asyncHandler(async (req, res) => {
+
+
+    const pageNumber = parseInt(req.query.pageNumber) || 1; // Get the pageNumber from the query parameters (default to 1 if not provided)
+    const theCollectionVersionId = req.query.theCollectionVersionId;
+    console.log('theCollectionVersionId:',theCollectionVersionId)
+    const pageSize = 10; // Number of active scans per page
+
+    //console.log('req.user', req.user)
+
+    const totalRecords = await ActiveScan.countDocuments({ user: req.user._id });
+    const totalPages = Math.ceil(totalRecords / pageSize);
+
+    // Calculate the skip value based on the pageNumber and pageSize
+    const skip = (pageNumber - 1) * pageSize;
+
+    const activeScans = await ActiveScan.find({ 
+        //user: req.user._id, 
+        theCollectionVersion: theCollectionVersionId // Filter by theCollectionVersionId
+    })
+    .populate({
+        path: 'theCollectionVersion',
+        populate: {
+            path: 'apiCollection',
+            model: 'APICollection',
+            populate: {
+                path: 'orgProject',
+                model: 'OrgProject' 
+            }
+        }
+    })
+    .sort({ createdAt: -1 })
+    .skip(skip)
+    .limit(pageSize)
+    .lean();
+
+
+
+    for (var i = 0; i < activeScans.length; i++) {
+
+        var vulnerabilities = await ActiveScanVulnerability.find({ activeScan: activeScans[i]._id })
+
+        //console.log('vulnerabilities:',vulnerabilities)
+
+        activeScans[i].vulnerabilities = vulnerabilities;
+    }
+
+    // Return the active scans, currentPage, totalRecords, and totalPages in the response
+    res.status(200).json({
+        activeScans,
+        currentPage: pageNumber,
+        totalRecords,
+        totalPages,
+    });
+});
+
+
 
 module.exports.getActiveScanDetails = asyncHandler(async (req, res) => {
 
@@ -190,30 +248,22 @@ module.exports.deleteActiveScan = asyncHandler(async (req, res) => {
         // Find the active scan and its associated APICollection
         const activeScan = await ActiveScan.findById(id);
         if (!activeScan) {
-            return res.status(404).json({ error: 'Active scan not found.' });
+            return res.status(404).json({ error: 'Scan not found.' });
         }
 
-        const apiCollectionId = activeScan.theCollection;
 
         // Delete the ActiveScan
         const deletedActiveScan = await ActiveScan.findByIdAndDelete(id);
         if (!deletedActiveScan) {
-            return res.status(404).json({ error: 'Failed to delete the active scan.' });
+            return res.status(404).json({ error: 'Failed to delete the scan.' });
         }
 
-        // Delete the associated APICollection and its related ApiEndpoints
-        const deletedAPICollection = await APICollection.findByIdAndDelete(apiCollectionId);
-        if (!deletedAPICollection) {
-            return res.status(404).json({ error: 'Failed to delete the API collection.' });
-        }
-
-        // Delete related ApiEndpoints
-        await ApiEndpoint.deleteMany({ theCollection: apiCollectionId });
+       
 
         // Delete related ActiveScanVulnerabilities
         await ActiveScanVulnerability.deleteMany({ activeScan: id });
 
-        res.json({ message: 'Scan, related API collection, related API endpoints, and related vulnerabilities deleted successfully.' });
+        res.json({ message: 'Scan and related vulnerabilities deleted successfully.' });
     } catch (error) {
         console.error(error.message);
         res.status(500).json({ error: 'Internal Server Error' });

@@ -15,6 +15,7 @@ import { AiOutlineAppstoreAdd } from "react-icons/ai";
 import { FaEye } from "react-icons/fa";
 import { MdDeleteOutline } from "react-icons/md";
 import { CiEdit } from "react-icons/ci";
+import { Link } from "react-router-dom";
 
 const Tickets = () => {
 
@@ -149,7 +150,7 @@ const Tickets = () => {
           return prevTickets.filter((app) => app._id !== id);
         });
 
-        fetchTickets();
+       // fetchTickets();
       }
 
 
@@ -216,13 +217,175 @@ const Tickets = () => {
     "ID",
     "Category",
     "Source",
-    "Related Scan ID",
+    {
+      label: "Related Scan ID",
+      options: {
+        filter: false,
+        download: false,
+        customBodyRender: (value, tableMeta, updateValue) => {
+
+          var source = value.source;
+          var scanId = value.scanId;
+
+          return (
+            <div style={{
+              display: "flex",
+              alignItems: "center"
+            }} >
+
+              {source == 'REST API Scan' &&
+
+                <Link to={'/view-active-scan-report?scanId='+scanId}>{scanId}</Link>
+
+              }
+
+{source == 'Attack Surface Scan' &&
+
+<Link to={'/attack-surface-scan-result?scanId='+scanId}>{scanId}</Link>
+
+}
+
+
+{source == 'API Traffic Scan' &&
+
+<Link to={'/project-vulnerabilities?projectId='+scanId}>{scanId}</Link>
+
+}
+
+{source == 'SOAP Scan' &&
+
+<Link to={'/view-soap-graphql-scan-report?scanId='+scanId}>{scanId}</Link>
+
+}
+
+{source == 'GraphQL Scan' &&
+
+<Link to={'/view-soap-graphql-scan-report?scanId='+scanId}>{scanId}</Link>
+
+}
+
+{source == 'SBOM Scan' &&
+
+<Link to={'/view-sbom-scan-report?scanId='+scanId}>{scanId}</Link>
+
+}
+
+
+{source == 'LLM Scan' &&
+
+<Link to={'/view-llm-scan-report?scanId='+scanId}>{scanId}</Link>
+
+}
+                              
+
+            </div>
+          )
+        }
+      }
+    },
     "Project Name",
     "Title",
-    "Priority",
+    {
+      label: "Priority",
+      options: {
+        filter: true,
+        download: true,
+        customBodyRender: (value, tableMeta, updateValue) => {
+
+          let bgColor;
+          let theColor;
+
+          if (value == 'CRITICAL') {
+
+            bgColor = '#FF0000';
+            theColor = '#fff';
+
+          } else if (value == 'HIGH') {
+
+            bgColor = '#A6001B';
+            theColor = '#fff';
+
+          } else if (value == 'MEDIUM' || value == 'MODERATE') {
+
+            bgColor = '#FFC300';
+            theColor = 'black';
+
+          } else if (value == 'LOW') {
+
+            bgColor = '#B3FFB3';
+            theColor = '#000';
+          }else if (value == 'UNSPECIFIED') {
+
+            bgColor = '#666666';
+            theColor = '#fff';
+          }
+
+
+          return (
+            <div style={{
+              display: "flex",
+              alignItems: "center"
+            }} >
+
+              <div style={{
+                padding: 5, backgroundColor: bgColor, color: theColor, width: 120,
+                textAlign: 'center', borderRadius: 10, fontSize: 12, fontWeight: 'normal'
+              }}>{value}</div>
+
+            </div>
+          )
+        }
+      }
+    },
     "Opened By",
     "Assigned To",
-    "Status",
+    {
+      label: "Status",
+      options: {
+        filter: true,
+        download: true,
+        customBodyRender: (value, tableMeta, updateValue) => {
+
+          let bgColor;
+          let theColor;
+
+          if (value == 'OPEN') {
+
+            bgColor = '#FF0000';
+            theColor = '#fff';
+
+          } else if (value == 'RESOLVED') {
+
+            bgColor = '#B3FFB3';
+            theColor = '#000';
+
+          }  else if (value == 'IN PROGRESS') {
+
+            bgColor = '#FFC300';
+            theColor = '#000';
+          }else if (value == 'ON HOLD') {
+
+            bgColor = '#666666';
+            theColor = '#fff';
+          }
+
+
+          return (
+            <div style={{
+              display: "flex",
+              alignItems: "center"
+            }} >
+
+              <div style={{
+                padding: 5, backgroundColor: bgColor, color: theColor, width: 120,
+                textAlign: 'center', borderRadius: 10, fontSize: 12, fontWeight: 'normal'
+              }}>{value}</div>
+
+            </div>
+          )
+        }
+      }
+    },
     "Created At",      
     "Updated At",
     "Note",        
@@ -358,6 +521,8 @@ const Tickets = () => {
 
   for (var i = 0; i < tickets.length; i++) {
 
+    if(tickets[i].orgProject){
+
     var dataItem = [];
 
     dataItem.push(((page) * 10) + (i+1));
@@ -366,8 +531,8 @@ const Tickets = () => {
     dataItem.push(tickets[i].category);
 
     dataItem.push(tickets[i].source);
-    dataItem.push(tickets[i].scanId);
-    dataItem.push(tickets[i].projectName);
+    dataItem.push({scanId:tickets[i].scanId, source:tickets[i].source});
+    dataItem.push(tickets[i].orgProject?tickets[i].orgProject.name:'---');
 
 
     dataItem.push(tickets[i].title);
@@ -398,6 +563,7 @@ const Tickets = () => {
     dataItem.push(tickets[i]._id); // for delete
 
     tableData.push(dataItem);
+  }
   }
 
  

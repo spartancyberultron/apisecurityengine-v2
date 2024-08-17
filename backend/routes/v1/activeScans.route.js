@@ -24,7 +24,8 @@ const {
       runTestForPreImageAttackPossible,
       generatePDFForAScan,
       deleteActiveScan,
-      runScanFromPostman
+      runScanFromPostman,
+      fetchAPICollectionVersionScans
     } = require('../../controllers/activeScans.controller');
 
 const { protectUser } = require('../../middlewares/authMiddleware');
@@ -34,6 +35,11 @@ const router = express.Router();
 //base route /api/v1/activeScans/
 
 router.get('/getAllActiveScans', protectUser, getAllActiveScans);
+router.get('/fetchAPICollectionVersionScans', protectUser, fetchAPICollectionVersionScans);
+
+
+
+
 router.post('/getActiveScanDetails', protectUser, getActiveScanDetails);
 
 router.post('/startActiveScan', protectUser, jsonupload.single("file"), startActiveScan);

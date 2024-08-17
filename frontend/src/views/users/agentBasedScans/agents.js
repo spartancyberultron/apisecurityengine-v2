@@ -61,7 +61,7 @@ const Agents = () => {
       right: 'auto',
       bottom: 'auto',
       height: '15%',
-      backgroundColor: '#6366ff',
+      backgroundColor: '#fff',
       borderRadius: 15,
       borderColor: 'yellow'
     },
@@ -410,9 +410,9 @@ const Agents = () => {
           style={customStyles}
           contentLabel="Remediations"
         >
-          <p style={{ color: 'white', fontSize: 18 }}>Are you sure you want to permanently delete this project?</p>
-          <button onClick={() => handleConfirmation(true)} style={{ width: 100, borderWidth: 0, color: 'green', padding: 10 }}>Yes</button>
-          <button onClick={() => handleConfirmation(false)} style={{ marginLeft: 30, borderWidth: 0, width: 100, color: 'red', padding: 10 }}>No</button>
+          <p style={{ color: '#000', fontSize: 18 }}>Are you sure you want to permanently delete this project?</p>
+          <button onClick={() => handleConfirmation(true)} style={{ width: 100, borderWidth: 0, backgroundColor: '#28C76F', color:'white', padding: 10 }}>Yes</button>
+          <button onClick={() => handleConfirmation(false)} style={{ marginLeft: 30, borderWidth: 0, width: 100, backgroundColor: 'red', color:'white', padding: 10 }}>No</button>
         </Modal>
       )}
 

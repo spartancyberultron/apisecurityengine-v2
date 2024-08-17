@@ -32,6 +32,8 @@ const RiskScore = () => {
     
     
       const getResponse = () => {
+
+        setLoading(true);
     
         // Set from localStorage cache
         if (localStorage.getItem('riskScore')) {

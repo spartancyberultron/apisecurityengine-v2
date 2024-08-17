@@ -70,8 +70,10 @@ const SOAPGraphQLScans = () => {
 
 
   // Function to handle the button click and show the confirm dialog
-  const handleClick = (user) => {
-    setScanToDelete(user);
+  const handleClick = (scan) => {
+
+    console.log('scan:',scan)
+    setScanToDelete(scan);
     setModalIsOpen(true);
   };
 

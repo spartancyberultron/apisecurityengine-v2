@@ -40,6 +40,8 @@ const ThreatModellingScanDetail = () => {
   const [modalIsOpen, setModalIsOpen] = React.useState(false);
   const [currentVulnerability, setCurrentVulnerability] = React.useState(null);
 
+  const [findingsModalIsOpen, setFindingsModalIsOpen] = React.useState(false);
+
   const [threatModellingModalIsOpen, setThreatModellingModalIsOpen] = React.useState(false);
   const [costOfBreachModalIsOpen, setCostOfBreachModalIsOpen] = React.useState(false);
   
@@ -53,6 +55,9 @@ const ThreatModellingScanDetail = () => {
   const [acceptanceModalIsOpen, setAcceptanceModalIsOpen] = useState(false);
   const [riskAcceptance, setRiskAcceptance] = useState("No");
   const [reason, setReason] = useState('');
+
+  const [findings, setFindings] = useState([]);
+  const [sslFindings, setSSLFindings] = useState([]);
 
   const toaster = useRef()
   const exampleToast = (
@@ -90,6 +95,52 @@ const ThreatModellingScanDetail = () => {
     console.log('event.target.value:',event.target.value)
     setRiskAcceptance(event.target.value);
   };
+
+  const openFindingsModal = async (value, currentVuln) => {
+
+   
+
+    setFindings(value);
+
+    if(currentVuln.vulnerability.vulnerabilityCode == 4){
+        setSSLFindings(currentVuln.sslFindings);
+    }
+
+    setCurrentVulnerability(currentVuln)
+
+    setFindingsModalIsOpen(true);
+  };
+
+  function convertHeaderString(headerString) {
+    const parts = headerString.split(':');
+    if (parts.length < 2) {
+        return headerString; // No colon found, return the original string
+    }
+
+    const headerName = parts[0];
+    const description = parts.slice(1).join(':');
+
+    const properHeaderName = headerName.split('-').map(word => {
+        if (word.length === 1) {
+            return word.toUpperCase();
+        } else {
+            return word.charAt(0).toUpperCase() + word.slice(1).toLowerCase();
+        }
+    }).join('-');
+
+    return `<strong>${properHeaderName}</strong>:${description.trim()}`;
+}
+
+
+
+  console.log('findings:',findings)
+
+  const closeFindingsModal = async () => {
+
+    setFindingsModalIsOpen(false);
+  };
+
+
 
   const customStyles1 = {
   overlay: {
@@ -183,19 +234,20 @@ const ThreatModellingScanDetail = () => {
 
   const customStyles2 = {
     content: {
-      top: '10%',
-      left: '20%',
-      width: '70%',
-      right: 'auto',
-      bottom: 'auto',
-      maxHeight: '80%',
-      height: '80%',
+      top: '50%',
+      left: '50%',
+      transform: 'translate(-50%, -50%)', // Center the modal
+      width: 'auto', // Width adjusts to content
+      height: 'auto', // Height adjusts to content
+      maxWidth: '90%', // Optional: Limit width to 90% of the viewport
+      maxHeight: '90%', // Optional: Limit height to 90% of the viewport
       backgroundColor: '#c2eef4',
       borderRadius: 15,
       borderColor: 'yellow',
-      zIndex: 10000
+      zIndex: 10000,
+      overflow: 'auto', // Ensure content scrolls if it overflows
     },
-  }; 
+  };
 
 
 
@@ -342,6 +394,53 @@ const ThreatModellingScanDetail = () => {
       label: "Description",
       options: {
         filter: false,
+      }
+    },
+    {
+      label: "",
+      options: {
+        filter: true,
+        download: true,
+        customBodyRender: (value, tableMeta, updateValue) => {
+          return (
+            <div style={{
+              display: "flex",
+              flexDirection:'column',
+              alignItems: "center"
+            }} >
+
+           
+{(value.vulnerability.vulnerabilityCode == 10 ||
+value.vulnerability.vulnerabilityCode == 4 ||
+value.vulnerability.vulnerabilityCode == 8 ||
+value.vulnerability.vulnerabilityCode == 2 ||
+value.vulnerability.vulnerabilityCode == 6) &&
+              <CButton color="primary" variant="outline"
+                onClick={() => openFindingsModal(value.findings, value)}
+                className="primaryButton" style={{ fontSize: 13, color: 'white', width:200 }}>
+
+                  {value.vulnerability.vulnerabilityCode == 10 &&
+                  'View Missing Headers'
+                  }
+
+                  {value.vulnerability.vulnerabilityCode == 4 &&
+                  'View SSL Problems'
+                  }
+
+                  {value.vulnerability.vulnerabilityCode == 8 &&
+                    'View Methods'
+                  } 
+
+                  {value.vulnerability.vulnerabilityCode == 2 || value.vulnerability.vulnerabilityCode == 6  &&
+                    'View PII Data'
+                  }                  
+
+              </CButton>
+        }
+              
+            </div>
+          )
+        }
       }
     },
     {
@@ -631,6 +730,8 @@ const ThreatModellingScanDetail = () => {
 
 
       dataItem.push(activeScan.vulnerabilities[i].description);
+      dataItem.push(activeScan.vulnerabilities[i]);
+
       dataItem.push(activeScan.vulnerabilities[i].vulnerability.riskScore);
 
       dataItem.push(activeScan.vulnerabilities[i].vulnerability.owasp);
@@ -947,8 +1048,6 @@ const ThreatModellingScanDetail = () => {
         var piiFields = activeScan.vulnerabilities[i].findings;
 
         totalPIIs = totalPIIs.concat(piiFields);
-
-
        
       }
     }
@@ -1610,7 +1709,162 @@ const ThreatModellingScanDetail = () => {
           }
 
 
-        </Modal>           
+        </Modal>      
+
+
+        <Modal
+          isOpen={findingsModalIsOpen}
+          onRequestClose={closeFindingsModal}
+          style={customStyles2}
+          contentLabel="Findings"
+        >
+
+          <button style={{ float: 'right', backgroundColor: 'transparent', borderWidth: 0 }} onClick={closeFindingsModal} >
+            <AiFillCloseCircle size={30} color={'#000'} />
+          </button>
+
+          {/* Security headers not enabled on host */}
+          {currentVulnerability && currentVulnerability.vulnerability && currentVulnerability.vulnerability.vulnerabilityCode == 10 &&
+          <div style={{display:'flex', flexDirection:'column'}} >
+
+           <h4>Missing Headers</h4>
+           <hr/>
+         
+            {findings && findings.map((item, index) => (
+                <span 
+                    key={index} 
+                    dangerouslySetInnerHTML={{ __html: convertHeaderString(item) }}
+                    style={{
+                        padding: 5,
+                        width: '100%',
+                        textAlign: 'left',
+                        borderRadius: 10,
+                        fontSize: 15,
+                        fontWeight: 'normal',
+                        marginRight: 5,
+                        color: '#000',
+                        backgroundColor: '#fff',
+                        margin: 5
+                    }}
+                />
+            ))}
+        </div>      
+        }
+
+
+        {/* HTTP Verb tampering possible */}
+        {currentVulnerability && currentVulnerability.vulnerability && currentVulnerability.vulnerability.vulnerabilityCode == 8 &&
+          <div style={{display:'flex', flexDirection:'column'}} >
+
+           <h4>Methods on which HTTP Verb Tampering is possible</h4>
+           <hr/>
+         
+            {findings && findings.map((item, index) => (
+                <span 
+                    key={index} 
+                    dangerouslySetInnerHTML={{ __html: convertHeaderString(item) }}
+                    style={{
+                        padding: 5,
+                        width: '80%',
+                        textAlign: 'left',
+                        borderRadius: 10,
+                        fontSize: 15,
+                        fontWeight: 'normal',
+                        marginRight: 5,
+                        color: '#000',
+                        backgroundColor: '#fff',
+                        margin: 5
+                    }}
+                />
+            ))}
+        </div>      
+        }
+
+
+         {/* Endpoint not secure by SSL */}
+         {currentVulnerability && currentVulnerability.vulnerability && currentVulnerability.vulnerability.vulnerabilityCode == 4 &&
+          <div style={{display:'flex', flexDirection:'column'}} >
+
+           <h4>SSL related issues on the host</h4>
+           <hr/>
+         
+            {sslFindings && sslFindings.map((item, index) => (
+
+                <div style={{marginTop:20, background:'#fff', padding:10, borderRadius:10}}>
+
+                  <span>
+                    <strong>Description:</strong>{item.description}
+                  </span> <br/><br/>
+                  <span>
+                  <strong>Exploitability:</strong>{item.exploitability}
+                  </span>
+
+                </div>
+            ))}
+        </div>      
+        }
+
+
+        {/* Sensitive data in query params */}
+        {currentVulnerability && currentVulnerability.vulnerability && currentVulnerability.vulnerability.vulnerabilityCode == 6 &&
+          <div style={{display:'flex', flexDirection:'column'}} >
+
+           <h4>Sensitive data found in query params</h4>
+           <hr/>
+         
+            {findings && findings.map((item, index) => (
+                <span 
+                    key={index} 
+                    dangerouslySetInnerHTML={{ __html: convertHeaderString(item) }}
+                    style={{
+                        padding: 5,
+                        width: '25%',
+                        textAlign: 'center',
+                        borderRadius: 10,
+                        fontSize: 15,
+                        fontWeight: 'normal',
+                        marginRight: 5,
+                        color: '#000',
+                        backgroundColor: '#fff',
+                        margin: 5
+                    }}
+                />
+            ))}
+        </div>      
+        }
+
+
+        {/* Sensitive data in path params */}
+        {currentVulnerability && currentVulnerability.vulnerability && currentVulnerability.vulnerability.vulnerabilityCode == 2 &&
+          <div style={{display:'flex', flexDirection:'column'}} >
+
+           <h4>Sensitive data found in path params</h4>
+           <hr/>
+         
+            {findings && findings.map((item, index) => (
+                <span 
+                    key={index} 
+                    dangerouslySetInnerHTML={{ __html: convertHeaderString(item) }}
+                    style={{
+                        padding: 5,
+                        width: '80%',
+                        textAlign: 'left',
+                        borderRadius: 10,
+                        fontSize: 15,
+                        fontWeight: 'normal',
+                        marginRight: 5,
+                        color: '#000',
+                        backgroundColor: '#fff',
+                        margin: 5
+                    }}
+                />
+            ))}
+        </div>      
+        }    
+          
+
+
+        </Modal>            
 
       </>
 

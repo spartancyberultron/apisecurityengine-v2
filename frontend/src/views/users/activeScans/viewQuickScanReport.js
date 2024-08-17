@@ -136,17 +136,18 @@ const ViewQuickScanReport = () => {
 
 const customStyles2 = {
   content: {
-    top: '10%',
-    left: '20%',
-    width: '70%',
-    right: 'auto',
-    bottom: 'auto',
-    height: '80%',
-    maxHeight: '80%',
+    top: '50%',
+    left: '50%',
+    transform: 'translate(-50%, -50%)', // Center the modal
+    width: 'auto', // Width adjusts to content
+    height: 'auto', // Height adjusts to content
+    maxWidth: '90%', // Optional: Limit width to 90% of the viewport
+    maxHeight: '90%', // Optional: Limit height to 90% of the viewport
     backgroundColor: '#c2eef4',
     borderRadius: 15,
     borderColor: 'yellow',
-    zIndex: 10000
+    zIndex: 10000,
+    overflow: 'auto', // Ensure content scrolls if it overflows
   },
 };
 
@@ -1701,7 +1702,7 @@ const piiDataArray = Object.values(piiCounts);
                     dangerouslySetInnerHTML={{ __html: convertHeaderString(item) }}
                     style={{
                         padding: 5,
-                        width: '80%',
+                        width: '100%',
                         textAlign: 'left',
                         borderRadius: 10,
                         fontSize: 15,
@@ -1783,8 +1784,8 @@ const piiDataArray = Object.values(piiCounts);
                     dangerouslySetInnerHTML={{ __html: convertHeaderString(item) }}
                     style={{
                         padding: 5,
-                        width: '80%',
-                        textAlign: 'left',
+                        width: '25%',
+                        textAlign: 'center',
                         borderRadius: 10,
                         fontSize: 15,
                         fontWeight: 'normal',

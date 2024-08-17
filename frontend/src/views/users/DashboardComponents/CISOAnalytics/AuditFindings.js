@@ -32,6 +32,8 @@ const AuditFindings = () => {
   
   
     const getResponse = () => {
+
+      setLoading(true);
   
       // Set from localStorage cache
      const storedAuditFindings = localStorage.getItem('auditFindings');

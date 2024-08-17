@@ -55,6 +55,9 @@ const ComplianceStatus = () => {
       }
 
     const getResponse = () => {
+
+        setLoading(true);
+        
       // Set from localStorage cache
       if (localStorage.getItem('threatAlerts')) {
         setThreatAlerts(JSON.parse(localStorage.getItem('threatAlerts')));

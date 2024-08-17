@@ -212,6 +212,31 @@ async function processJsonObjectAndSaveResults(jsonObject, scanId) {
 
 module.exports.deleteSBOMScan = asyncHandler(async (req, res) => {
 
+    try {
+        const { id } = req.body;
 
+        // Find the sbom scan and its associated APICollection
+        const sbomScan = await SBOMScan.findById(id);
+        if (!sbomScan) {
+            return res.status(404).json({ error: 'Scan not found.' });
+        }
+
+
+        // Delete the scan
+        const deletedScan = await SBOMScan.findByIdAndDelete(id);
+        if (!deletedScan) {
+            return res.status(404).json({ error: 'Failed to delete the scan.' });
+        }
+
+       
+
+        // Delete related ActiveScanVulnerabilities
+        await SBOMScan.deleteMany({ sbomScan: id });
+
+        res.json({ message: 'Scan and related vulnerabilities deleted successfully.' });
+    } catch (error) {
+        console.error(error.message);
+        res.status(500).json({ error: 'Internal Server Error' });
+    }
 
 });

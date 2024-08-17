@@ -40,6 +40,8 @@ const TimeToResolveVulnerabilities = () => {
 
   const getTimeToResolveVulnerabilities = () => {
 
+    setLoading(true);
+
     // Set from localStorage cache
     if (localStorage.getItem('averageResolutionTime')) {
         setAverageResolutionTime(JSON.parse(localStorage.getItem('averageResolutionTime')));

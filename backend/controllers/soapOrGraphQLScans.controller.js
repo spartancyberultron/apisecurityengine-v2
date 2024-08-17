@@ -1739,6 +1739,30 @@ function parseText(text) {
 module.exports.deleteSOAPOrGraphQLScan = asyncHandler(async (req, res) => {
 
 
+    try {
+        const { id } = req.body;
+
+        const scan = await SOAPOrGraphQLScan.findById(id);
+        if (!scan) {
+            return res.status(404).json({ error: 'Scan not found.' });
+        }
+
+
+        // Delete the scan
+        const deletedScan = await SOAPOrGraphQLScan.findByIdAndDelete(id);
+        if (!deletedScan) {
+            return res.status(404).json({ error: 'Failed to delete the scan.' });
+        }       
+
+        // Delete related Vulnerabilities
+        await SOAPOrGraphQLScanVulnerability.deleteMany({ soapOrGraphQLScan: id });
+
+        res.json({ message: 'Scan and related vulnerabilities deleted successfully.' });
+    } catch (error) {
+        console.error(error.message);
+        res.status(500).json({ error: 'Internal Server Error' });
+    }
+
 
 });
 

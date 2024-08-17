@@ -14,6 +14,9 @@ import 'react-toastify/dist/ReactToastify.css';
 import { MdStart } from "react-icons/md";
 import { AiOutlineSecurityScan } from "react-icons/ai";
 import { MdOutlineDelete } from "react-icons/md";
+import { useLocation } from 'react-router-dom'
+import { FaStopCircle } from "react-icons/fa";
+import { IoMdArrowRoundBack } from "react-icons/io";
 
 import { FaEye } from "react-icons/fa";
 
@@ -21,6 +24,7 @@ const APICollectionVersionScans = () => {
 
   //const [toast, addToast] = useState(0)
   const navigate = useNavigate()
+  const location = useLocation();
 
   const [activeScans, setActiveScans] = useState([])
   const [onLoading, setOnLoading] = useState(false);
@@ -32,6 +36,9 @@ const APICollectionVersionScans = () => {
 
   const [scanToDelete, setScanToDelete] = useState(null);
   const [modalIsOpen, setModalIsOpen] = React.useState(false);
+  const [collectionVersionId, setCollectionVersionId] = React.useState('');
+  const [collectionId, setCollectionId] = React.useState('');
+
 
   const [itemOffset, setItemOffset] = useState(0);
 
@@ -58,7 +65,9 @@ const APICollectionVersionScans = () => {
 
     //console.log('requestedPage', requestedPage)
 
-    fetchActiveScans(true, requestedPage);
+   // fetchActiveScans(true, requestedPage);
+    loadData(true, collectionVersionId, requestedPage);
+    
 
     const newOffset = (event.selected * itemsPerPage) % totalRecords;
     //console.log(
@@ -67,6 +76,24 @@ const APICollectionVersionScans = () => {
     setItemOffset(newOffset);
 
   };
+
+  useEffect(() => {
+
+    window.scrollTo(0, 0);
+
+    setOnLoading(true);
+
+    var arr = location.search.split('=');
+
+    var theCollectionVersionId = arr[1];
+    var theCollectionId = arr[2];
+
+    setCollectionVersionId(theCollectionVersionId);
+    setCollectionId(theCollectionId);
+
+    loadData(true, theCollectionVersionId, 1);
+
+  }, []);
 
 
   // Function to handle the button click and show the confirm dialog
@@ -180,7 +207,9 @@ const APICollectionVersionScans = () => {
   const isFirstTime = useRef(true);
 
 
-  const fetchActiveScans = async (isFirstTime, pageNumber) => {
+  const loadData = async (isFirstTime, theCollectionVersionId, pageNumber) => {
+
+    if(theCollectionVersionId){
 
     if (isFirstTime) {
       setOnLoading(true);
@@ -188,7 +217,7 @@ const APICollectionVersionScans = () => {
     
   
     const token = localStorage.getItem('ASIToken');
-    const response = await axios.get(`/api/v1/inventory/fetchAPICollectionVersions?pageNumber=${pageNumber}`, {
+    const response = await axios.get(`/api/v1/activeScans/fetchAPICollectionVersionScans?theCollectionVersionId=${theCollectionVersionId}&pageNumber=${pageNumber}`, {
       headers: { Authorization: `Bearer ${token}` },
     });
   
@@ -197,6 +226,7 @@ const APICollectionVersionScans = () => {
     setTotalRecords(response.data.totalRecords);
   
     setOnLoading(false);
+  }
   };
 
 
@@ -205,13 +235,15 @@ const APICollectionVersionScans = () => {
 
     const interval = setInterval(() => {
 
-      fetchActiveScans(false, currentPage);
+     // fetchActiveScans(false, currentPage);
+      loadData(true, collectionVersionId, 1);
 
     }, 30000);
     
 
     // Make the initial call immediately
-    fetchActiveScans(true, currentPage);
+   // fetchActiveScans(true, currentPage);
+    loadData(true, collectionVersionId, currentPage);
     isFirstTime.current = false;
 
     // Clean up the interval on component unmount
@@ -243,7 +275,7 @@ const APICollectionVersionScans = () => {
     {
       label: "Collection",
       options: {
-          filter: false,           
+          filter: true,           
       }
     },
     {
@@ -273,49 +305,78 @@ const APICollectionVersionScans = () => {
     {
       label: "Status",
       options: {
-        filter: true,
+          filter: true,   
+          display:false        
+      }
+    },
+    {
+      label: "Status",
+      options: {
+        filter: false,
         download: true,
         customBodyRender: (value, tableMeta, updateValue) => {
 
           let bgColor;
           let theColor;
 
-          if (value == 'COMPLETED') {
+          if (value.status == 'COMPLETED') {
 
             bgColor = '#28C76F';
             theColor = '#fff';
 
-          } else if (value == 'FAILED') {
+          } else if (value.status == 'FAILED') {
 
             bgColor = '#A6001B';
             theColor = '#fff';
 
 
-          } else if (value == 'IN PROGRESS') {
+          } else if (value.status == 'IN PROGRESS') {
 
             bgColor = '#FFC300';
             theColor = 'black';
 
-          } 
+          } else if (value.status == 'SCHEDULED') {
 
+            bgColor = 'cyan';
+            theColor = 'black';
+
+          } 
 
           return (
             <div style={{
               display: "flex",
-              alignItems: "center"
+              alignContent: "center",
+              flexDirection:'column',
+              justifyContent:'center'
             }} >
 
               <div style={{
                 padding: 5, backgroundColor: bgColor, color: theColor, width: 120,
                 textAlign: 'center', borderRadius: 10, fontSize: 12, fontWeight:'normal'
-              }}>{value}</div>
+              }}>
+                {value.status}
+              </div>
+
+              {value.scanScheduleType == 'specificTime' && value.status!=='COMPLETED' &&
+
+                <span style={{marginTop:5,}}>{'At ' + (new Date(value.specificDateTime)).toLocaleDateString() + '-' + (new Date(value.specificDateTime)).toLocaleTimeString()}</span>
+
+              }
+
+              {value.scanScheduleType == 'recurring' && 
+
+                <span style={{marginTop:5}}>{'Recurring ' + value.recurringSchedule}</span>
+
+              }
+
+
+
 
             </div>
           )
         }
       }
-    },
-    
+    },    
     {
       label: "View",
       options: {
@@ -339,6 +400,39 @@ const APICollectionVersionScans = () => {
                 :
                 <span style={{ fontSize: 15, color: '#fff', fontWeight: 'bold' }}>---</span>
               }
+
+
+         
+
+            </div>
+          )
+        }
+      }
+    },
+    {
+      label: "",
+      options: {
+        filter: false,
+        download: false,
+        customBodyRender: (value, tableMeta, updateValue) => {
+          return (
+            <div style={{
+              display: "flex",
+              alignItems: "center"
+            }} >            
+
+
+          {value.status == 'in progress' &&
+        <CButton color="danger"
+              onClick={() => handleClick(value)}
+              variant="outline"
+              className="m-1"
+              style={{ width: '100%', fontSize: 12, fontWeight: 'bold', color:'red', borderColor:'red', display:'flex', flexDirection:'row', 
+              alignItems:'center', justifyContent:'center' }}>
+              <FaStopCircle size={20} style={{ color: 'red' }}/>
+              <span style={{marginLeft:5}}>Stop Scan</span>
+              </CButton>
+        }
 
             </div>
           )
@@ -373,6 +467,7 @@ const APICollectionVersionScans = () => {
     },
 
   ];
+
 
   const getMuiTheme = () => createTheme({
     components: {
@@ -425,17 +520,18 @@ const APICollectionVersionScans = () => {
 
   var tableData = [];
 
-
   for (var i = 0; i < activeScans.length; i++) {
+
+    if(activeScans[i].theCollectionVersion){
 
     var dataItem = [];
 
-    dataItem.push(activeScans[i].index);
-    dataItem.push(activeScans[i].projectName);
+    dataItem.push(i+1);
+    dataItem.push(activeScans[i].theCollectionVersion && activeScans[i].theCollectionVersion.apiCollection.orgProject?activeScans[i].theCollectionVersion.apiCollection.orgProject.name:'---');
 
-    dataItem.push(activeScans[i].theCollection.collectionName?activeScans[i].theCollection.collectionName:'<Name not found>');
+    dataItem.push(activeScans[i].theCollectionVersion && activeScans[i].theCollectionVersion.apiCollection.collectionName?activeScans[i].theCollectionVersion.apiCollection.collectionName:'<Name not found>');
 
-    dataItem.push(activeScans[i].endpointsCount);
+    dataItem.push(activeScans[i].endpointsScanned);
 
     dataItem.push((new Date(activeScans[i].createdAt)).toLocaleDateString('en-US') + ' - ' + (new Date(activeScans[i].createdAt)).toLocaleTimeString('en-US'));
 
@@ -455,17 +551,30 @@ const APICollectionVersionScans = () => {
       dataItem.push("PROCESSING"); 
     }*/
 
+    dataItem.push((activeScans[i].status).toUpperCase());
+
+    if(activeScans[i].status){
+      dataItem.push({status:activeScans[i].status.toUpperCase(), scanScheduleType:activeScans[i].scanScheduleType, 
+        specificDateTime:activeScans[i].specificDateTime, recurringSchedule:activeScans[i].recurringSchedule} );
+    }else{
+      dataItem.push('');
+    }
+
+  
+
+    
+    dataItem.push(activeScans[i]); // for view report link
+
     if(activeScans[i].status){
       dataItem.push(activeScans[i].status.toUpperCase());
     }else{
       dataItem.push('');
     }
-
     
-    dataItem.push(activeScans[i]); // for view report link
     dataItem.push(activeScans[i]._id); // for delete
 
     tableData.push(dataItem);
+  }
   }
 
   const goToStartQuickScan = (e) => {
@@ -474,6 +583,10 @@ const APICollectionVersionScans = () => {
     navigate('/start-active-scan')
   }
 
+  const goBack = async () => {
+
+    navigate('/api-collection-versions?collectionId='+collectionId)
+  }
 
 
   return (
@@ -501,15 +614,23 @@ const APICollectionVersionScans = () => {
             <span className="pageHeader">Scans</span>
 
             <CButton
-              className="primaryButton"
-              
-              onClick={goToStartQuickScan}
-              color="primary"
-            >
-              <AiOutlineSecurityScan size={20} color='white'/>
+                onClick={goBack}
+                style={{
+                  width: 300,
+                  marginBottom: '2%',
+                  borderWidth: 0,
+                  fontSize: 14,
+                  borderColor: '#666',
+                  borderWidth: 1,
+                  color: '#ffffff',
+                  background: '#666'
+                }}
+                color="primary"
+                className="px-3"
+              >
+                <IoMdArrowRoundBack size={25} style={{ color: '#fff', marginRight: 10 }} /> Back to the Collection
+              </CButton>
 
-              <span className="primaryButtonText" style={{marginLeft:10}}>Start a Scan</span>
-            </CButton>
           </div>
 
 

@@ -18,6 +18,45 @@ const Top10Vulnerabilities = () => {
 
 
     const [loading, setLoading] = useState(false)
+    const [top10Vulnerabilities, setTop10Vulnerabilities] = useState([])
+
+
+    useEffect(() => {
+      getResponse();
+    }, []);
+
+    const getResponse = () => {
+
+        setLoading(true);
+        
+      // Set from localStorage cache
+      if (localStorage.getItem('top10Vulnerabilities')) {
+        setTop10Vulnerabilities(JSON.parse(localStorage.getItem('top10Vulnerabilities')));
+      } else {
+        setTop10Vulnerabilities(true);
+      }
+
+      const endpoint = 'api/v1/users/getTop10Vulnerabilities';
+      const token = localStorage.getItem('ASIToken');
+
+      axios.get(endpoint, {
+        headers: {
+          Authorization: `Bearer ${token}`
+        }
+      })
+        .then(response => {
+
+          setTop10Vulnerabilities(response.data.top10Vulnerabilities);
+
+          // Save into local storage to show from cache while it loads next time
+          localStorage.setItem('top10Vulnerabilities', JSON.stringify(response.data.top10Vulnerabilities));
+
+          setLoading(false)
+        })
+        .catch(error => {
+          setLoading(false)
+        });
+    };
 
 
     const labelsArray = [
@@ -97,7 +136,6 @@ const Top10Vulnerabilities = () => {
             width: '49%',
         }}>
 
-
             <div >
 
                 <span style={{ color: '#5D596C', textAlign: 'left', marginTop: 10, fontSize: 18, display: 'block' }}>
@@ -108,7 +146,6 @@ const Top10Vulnerabilities = () => {
 
 
                 {loading ?
-
 
 
                     <div style={{ display: 'flex', flexDirection: 'column', height: 300, justifyContent: 'space-between' }}>

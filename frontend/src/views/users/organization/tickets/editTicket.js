@@ -406,11 +406,20 @@ const EditTicket = () => {
                 value={assignedTo}
                 style={{ width: '100%' }}
               >
-                {users.map(user => (
-                  <option key={user._id} value={user._id}>
-                    {user.firstName} {user.lastName}  ({user.email})
-                  </option>
-                ))}
+               {users.map(user => {
+  // Check if the user has an orgProject that matches ticket.orgProject._id
+  const hasMatchingOrgProject = user.orgProjects.some(orgProject => orgProject._id === ticket.orgProject._id);
+
+  return (
+    <option 
+      key={user._id} 
+      value={user._id}
+      style={{ display: hasMatchingOrgProject ? 'block' : 'none' }} // Optionally hide if no match
+    >
+      {user.firstName} {user.lastName} ({user.email})
+    </option>
+  );
+})}
               </CFormSelect>
             </CInputGroup>
 

@@ -49,6 +49,8 @@ import SeverityDistribution from './DashboardComponents/SeverityDistribution'
 import AuditFindings from './DashboardComponents/CISOAnalytics/AuditFindings'
 import ComplianceStatus from './DashboardComponents/CISOAnalytics/ComplianceStatus'
 import NumberOfOpenVulnerabilities from './DashboardComponents/CISOAnalytics/NumberOfOpenVulnerabilities'
+import SSDLCScore from './DashboardComponents/CISOAnalytics/SSDLCScore'
+
 import RiskScore from './DashboardComponents/CISOAnalytics/RiskScore'
 import ThreatAlerts from './DashboardComponents/CISOAnalytics/ThreatAlerts'
 import ThreatTrends from './DashboardComponents/CISOAnalytics/ThreatTrends'
@@ -295,6 +297,8 @@ const UserDashboard = () => {
             <TimeToResolveVulnerabilities/>
             <Top10Vulnerabilities/>
             <ComplianceStatus/>
+            <SSDLCScore/>
+
             <AuditFindings/>
             <ThreatAlerts/>
             <ThreatTrends/>

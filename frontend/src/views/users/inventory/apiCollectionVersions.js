@@ -511,7 +511,7 @@ const handleCheckboxChange = (event) => {
 
   const goToViewScans = async (scanId) => {
 
-   // navigate('/api-collection-version-scans?versionId=' + scanId);
+    navigate('/api-collection-version-scans?versionId=' + scanId + '&collectionId='+collectionId);
   };
 
 

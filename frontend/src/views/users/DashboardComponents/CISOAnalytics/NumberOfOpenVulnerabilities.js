@@ -20,13 +20,6 @@ const NumberOfOpenVulnerabilities = () => {
     const [loading, setLoading] = useState(false)
 
     const [vulnerabilities, setVulnerabilities] = useState([]);
-  /*  const [openTicketsCountRest, setOpenTicketsCountRest] = useState(0);
-    const [openTicketsCountAttackSurface, setOpenTicketsCountAttackSurface] = useState(0);
-    const [openTicketsCountAPITrafficScan, setOpenTicketsCountAPITrafficScan] = useState(0);
-    const [openTicketsCountSOAPScan, setOpenTicketsCountSOAPScan] = useState(0);
-    const [openTicketsCountGraphQLScan, setOpenTicketsCountGraphQLScan] = useState(0);
-    const [openTicketsCountSBOMScan, setOpenTicketsCountSBOMScan] = useState(0);
-    const [openTicketsCountLLMScan, setOpenTicketsCountLLMScan] = useState(0);  */     
 
 
 
@@ -38,6 +31,8 @@ const NumberOfOpenVulnerabilities = () => {
   
   
     const getResponse = () => {
+
+      setLoading(true);
   
       // Set from localStorage cache
       console.log('localStorage.getItem(vulnerabilities):', localStorage.getItem('vulnerabilities'))

@@ -392,7 +392,26 @@ module.exports.getOrganizationUsers = asyncHandler(async (req, res) => {
     for (var i = 0; i < users.length; i++) {
 
         const teams = await Team.find({ users: users[i]._id });
+
+        // Step 2: Extract the teamIds from the teams
+        const teamIds = teams.map(team => team._id);
+
+        console.log('teamIds:',teamIds)
+
+        // Step 3: Find the workspaces associated with the teamIds
+        const workspaces = await Workspace.find({ teams: { $in: teamIds } });
+
+        // Step 4: Extract the workspaceIds from the workspaces
+        const workspaceIds = workspaces.map(workspace => workspace._id);
+
+        console.log('workspaceIds:',workspaceIds)
+
+        // Step 5: Find the orgProjects associated with the workspaceIds
+        const orgProjects = await OrgProject.find({ workspace: { $in: workspaceIds } });
+
+
         users[i].teams = teams;
+        users[i].orgProjects = orgProjects;
     }
 
 
@@ -468,7 +487,7 @@ module.exports.getTickets = asyncHandler(async (req, res) => {
 
                 if (activeScan && activeScan.theCollectionVersion) {
 
-                    tickets[i].projectName = activeScan.theCollectionVersion.apiCollection ? activeScan.theCollectionVersion.apiCollection.orgProject.name : '---';
+                    tickets[i].orgProject = activeScan.theCollectionVersion.apiCollection ? activeScan.theCollectionVersion.apiCollection.orgProject : null;
                 }
 
             }else if(tickets[i].source == 'Attack Surface Scan'){
@@ -479,7 +498,7 @@ module.exports.getTickets = asyncHandler(async (req, res) => {
 
                 if (attackSurfaceScan) {
 
-                    tickets[i].projectName = attackSurfaceScan.orgProject? attackSurfaceScan.orgProject.name : '---';
+                    tickets[i].orgProject = attackSurfaceScan.orgProject? attackSurfaceScan.orgProject : null;
                 }
 
             }else if(tickets[i].source == 'LLM Scan'){
@@ -490,7 +509,7 @@ module.exports.getTickets = asyncHandler(async (req, res) => {
 
                 if (llmScan) {
 
-                    tickets[i].projectName = llmScan.orgProject? llmScan.orgProject.name : '---';
+                    tickets[i].orgProject = llmScan.orgProject? llmScan.orgProject : null;
                 }
 
             }else if(tickets[i].source == 'SOAP Scan' || tickets[i].source == 'GraphQL Scan'){
@@ -501,7 +520,7 @@ module.exports.getTickets = asyncHandler(async (req, res) => {
 
                 if (soapOrGraphQLScan) {
 
-                    tickets[i].projectName = soapOrGraphQLScan.orgProject? soapOrGraphQLScan.orgProject.name : '---';
+                    tickets[i].orgProject = soapOrGraphQLScan.orgProject? soapOrGraphQLScan.orgProject : null;
                 }
 
             }else if(tickets[i].source == 'SBOM Scan'){
@@ -512,7 +531,7 @@ module.exports.getTickets = asyncHandler(async (req, res) => {
 
                 if (sbomScan) {
 
-                    tickets[i].projectName = sbomScan.orgProject? sbomScan.orgProject.name : '---';
+                    tickets[i].orgProject = sbomScan.orgProject? sbomScan.orgProject : null;
                 }
 
             }else if(tickets[i].source == 'API Traffic Scan'){
@@ -523,7 +542,7 @@ module.exports.getTickets = asyncHandler(async (req, res) => {
 
                 if (project) {
 
-                    tickets[i].projectName = project.orgProject? project.orgProject.name : '---';
+                    tickets[i].orgProject = project.orgProject? project.orgProject : null;
                 }
 
             }
@@ -734,7 +753,7 @@ module.exports.deleteTicket = asyncHandler(async (req, res) => {
 
 
 // Get tikcet details
-module.exports.getTicketDetails = asyncHandler(async (req, res) => {
+/*module.exports.getTicketDetails = asyncHandler(async (req, res) => {
 
     try {
 
@@ -742,7 +761,89 @@ module.exports.getTicketDetails = asyncHandler(async (req, res) => {
         const id = req.params.id;
 
         // Fetch ticket details from the database
-        const ticket = await Ticket.findById(id);
+        const ticket = await Ticket.findById(id).lean();
+
+        console.log('ticket:', ticket)
+
+
+        if (ticket.source == 'REST API Scan') {
+
+            const activeScan = await ActiveScan.findById(ticket.scanId)
+                .populate({
+                    path: 'theCollectionVersion',
+                    populate: {
+                        path: 'apiCollection',
+                        populate: {
+                            path: 'orgProject'
+                        }
+                    }
+                });
+
+            console.log('activeScan:', activeScan)
+
+            if (activeScan && activeScan.theCollectionVersion) {
+
+                console.log('comes')
+
+                ticket.orgProject = activeScan.theCollectionVersion.apiCollection ? activeScan.theCollectionVersion.apiCollection.orgProject : null;
+            }
+
+        }else if(ticket.source == 'Attack Surface Scan'){
+
+            const attackSurfaceScan = await AttackSurfaceScan.findById(ticket.scanId).populate('orgProject')
+                
+           // console.log('attackSurfaceScan:', attackSurfaceScan)
+
+            if (attackSurfaceScan) {
+
+                ticket.orgProject = attackSurfaceScan.orgProject? attackSurfaceScan.orgProject : null;
+            }
+
+        }else if(ticket.source == 'LLM Scan'){
+
+            const llmScan = await LLMScan.findById(ticket.scanId).populate('orgProject')
+                
+        //    console.log('llmScan:', llmScan)
+
+            if (llmScan) {
+
+                ticket.orgProject = llmScan.orgProject? llmScan.orgProject : null;
+            }
+
+        }else if(ticket.source == 'SOAP Scan' || ticket.source == 'GraphQL Scan'){
+
+            const soapOrGraphQLScan = await SOAPOrGraphQLScan.findById(ticket.scanId).populate('orgProject')
+                
+          //  console.log('soapOrGraphQLScan:', soapOrGraphQLScan)
+
+            if (soapOrGraphQLScan) {
+
+                ticket.orgProject = soapOrGraphQLScan.orgProject? soapOrGraphQLScan.orgProject : null;
+            }
+
+        }else if(ticket.source == 'SBOM Scan'){
+
+            const sbomScan = await SBOMScan.findById(ticket.scanId).populate('orgProject')
+                
+         //   console.log('sbomScan:', sbomScan)
+
+            if (sbomScan) {
+
+                ticket.orgProject = sbomScan.orgProject? sbomScan.orgProject : null;
+            }
+
+        }else if(ticket.source == 'API Traffic Scan'){
+
+            const project = await Project.findById(ticket.scanId).populate('orgProject')
+                
+           // console.log('project:', project)
+
+            if (project) {
+
+                ticket.orgProject = project.orgProject? project.orgProject : null;
+            }
+
+        }
 
         if (!ticket) {
             // If ticket is not found, return a 404 Not Found response
@@ -760,6 +861,7 @@ module.exports.getTicketDetails = asyncHandler(async (req, res) => {
 
 
 });
+*/
 
 
 // Delete a user
@@ -1007,6 +1109,89 @@ module.exports.getTicketDetails = asyncHandler(async (req, res) => {
 
         const ticketUpdates = await TicketUpdate.find({ ticket: ticket._id }).populate('updatedBy');
         ticket.ticketUpdates = ticketUpdates;
+
+
+        console.log('ticket:', ticket)
+
+
+        if (ticket.source == 'REST API Scan') {
+
+            const activeScan = await ActiveScan.findById(ticket.scanId)
+                .populate({
+                    path: 'theCollectionVersion',
+                    populate: {
+                        path: 'apiCollection',
+                        populate: {
+                            path: 'orgProject'
+                        }
+                    }
+                });
+
+            console.log('activeScan:', activeScan)
+
+            if (activeScan && activeScan.theCollectionVersion) {
+
+                console.log('comes')
+
+                ticket.orgProject = activeScan.theCollectionVersion.apiCollection ? activeScan.theCollectionVersion.apiCollection.orgProject : null;
+            }
+
+        }else if(ticket.source == 'Attack Surface Scan'){
+
+            const attackSurfaceScan = await AttackSurfaceScan.findById(ticket.scanId).populate('orgProject')
+                
+           // console.log('attackSurfaceScan:', attackSurfaceScan)
+
+            if (attackSurfaceScan) {
+
+                ticket.orgProject = attackSurfaceScan.orgProject? attackSurfaceScan.orgProject : null;
+            }
+
+        }else if(ticket.source == 'LLM Scan'){
+
+            const llmScan = await LLMScan.findById(ticket.scanId).populate('orgProject')
+                
+        //    console.log('llmScan:', llmScan)
+
+            if (llmScan) {
+
+                ticket.orgProject = llmScan.orgProject? llmScan.orgProject : null;
+            }
+
+        }else if(ticket.source == 'SOAP Scan' || ticket.source == 'GraphQL Scan'){
+
+            const soapOrGraphQLScan = await SOAPOrGraphQLScan.findById(ticket.scanId).populate('orgProject')
+                
+          //  console.log('soapOrGraphQLScan:', soapOrGraphQLScan)
+
+            if (soapOrGraphQLScan) {
+
+                ticket.orgProject = soapOrGraphQLScan.orgProject? soapOrGraphQLScan.orgProject : null;
+            }
+
+        }else if(ticket.source == 'SBOM Scan'){
+
+            const sbomScan = await SBOMScan.findById(ticket.scanId).populate('orgProject')
+                
+         //   console.log('sbomScan:', sbomScan)
+
+            if (sbomScan) {
+
+                ticket.orgProject = sbomScan.orgProject? sbomScan.orgProject : null;
+            }
+
+        }else if(ticket.source == 'API Traffic Scan'){
+
+            const project = await Project.findById(ticket.scanId).populate('orgProject')
+                
+           // console.log('project:', project)
+
+            if (project) {
+
+                ticket.orgProject = project.orgProject? project.orgProject : null;
+            }
+
+        }
 
         if (!ticket) {
             return res.status(404).json({ success: false, error: 'Ticket not found' });
