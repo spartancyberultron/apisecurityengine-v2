@@ -3,6 +3,7 @@ import Chart from 'react-apexcharts';
 import { Shimmer, Breathing } from 'react-shimmer'
 import axios from 'axios';
 
+import { CgNotes } from "react-icons/cg";
 
 const SSDLCScore = () => {
 
@@ -200,6 +201,13 @@ chartSeries = data.series;
                         }}
                     >
                         {ssdlcScore &&
+
+
+<>
+
+{ssdlcScore.categories && ssdlcScore.categories.length>0 ?
+
+
                         <Chart
                             options={chartOptions}
                             series={chartSeries}
@@ -207,6 +215,17 @@ chartSeries = data.series;
                             width={450}
                             height={350}
                         />
+                        :
+
+<div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', marginTop: 30, }}>
+                    <CgNotes size={40} style={{ color: '#f73164', textAlign: 'center' }} />
+                    <text style={{ textAlign: 'center', color: '#f73164', marginTop: 20, fontSize:13 }}>No Data Yet</text>
+                  </div>
+}
+
+                        </>
+
+
                         }
                     </div>
                 )}

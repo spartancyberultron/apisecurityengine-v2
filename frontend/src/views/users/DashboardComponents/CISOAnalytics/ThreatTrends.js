@@ -34,11 +34,11 @@ const ThreatTrends = () => {
       setLoading(true);
   
       // Set from localStorage cache
-      if (localStorage.getItem('threatTrends')) {
+    /*  if (localStorage.getItem('threatTrends')) {
           setThreatTrends(JSON.parse(localStorage.getItem('threatTrends')));
       } else {
           setThreatTrends(true);
-      }
+      } */
   
   
       const endpoint = 'api/v1/users/getThreatTrends';
@@ -187,6 +187,8 @@ const ThreatTrends = () => {
 
                             <div style={{ flex: 1, minWidth: 0, marginTop: 100 }}>
 
+{threatTrends.categories && threatTrends.categories.length>0?
+
 
                             <Chart
         options={chartOptions}
@@ -194,7 +196,13 @@ const ThreatTrends = () => {
         type="line"
         height={450}
       />
+      :
 
+<div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', marginTop: 30, }}>
+                    <CgNotes size={40} style={{ color: '#f73164', textAlign: 'center' }} />
+                    <text style={{ textAlign: 'center', color: '#f73164', marginTop: 20, fontSize:13 }}>No Data Yet</text>
+                  </div>
+}
                             </div>
 
                         </div>

@@ -36,11 +36,11 @@ const RiskScore = () => {
         setLoading(true);
     
         // Set from localStorage cache
-        if (localStorage.getItem('riskScore')) {
+      /*  if (localStorage.getItem('riskScore')) {
             setRiskScore(JSON.parse(localStorage.getItem('riskScore')));
         } else {
             setRiskScore(true);
-        }
+        }*/
     
     
         const endpoint = 'api/v1/users/getRiskScore';
@@ -54,7 +54,7 @@ const RiskScore = () => {
           .then(response => {
     
     
-            setRiskScore(response.data);
+            setRiskScore(response.data.riskScore);
     
             // Save into local storage to show from cache while it loads next time
             localStorage.setItem('riskScore', JSON.stringify(response.data));
@@ -120,6 +120,7 @@ const RiskScore = () => {
                             <div style={{ flex: 1, minWidth: 0, marginTop: 10, width:'100%' }}>
 
 
+{riskScore.riskScore?
                             <GaugeChart id="gauge-chart3"
                         nrOfLevels={3}
                         colors={['#28c76f','#fd7e14', '#ea5455', ]}
@@ -128,11 +129,20 @@ const RiskScore = () => {
                         hideText={true}  
                         width='100%'
                         />       
+                        :
 
 
+<div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', marginTop: 30, }}>
+                <CgNotes size={40} style={{ color: '#f73164', textAlign: 'center' }} />
+                <text style={{ textAlign: 'center', color: '#f73164', marginTop: 20, fontSize: 13 }}>No Data Yet</text>
+              </div>
+}
                             </div>
 
+                            {riskScore.riskScore &&
+
                                 <span style={{fontSize:30}}>{riskScore.riskScore}%</span>
+                            }
                         </div>
 
                     </>

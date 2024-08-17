@@ -43,11 +43,11 @@ const TimeToResolveVulnerabilities = () => {
     setLoading(true);
 
     // Set from localStorage cache
-    if (localStorage.getItem('averageResolutionTime')) {
+   /* if (localStorage.getItem('averageResolutionTime')) {
         setAverageResolutionTime(JSON.parse(localStorage.getItem('averageResolutionTime')));
     } else {
         setAverageResolutionTime(true);
-    }
+    }*/
 
 
     const endpoint = 'api/v1/users/getTimeToResolveVulnerabilities';
@@ -61,7 +61,7 @@ const TimeToResolveVulnerabilities = () => {
       .then(response => {
 
 
-        setAverageResolutionTime(response.data.averageResolutionTime);
+        setAverageResolutionTime(response.data.timeToResolveVulnerabilities);
 
         // Save into local storage to show from cache while it loads next time
         localStorage.setItem('averageTime', JSON.stringify(response.data.averageResolutionTime));
@@ -128,22 +128,33 @@ const TimeToResolveVulnerabilities = () => {
 
                             <div style={{  minWidth: 0, marginTop: 10, justifyContent:'center',  width:'100%' }}>
 
+                            {averageResolutionTime && averageResolutionTime!==99999?
 
                             <GaugeChart id="gauge-chart3"
                         nrOfLevels={5}
                         colors={['#32CD32', '#9ACD32', '#FFD700', '#FF8C00', '#FF0000']}
                         arcWidth={0.2}
-                        percent={0.33}
+                        percent={(formatResolutionTime(averageResolutionTime)/(5*24*60))*100}
                         hideText={true}  
                         width='100%'
                         />       
+
+:
+
+<div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', marginTop: 30, }}>
+                <CgNotes size={40} style={{ color: '#f73164', textAlign: 'center' }} />
+                <text style={{ textAlign: 'center', color: '#f73164', marginTop: 20, fontSize: 13 }}>No Data Yet</text>
+              </div>
+}
 
 
 
 
                             </div>
 
+                            {averageResolutionTime && averageResolutionTime!==99999 &&
                             <span style={{textAlign:'center', fontSize:20}}>{formatResolutionTime(averageResolutionTime)} mins</span>
+}
 
 
                         </div>

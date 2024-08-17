@@ -35,12 +35,13 @@ const NumberOfOpenVulnerabilities = () => {
       setLoading(true);
   
       // Set from localStorage cache
-      console.log('localStorage.getItem(vulnerabilities):', localStorage.getItem('vulnerabilities'))
+    /*  console.log('localStorage.getItem(vulnerabilities):', localStorage.getItem('vulnerabilities'))
       if (localStorage.getItem('vulnerabilities') && localStorage.getItem('vulnerabilities') !== 'undefined') {
         setVulnerabilities(JSON.parse(localStorage.getItem('vulnerabilities')));
       } else {
         setVulnerabilities({});
       }
+      */
   
   
       const endpoint = 'api/v1/users/getNumberOfOpenVulnerabilities';
@@ -198,9 +199,15 @@ const chartSeries = [
                                 height: '50vh',
                             }}>
 
-                              { vulnerabilities.openTicketsCountRest &&
 
+                 
+                 
                             <div style={{ flex: 1, minWidth: 0, marginTop: 100 }}>
+
+
+                                 { vulnerabilities.openTicketsCountRest ?
+                           
+
  <Chart
         options={chartOptions}
         series={chartSeries}
@@ -208,10 +215,17 @@ const chartSeries = [
         height={500}
         width={'100%'}
       />
+      :
+
+<div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', marginTop: 30, }}>
+                <CgNotes size={40} style={{ color: '#f73164', textAlign: 'center' }} />
+                <text style={{ textAlign: 'center', color: '#f73164', marginTop: 20, fontSize: 13 }}>No Data Yet</text>
+              </div>
+}
                               
 
                             </div>
-}
+
 
                         </div>
 

@@ -30,11 +30,11 @@ const Top10Vulnerabilities = () => {
         setLoading(true);
         
       // Set from localStorage cache
-      if (localStorage.getItem('top10Vulnerabilities')) {
+   /*   if (localStorage.getItem('top10Vulnerabilities')) {
         setTop10Vulnerabilities(JSON.parse(localStorage.getItem('top10Vulnerabilities')));
       } else {
         setTop10Vulnerabilities(true);
-      }
+      }*/
 
       const endpoint = 'api/v1/users/getTop10Vulnerabilities';
       const token = localStorage.getItem('ASIToken');
@@ -179,6 +179,8 @@ const Top10Vulnerabilities = () => {
                             <div style={{ flex: 1, minWidth: 0, marginTop: 10 }}>
 
 
+{top10Vulnerabilities && top10Vulnerabilities.length>0?
+
                             <Chart
         options={chartOptions}
         series={chartOptions.series}
@@ -186,6 +188,13 @@ const Top10Vulnerabilities = () => {
         height={400}
         width={'100%'}
       />
+:
+
+<div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', marginTop: 30, }}>
+                <CgNotes size={40} style={{ color: '#f73164', textAlign: 'center' }} />
+                <text style={{ textAlign: 'center', color: '#f73164', marginTop: 20, fontSize: 13 }}>No Data Yet</text>
+              </div>
+}
 
 
                             </div>

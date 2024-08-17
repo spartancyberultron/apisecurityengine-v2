@@ -38,6 +38,7 @@ const AuditFindings = () => {
       // Set from localStorage cache
      const storedAuditFindings = localStorage.getItem('auditFindings');
 
+     /*
 if (storedAuditFindings !== null) {
   try {
     setAuditFindings(JSON.parse(storedAuditFindings));
@@ -47,7 +48,7 @@ if (storedAuditFindings !== null) {
   }
 } else {
   setAuditFindings([]);
-}
+}*/
   
       const endpoint = 'api/v1/users/getAuditFindings';
       const token = localStorage.getItem('ASIToken');
@@ -182,12 +183,21 @@ if (storedAuditFindings !== null) {
 
                             <div style={{ flex: 1, minWidth: 0, marginTop: 100 }}>
 
+
+{auditFindings && auditFindings.length>0?
                             <Chart
         options={chartOptions}
         series={chartSeries}
         type="bar"
         height={350}
       />
+:
+
+<div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', marginTop: 30, }}>
+                <CgNotes size={40} style={{ color: '#f73164', textAlign: 'center' }} />
+                <text style={{ textAlign: 'center', color: '#f73164', marginTop: 20, fontSize: 13 }}>No Data Yet</text>
+              </div>
+}
 
 
                             </div>

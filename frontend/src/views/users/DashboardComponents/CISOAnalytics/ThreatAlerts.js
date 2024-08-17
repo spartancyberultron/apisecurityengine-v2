@@ -18,11 +18,11 @@ const ThreatAlerts = () => {
         setLoading(true);
         
       // Set from localStorage cache
-      if (localStorage.getItem('threatAlerts')) {
+   /*   if (localStorage.getItem('threatAlerts')) {
         setThreatAlerts(JSON.parse(localStorage.getItem('threatAlerts')));
       } else {
         setThreatAlerts(true);
-      }
+      }*/
 
       const endpoint = 'api/v1/users/getThreatAlerts';
       const token = localStorage.getItem('ASIToken');
@@ -34,10 +34,12 @@ const ThreatAlerts = () => {
       })
         .then(response => {
 
-          setThreatAlerts(response.data);
+            console.log('response.data:',response.data.response)
+
+          setThreatAlerts(response.data.response);
 
           // Save into local storage to show from cache while it loads next time
-          localStorage.setItem('threatAlerts', JSON.stringify(response.data));
+          localStorage.setItem('threatAlerts', JSON.stringify(response.data.response));
 
           setLoading(false)
         })
@@ -144,12 +146,22 @@ const ThreatAlerts = () => {
                             height: '60vh',
                         }}>
                         <div style={{ flex: 1, minWidth: 0, marginTop: 100 }}>
+
+                     {threatAlerts.categories && threatAlerts.categories.length >0 ?     
                             <Chart
                                 options={chartOptions}
                                 series={chartSeries}
                                 type="bar"
                                 height={450}
                             />
+                            :
+
+                <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', marginTop: 30, }}>
+                    <CgNotes size={40} style={{ color: '#f73164', textAlign: 'center' }} />
+                    <text style={{ textAlign: 'center', color: '#f73164', marginTop: 20, fontSize:13 }}>No Data Yet</text>
+                  </div>
+}
+
                         </div>
                     </div>
                 )}

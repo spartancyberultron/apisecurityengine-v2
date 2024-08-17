@@ -34,7 +34,7 @@ const TopRisks = () => {
       const getResponse = () => {
     
         // Set from localStorage cache
-        const storedTopRisks = localStorage.getItem('topRisks');
+    /*    const storedTopRisks = localStorage.getItem('topRisks');
         if (storedTopRisks && storedTopRisks !== "undefined") {
             try {
                 setTopRisks(JSON.parse(storedTopRisks));
@@ -45,6 +45,7 @@ const TopRisks = () => {
         } else {
             setTopRisks([]); // or any appropriate default value
         }
+        */
     
     
         const endpoint = 'api/v1/users/getTopRisks';
@@ -126,6 +127,8 @@ const TopRisks = () => {
                             <div style={{ flex: 1, minWidth: 0, marginTop: 10 }}>
 
 
+                            {topRisks && topRisks.length > 0 ?
+
                             <table style={{width:'100%'}}>
 
 <thead>
@@ -158,6 +161,14 @@ const TopRisks = () => {
 
 </tbody>
 </table>
+
+:
+
+<div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', marginTop: 30, }}>
+                <CgNotes size={40} style={{ color: '#f73164', textAlign: 'center' }} />
+                <text style={{ textAlign: 'center', color: '#f73164', marginTop: 20, fontSize: 13 }}>No Data Yet</text>
+              </div>
+}
 
 
                             </div>

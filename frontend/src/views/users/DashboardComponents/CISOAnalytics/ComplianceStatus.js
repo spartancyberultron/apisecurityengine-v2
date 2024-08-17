@@ -140,7 +140,7 @@ const ComplianceStatus = () => {
                             <div style={{ flex: 1, minWidth: 0, marginTop: 10 }}>
 
 
-{threatAlerts &&
+{threatAlerts && threatAlerts.length>0 ?
                                 <table style={{width:'100%'}}>
 
                                     <thead>
@@ -295,6 +295,12 @@ const ComplianceStatus = () => {
                                         </tr>
                                     </tbody>
                                 </table>
+:
+
+<div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', marginTop: 30, }}>
+                <CgNotes size={40} style={{ color: '#f73164', textAlign: 'center' }} />
+                <text style={{ textAlign: 'center', color: '#f73164', marginTop: 20, fontSize: 13 }}>No Data Yet</text>
+              </div>
 }
 
                             </div>

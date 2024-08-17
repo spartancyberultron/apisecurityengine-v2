@@ -46,6 +46,67 @@ const organizationSchema = mongoose.Schema({
       required: true,
     },
   }],
+  vulnerabilityDistribution: {
+    type: mongoose.Schema.Types.Mixed, 
+    default: {} 
+  },
+  topEndpoints: {
+    type: mongoose.Schema.Types.Mixed, 
+    default: {} 
+  },
+  vulnerabilityTrends: {
+    type: mongoose.Schema.Types.Mixed, 
+    default: {} 
+  },
+  
+  severityDistribution: {
+    type: mongoose.Schema.Types.Mixed, 
+    default: {} 
+  },
+  numberOfOpenVulnerabilities: {
+    type: mongoose.Schema.Types.Mixed, 
+    default: {} 
+  },
+  timeToResolveVulnerabilities: {
+    type: Number, 
+    default: 99999
+  },
+  top10Vulnerabilities: {
+    type: mongoose.Schema.Types.Mixed, 
+    default: {} 
+  },
+  complianceStatus: {
+    type: mongoose.Schema.Types.Mixed, 
+    default: {} 
+  },
+  ssdlcScore: {
+    type: mongoose.Schema.Types.Mixed, 
+    default: {} 
+  },
+  auditFindings: {
+    type: [mongoose.Schema.Types.Mixed], // This defines auditFindings as an array of mixed-type objects or values
+    default: [], // Default to an empty array
+  },
+  threatAlerts: {
+    type: mongoose.Schema.Types.Mixed, 
+    default: {} 
+  },
+  threatTrends: {
+    type: mongoose.Schema.Types.Mixed, 
+    default: {} 
+  },
+  riskScore: {
+    type: mongoose.Schema.Types.Mixed, 
+    default: {} 
+  },
+  topRisks: {
+    type: [mongoose.Schema.Types.Mixed], // This defines auditFindings as an array of mixed-type objects or values
+    default: [], // Default to an empty array
+  },
+  dashboardCardData:{
+    type: mongoose.Schema.Types.Mixed, 
+    default: {} 
+  },
 }, {
   timestamps: true,
 });
