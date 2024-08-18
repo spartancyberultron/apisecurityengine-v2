@@ -66,6 +66,9 @@ const RiskScore = () => {
             setLoading(false)
           });
       };
+
+
+      console.log('riskScore:',riskScore)
   
 
     return (
@@ -120,12 +123,12 @@ const RiskScore = () => {
                             <div style={{ flex: 1, minWidth: 0, marginTop: 10, width:'100%' }}>
 
 
-{riskScore.riskScore?
+{riskScore && riskScore>0?
                             <GaugeChart id="gauge-chart3"
                         nrOfLevels={3}
                         colors={['#28c76f','#fd7e14', '#ea5455', ]}
                         arcWidth={0.2}
-                        percent={riskScore.riskScore/100}
+                        percent={riskScore/100}
                         hideText={true}  
                         width='100%'
                         />       
@@ -139,9 +142,9 @@ const RiskScore = () => {
 }
                             </div>
 
-                            {riskScore.riskScore &&
+                            {riskScore && riskScore>0 &&
 
-                                <span style={{fontSize:30}}>{riskScore.riskScore}%</span>
+                                <span style={{fontSize:30}}>{riskScore}%</span>
                             }
                         </div>
 

@@ -52,10 +52,10 @@ const ThreatTrends = () => {
         .then(response => {
   
   
-          setThreatTrends(response.data);
+          setThreatTrends(response.data.data);
   
           // Save into local storage to show from cache while it loads next time
-          localStorage.setItem('threatTrends', JSON.stringify(response.data));
+          //localStorage.setItem('threatTrends', JSON.stringify(response.data));
   
           setLoading(false)
         })
@@ -135,6 +135,9 @@ const ThreatTrends = () => {
           data: threatTrends.sbom,
         },
       ];
+
+
+      console.log('threatTrends:',threatTrends)
 
     return (
 

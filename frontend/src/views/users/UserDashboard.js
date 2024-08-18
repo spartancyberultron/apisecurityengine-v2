@@ -295,7 +295,6 @@ const UserDashboard = () => {
 
             <NumberOfOpenVulnerabilities/>
             <TimeToResolveVulnerabilities/>
-            <Top10Vulnerabilities/>
             <ComplianceStatus/>
             <SSDLCScore/>
 

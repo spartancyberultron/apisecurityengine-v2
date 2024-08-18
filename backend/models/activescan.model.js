@@ -1,5 +1,4 @@
 const mongoose = require('mongoose');
-const { calculateDashboard } = require("../services/dashboard/dashboardCalculation.service");
 
 const activeScanSchema = new mongoose.Schema({
 

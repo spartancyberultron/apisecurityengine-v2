@@ -170,6 +170,8 @@ chartSeries = data.series;
 
   
 
+console.log('ssdlcScore:',ssdlcScore)
+
     return (
         <div className="theCards" style={{
             display: 'flex', flexDirection: 'column', borderRadius: 10, padding: 20, marginTop: 20,
@@ -205,7 +207,7 @@ chartSeries = data.series;
 
 <>
 
-{ssdlcScore.categories && ssdlcScore.categories.length>0 ?
+{ssdlcScore.ActiveScanVulnerability  ?
 
 
                         <Chart

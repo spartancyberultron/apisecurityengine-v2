@@ -1093,11 +1093,7 @@ module.exports.getVulnerabilityDistribution = asyncHandler(async (req, res) => {
 
 
 
-function calculateAverage(array) {
-    const sum = array.reduce((acc, value) => acc + value, 0);
-    const avg = sum / array.length;
-    return isNaN(avg) ? 0 : avg; // Handle division by zero
-}
+
 
 module.exports.getTopEndPoints = asyncHandler(async (req, res) => {
 

@@ -61,7 +61,7 @@ const TimeToResolveVulnerabilities = () => {
       .then(response => {
 
 
-        setAverageResolutionTime(response.data.timeToResolveVulnerabilities);
+        setAverageResolutionTime(response.data.averageResolutionTime);
 
         // Save into local storage to show from cache while it loads next time
         localStorage.setItem('averageTime', JSON.stringify(response.data.averageResolutionTime));
@@ -74,6 +74,8 @@ const TimeToResolveVulnerabilities = () => {
       });
   };
 
+
+console.log('averageResolutionTime:',averageResolutionTime)
 
     return (
 

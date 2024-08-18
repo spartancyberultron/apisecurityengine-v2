@@ -96,8 +96,8 @@ const organizationSchema = mongoose.Schema({
     default: {} 
   },
   riskScore: {
-    type: mongoose.Schema.Types.Mixed, 
-    default: {} 
+    type: Number, 
+    default: 99999
   },
   topRisks: {
     type: [mongoose.Schema.Types.Mixed], // This defines auditFindings as an array of mixed-type objects or values

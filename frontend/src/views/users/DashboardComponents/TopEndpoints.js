@@ -102,7 +102,7 @@ const TopEndpoints = () => {
                         <th>ENDPOINT</th>
                         <th>RISK</th>
                         <th>ISSUES</th>
-                        <th>SENSITIVE DATA CLASSES</th>
+                        <th>PII DATA</th>
                       </thead>
 
                       <tbody>
@@ -111,8 +111,7 @@ const TopEndpoints = () => {
 
                           <tr>
                             <td>
-                              <span style={{ width:350, display:'inline-block',wordWrap: 'break-word' }}>{(extractHostAndEndpoint(endpoint.url)).endpoint}</span><br />
-                              <span style={{ fontSize: 13, width:200 }}>{endpoint.name}</span>
+                              <span style={{ width:400, display:'inline-block',wordWrap: 'break-word',fontSize: 13,  }}>{endpoint.name}</span><br />
                             </td>
                             <td>                       
 
@@ -157,7 +156,7 @@ const TopEndpoints = () => {
                             <td>
 
                               <div style={{ display: 'flex', flexDirection: 'row', flexWrap: 'wrap' }}>
-                                {endpoint.piiFields.length}
+                                {endpoint.piiFields?endpoint.piiFields.length:''}
                               </div>
 
                             </td>

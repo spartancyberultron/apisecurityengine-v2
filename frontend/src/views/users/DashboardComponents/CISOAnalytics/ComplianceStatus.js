@@ -59,11 +59,11 @@ const ComplianceStatus = () => {
         setLoading(true);
         
       // Set from localStorage cache
-      if (localStorage.getItem('threatAlerts')) {
+    /*  if (localStorage.getItem('threatAlerts')) {
         setThreatAlerts(JSON.parse(localStorage.getItem('threatAlerts')));
       } else {
         setThreatAlerts(true);
-      }
+      }*/
 
       const endpoint = 'api/v1/users/getThreatAlerts';
       const token = localStorage.getItem('ASIToken');
@@ -75,7 +75,7 @@ const ComplianceStatus = () => {
       })
         .then(response => {
 
-          setThreatAlerts(response.data);
+          setThreatAlerts(response.data.response);
 
           // Save into local storage to show from cache while it loads next time
           localStorage.setItem('threatAlerts', JSON.stringify(response.data));
@@ -87,6 +87,8 @@ const ComplianceStatus = () => {
         });
     };
 
+
+    console.log('threatAlerts:', threatAlerts)
 
 
     return (
@@ -140,7 +142,7 @@ const ComplianceStatus = () => {
                             <div style={{ flex: 1, minWidth: 0, marginTop: 10 }}>
 
 
-{threatAlerts && threatAlerts.length>0 ?
+{threatAlerts && threatAlerts.categories.length>0 ?
                                 <table style={{width:'100%'}}>
 
                                     <thead>
