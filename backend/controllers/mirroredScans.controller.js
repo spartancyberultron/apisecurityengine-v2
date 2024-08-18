@@ -52,6 +52,9 @@ const { unauthenticatedEndpointReturningSensitiveDataCheck } = require("../servi
 const { walletHijackingPossibleCheck } = require("../services/securityTests/walletHijackingPossibleCheck.service");
 
 
+const { calculateDashboard } = require("../services/dashboard/dashboardCalculation.service");
+
+
 const {
     checkCipherSuitesVulnerabilities,
     gettlsCompressionIssue,
@@ -138,6 +141,8 @@ module.exports.sendRequestInfo = asyncHandler(async (req, res) => {
     const application = await Project.findOne({projectIntegrationID:api_key}).populate('orgProject')
     console.log('application:',application.orgProject)
     const orgProject = await OrgProject.findById(application.orgProject._id);
+
+    const organization = await Organization.findById(orgProject.organization._id);
 
     console.log('orgProject:',orgProject)
 
@@ -692,36 +697,7 @@ module.exports.sendRequestInfo = asyncHandler(async (req, res) => {
 
             console.log('error:', error)
             console.log('execption occured in check for SSL issues')
-        }
-
-
-
-        // Check for Endpoint Not Secured by SSL
-        /* try {
- 
-             var sslIssues = await runTestForEndpointNotSecuredBySSL(protocol, host);
- 
-             if (sslIssues.length > 0) {
- 
-                 const vuln = await Vulnerability.findOne({ vulnerabilityCode: 4 })
- 
-                 var description = sslIssues.join('\n');
- 
-                 const theProjectVulnerability = await ProjectVulnerability.create({
- 
-                     project: project,
-                     vulnerability: vuln,
-                     endpoint: url,
-                     description: description,
-                 });
- 
-             }
- 
-         } catch (error) {
-             console.log('execption occured in check for ENDPOINT NOT SECURED BY SSL');
-         }
-         // END - Check for Endpoint Not Secured by SSL
-         */
+        }      
 
 
 
@@ -800,15 +776,7 @@ module.exports.sendRequestInfo = asyncHandler(async (req, res) => {
 
                         var remediation = ''; 
             
-                       /* const theActiveScanVulnerability = await ActiveScanVulnerability.create({
-                            activeScan: theActiveScan,
-                            vulnerability: vuln,
-                            endpoint: theEndpoints[i],
-                            description: description,
-                            findings: findings
-                        });
-                        */
-
+                       
                         if(findings.includes("Content-Security-Policy")){
                             remediation = remediation + '<br/><br>' +(getObjectByIndex(12)).remediation;
                         }
@@ -871,11 +839,10 @@ module.exports.sendRequestInfo = asyncHandler(async (req, res) => {
 
             console.log('error:',error)
             console.log('execption occured in check for SECURITY HEADERS NOT ENABLED ON HOST')
-        }        
+        }         
 
 
-        
-
+        calculateDashboard(organization);
 
 
 

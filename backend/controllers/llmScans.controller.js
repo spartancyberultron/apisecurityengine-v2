@@ -10,6 +10,8 @@ const axios = require('axios');
 const https = require('https');
 
 const remediations = require('./remediations/soap-graphql-remediations.json');
+const { calculateDashboard } = require("../services/dashboard/dashboardCalculation.service");
+const Organization = require('../models/organization.model');
 
 
 function getObjectByVulnerability(vulnerability) {
@@ -21,6 +23,9 @@ function getObjectByVulnerability(vulnerability) {
 
 module.exports.getAllLLMScans = asyncHandler(async (req, res) => {
 
+    const user = await User.findById(req.user._id)
+    const organization = await Organization.findById(user.organization)
+  
 
     // The user is attempting to fetch the scans list, so we will see all scans that have a task id, but the status as "in progress".
     // And check whether their scans are complete, by running get_llm_security_scan_results API.
@@ -106,6 +111,8 @@ module.exports.getAllLLMScans = asyncHandler(async (req, res) => {
           }
         }
     }
+
+    calculateDashboard(organization);
 
     // Logic to fetch the scans
     const pageNumber = parseInt(req.query.pageNumber) || 1; // Get the pageNumber from the query parameters (default to 1 if not provided)

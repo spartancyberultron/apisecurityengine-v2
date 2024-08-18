@@ -104,8 +104,7 @@ module.exports.getAllActiveScans = asyncHandler(async (req, res) => {
     const user = await User.findById(req.user._id);
     const organization = await Organization.findById(user.organization);
     
-
-    calculateDashboard(organization);
+calculateDashboard(organization)
 
     const pageNumber = parseInt(req.query.pageNumber) || 1; // Get the pageNumber from the query parameters (default to 1 if not provided)
     const pageSize = 10; // Number of active scans per page
@@ -2365,14 +2364,10 @@ module.exports.generatePDFForAScan = asyncHandler(async (req, res) => {
 
 async function runActiveScan(user, theCollectionVersion, endpoints, scanId) {
 
-    console.log('cameToScan:')
 
     try {
 
-        const theActiveScan = await ActiveScan.findById(scanId);
-
-        console.log('theActiveScan:', theActiveScan)
-        console.log('user:', user)
+        const theActiveScan = await ActiveScan.findById(scanId);        
 
         const organization = await Organization.findById(user.organization);        
 
@@ -3095,6 +3090,9 @@ async function runActiveScan(user, theCollectionVersion, endpoints, scanId) {
         theActiveScan.status = 'completed';
         theActiveScan.vulnerabilities = theVulns;
         await theActiveScan.save();
+
+        calculateDashboard(organization);
+
 
         //createPDFAndSendEmail(theActiveScan._id);
 

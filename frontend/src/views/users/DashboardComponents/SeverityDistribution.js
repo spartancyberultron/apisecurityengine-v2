@@ -16,7 +16,7 @@ import {
 
 const SeverityDistribution = () => {
 
-    const [vulnerabilityDistribution, setVulnerabilityDistribution] = useState({})
+    const [severityDistribution, setSeverityDistribution] = useState({})
     const [loadingVulnerabilityDistribution, setLoadingVulnerabilityDistribution] = useState(false)
 
 
@@ -32,14 +32,14 @@ const SeverityDistribution = () => {
   const fetchVulnerabilityDistribution = () => {
 
     // Set from localStorage cache
-    if (localStorage.getItem('vulnerabilityCounts')) {
+    /*if (localStorage.getItem('vulnerabilityCounts')) {
       setVulnerabilityDistribution(JSON.parse(localStorage.getItem('vulnerabilityCounts')));
     }else{
       setLoadingVulnerabilityDistribution(true);
-    }
+    }*/
 
 
-    const endpoint = 'api/v1/users/getVulnerabilityDistribution';
+    const endpoint = 'api/v1/users/getSeverityDistribution';
     const token = localStorage.getItem('ASIToken');
 
     axios.get(endpoint, {
@@ -49,11 +49,10 @@ const SeverityDistribution = () => {
     })
       .then(response => {
 
-
-        setVulnerabilityDistribution(response.data.vulnerabilityCounts);
+        setSeverityDistribution(response.data.severityDistribution);
 
         // Save into local storage to show from cache while it loads next time
-        localStorage.setItem('vulnerabilityCounts', JSON.stringify(response.data.vulnerabilityCounts));
+        //localStorage.setItem('vulnerabilityCounts', JSON.stringify(response.data.vulnerabilityCounts));
 
         setLoadingVulnerabilityDistribution(false)
       })
@@ -63,148 +62,59 @@ const SeverityDistribution = () => {
       });
   };
 
-  console.log('vulnerabilityDistribution:',vulnerabilityDistribution)
+  console.log('severityDistribution:',severityDistribution)
 
 
 
-  var totalVulnCount = vulnerabilityDistribution.vuln1Count +
-                       vulnerabilityDistribution.vuln2Count + 
-                       vulnerabilityDistribution.vuln3Count + 
-                       vulnerabilityDistribution.vuln4Count + 
-                       vulnerabilityDistribution.vuln5Count + 
-                       vulnerabilityDistribution.vuln6Count + 
-                       vulnerabilityDistribution.vuln7Count + 
-                       vulnerabilityDistribution.vuln8Count + 
-                       vulnerabilityDistribution.vuln9Count + 
-                       vulnerabilityDistribution.vuln10Count + 
-                       vulnerabilityDistribution.vuln11Count + 
-                       vulnerabilityDistribution.vuln12Count + 
-                       vulnerabilityDistribution.vuln13Count + 
-                       vulnerabilityDistribution.vuln14Count + 
-                       vulnerabilityDistribution.vuln15Count + 
-                       vulnerabilityDistribution.vuln16Count + 
-                       vulnerabilityDistribution.vuln17Count + 
-                       vulnerabilityDistribution.vuln18Count;
+  // Total vulnerability count
+var totalVulnCount = severityDistribution.CRITICAL +
+severityDistribution.HIGH + 
+severityDistribution.MEDIUM + 
+severityDistribution.LOW;
 
-  var vuln1Percent = ((vulnerabilityDistribution.vuln1Count / totalVulnCount)*100).toFixed(1);
-  var vuln2Percent = ((vulnerabilityDistribution.vuln2Count / totalVulnCount)*100).toFixed(1);
-  var vuln3Percent = ((vulnerabilityDistribution.vuln3Count / totalVulnCount)*100).toFixed(1);
-  var vuln4Percent = ((vulnerabilityDistribution.vuln4Count / totalVulnCount)*100).toFixed(1);
-  var vuln5Percent = ((vulnerabilityDistribution.vuln5Count / totalVulnCount)*100).toFixed(1);
-  var vuln6Percent = ((vulnerabilityDistribution.vuln6Count / totalVulnCount)*100).toFixed(1);
-  var vuln7Percent = ((vulnerabilityDistribution.vuln7Count / totalVulnCount)*100).toFixed(1);
-  var vuln8Percent = ((vulnerabilityDistribution.vuln8Count / totalVulnCount)*100).toFixed(1);
-  var vuln9Percent = ((vulnerabilityDistribution.vuln9Count / totalVulnCount)*100).toFixed(1);
-  var vuln10Percent = ((vulnerabilityDistribution.vuln10Count / totalVulnCount)*100).toFixed(1);
-  var vuln11Percent = ((vulnerabilityDistribution.vuln11Count / totalVulnCount)*100).toFixed(1);
-  var vuln12Percent = ((vulnerabilityDistribution.vuln12Count / totalVulnCount)*100).toFixed(1);
-  var vuln13Percent = ((vulnerabilityDistribution.vuln13Count / totalVulnCount)*100).toFixed(1);
-  var vuln14Percent = ((vulnerabilityDistribution.vuln14Count / totalVulnCount)*100).toFixed(1);
-  var vuln15Percent = ((vulnerabilityDistribution.vuln15Count / totalVulnCount)*100).toFixed(1);
-  var vuln16Percent = ((vulnerabilityDistribution.vuln16Count / totalVulnCount)*100).toFixed(1);
-  var vuln17Percent = ((vulnerabilityDistribution.vuln17Count / totalVulnCount)*100).toFixed(1);
-  var vuln18Percent = ((vulnerabilityDistribution.vuln18Count / totalVulnCount)*100).toFixed(1);
+// Calculate percentages for each severity level
+var criticalPercent = ((severityDistribution.CRITICAL / totalVulnCount) * 100).toFixed(1);
+var highPercent = ((severityDistribution.HIGH / totalVulnCount) * 100).toFixed(1);
+var mediumPercent = ((severityDistribution.MEDIUM / totalVulnCount) * 100).toFixed(1);
+var lowPercent = ((severityDistribution.LOW / totalVulnCount) * 100).toFixed(1);
 
+// Initialize counts
+var criticalCount = severityDistribution.CRITICAL;
+var highCount = severityDistribution.HIGH;
+var mediumCount = severityDistribution.MEDIUM;
+var lowCount = severityDistribution.LOW;
 
-  var lowCount = 0;
-  var mediumCount = 0;
-  var highCount = 0;
-  var criticalCount = 0;
+// Create labels array based on the severity distribution
+var labelsArray = [];
 
+if (severityDistribution.CRITICAL > 0) {
+labelsArray.push(`Critical (${criticalPercent}%)`);
+}
+if (severityDistribution.HIGH > 0) {
+labelsArray.push(`High (${highPercent}%)`);
+}
+if (severityDistribution.MEDIUM > 0) {
+labelsArray.push(`Medium (${mediumPercent}%)`);
+}
+if (severityDistribution.LOW > 0) {
+labelsArray.push(`Low (${lowPercent}%)`);
+}
 
-  var labelsArray = [];
+// Severity levels, data, and colors for the chart
+var severityLevelsArray = ['CRITICAL', 'HIGH', 'MEDIUM', 'LOW'];
+var severityDataArray = [criticalCount, highCount, mediumCount, lowCount];
+var severityColorsArray = ['#FF0000', '#A6001B', '#FFC300', '#B3FFB3'];
 
-  if (vulnerabilityDistribution.vuln1Count > 0) {
-    labelsArray.push('Broken Object Level Authorization ('+vuln1Percent+'%)');
-    highCount = highCount + vulnerabilityDistribution.vuln1Count;
-  }
-  if (vulnerabilityDistribution.vuln2Count > 0) {
-    labelsArray.push('Sensitive Data in Path Params ('+vuln2Percent+'%)');
-    highCount = highCount + vulnerabilityDistribution.vuln2Count;
-  }
-  if (vulnerabilityDistribution.vuln3Count > 0) {
-    labelsArray.push('Basic Authentication Detected ('+vuln3Percent+'%)');
-    mediumCount = mediumCount + vulnerabilityDistribution.vuln3Count;
-  }
-  if (vulnerabilityDistribution.vuln4Count > 0) {
-    labelsArray.push('Endpoint Not Secured by SSL ('+vuln4Percent+'%)');
-    highCount = highCount + vulnerabilityDistribution.vuln4Count;
-  }
-  if (vulnerabilityDistribution.vuln5Count > 0) {
-    labelsArray.push('Unauthenticated Endpoint Returning Sensitive Data ('+vuln5Percent+'%)');
-    highCount = highCount + vulnerabilityDistribution.vuln5Count;
-  }
-  if (vulnerabilityDistribution.vuln6Count > 0) {
-    labelsArray.push('Sensitive Data in Query Params ('+vuln6Percent+'%)');
-    highCount = highCount + vulnerabilityDistribution.vuln6Count;
-  }
-  if (vulnerabilityDistribution.vuln7Count > 0) {
-    labelsArray.push('PII Data Detected in Response ('+vuln7Percent+'%)');
-    highCount = highCount + vulnerabilityDistribution.vuln7Count;
-  }
-  if (vulnerabilityDistribution.vuln8Count > 0) {
-    labelsArray.push('HTTP Verb Tampering Possible ('+vuln8Percent+'%)');
-    mediumCount = mediumCount + vulnerabilityDistribution.vuln8Count;
-  }
-  if (vulnerabilityDistribution.vuln9Count > 0) {
-    labelsArray.push('Content Type Injection Possible ('+vuln9Percent+'%)');
-    highCount = highCount + vulnerabilityDistribution.vuln9Count;
-  }
-  if (vulnerabilityDistribution.vuln10Count > 0) {
-    labelsArray.push('Security Headers not Enabled on Host ('+vuln10Percent+'%)');
-    mediumCount = mediumCount + vulnerabilityDistribution.vuln10Count;
-  }
-  if (vulnerabilityDistribution.vuln11Count > 0) {
-    labelsArray.push('Resource Deletion Possible ('+vuln11Percent+'%)');
-    highCount = highCount + vulnerabilityDistribution.vuln11Count;
-  }
-  if (vulnerabilityDistribution.vuln12Count > 0) {
-    labelsArray.push('Broken Authentication ('+vuln12Percent+'%)');
-    highCount = highCount + vulnerabilityDistribution.vuln12Count;
-  }
-  if (vulnerabilityDistribution.vuln13Count > 0) {
-    labelsArray.push('Excessive Data Exposure ('+vuln13Percent+'%)');
-    mediumCount = mediumCount + vulnerabilityDistribution.vuln13Count;
-  }
-  if (vulnerabilityDistribution.vuln14Count > 0) {
-    labelsArray.push('Injection('+vuln14Percent+'%)');
-    highCount = highCount + vulnerabilityDistribution.vuln14Count;
-  }
-  if (vulnerabilityDistribution.vuln15Count > 0) {
-    labelsArray.push('XSS Vulnerability Found('+vuln15Percent+'%)');
-    highCount = highCount + vulnerabilityDistribution.vuln15Count;
-  }
-  if (vulnerabilityDistribution.vuln16Count > 0) {
-    labelsArray.push('Wallet Hijacking Possible ('+vuln16Percent+'%)');
-    highCount = highCount + vulnerabilityDistribution.vuln16Count;
-  }
-  if (vulnerabilityDistribution.vuln17Count > 0) {
-    labelsArray.push('Pre Image Attack Possible ('+vuln17Percent+'%)');
-    highCount = highCount + vulnerabilityDistribution.vuln17Count;
-  }
-  if (vulnerabilityDistribution.vuln18Count > 0) {
-    labelsArray.push('Lack of Resource & Rate Limiting ('+vuln18Percent+'%)');
-    highCount = highCount + vulnerabilityDistribution.vuln18Count;
-  }  
- 
+const severityChartSeries = severityDataArray;
 
-  var severityLevelsArray = ['LOW', 'MEDIUM', 'HIGH', 'CRITICAL']
-
-  var severityDataArray = [lowCount, mediumCount, highCount, criticalCount];
-
-
-  var severityColorsArray = ['#00FF00', '#FFD700', '#FF0000', '#800080'];
-  const severityChartSeries = severityDataArray;     
-
-  const severitychartOptions = {
-    labels: severityLevelsArray,
-    colors: severityColorsArray,
-    legend: {
-      position: 'bottom',
-      verticalAlign: 'middle',
-    },    
-  };
-
+const severitychartOptions = {
+labels: severityLevelsArray,
+colors: severityColorsArray,
+legend: {
+position: 'bottom',
+verticalAlign: 'middle',
+},
+};
 
     return (
 

@@ -53,6 +53,9 @@ const { sensitiveDataInQueryParamsCheck } = require("../services/securityTests/s
 const { unauthenticatedEndpointReturningSensitiveDataCheck } = require("../services/securityTests/unauthenticatedEndpointReturningSensitiveDataCheck.service");
 const { walletHijackingPossibleCheck } = require("../services/securityTests/walletHijackingPossibleCheck.service");
 
+const { calculateDashboard } = require("../services/dashboard/dashboardCalculation.service");
+
+
 const {
     checkCipherSuitesVulnerabilities,
     gettlsCompressionIssue,
@@ -118,44 +121,7 @@ module.exports.getAllAttackSurfaceScans = asyncHandler(async (req, res) => {
         .limit(pageSize)
         .lean()
         .populate('orgProject');
-
-        /*
-    for (var i = 0; i < attackSurfaceScans.length; i++) {
-
-        var vulnerabilitiesCount = await AttackSurfaceScanVulnerability.countDocuments({ attackSurfaceScan: attackSurfaceScans[i]._id })
-
-        //console.log('vulnerabilities:',vulnerabilities)
-
-        attackSurfaceScans[i].vulnerabilitiesCount = vulnerabilitiesCount;
-    }
-
-
-    // Retrieve the IDs of the attack surface scans
-    const attackSurfaceScanIds = attackSurfaceScans.map((scan) => scan._id);
-
-    // Fetch counts of endpoints for each attack surface scan
-    const endpointsCountsPromises = attackSurfaceScanIds.map(async (scanId) => {
-        const count = await AttackSurfaceEndpoint.countDocuments({ attackSurfaceScan: scanId }).exec();
-        return { scanId, count };
-    });
-
-    const endpointsCounts = await Promise.all(endpointsCountsPromises);
-
-    // Create a map of attack surface scan IDs and their corresponding endpoint counts
-    const endpointsCountMap = new Map();
-    endpointsCounts.forEach((countObj) => {
-        endpointsCountMap.set(countObj.scanId.toString(), countObj.count);
-    });
-
-    // Add the endpointsCount property to each attack surface scan
-    attackSurfaceScans.forEach((scan, index) => {
-        const endpointsCount = endpointsCountMap.get(scan._id.toString()) || 0;
-        scan.endpointsCount = endpointsCount;
-        const globalIndex = skip + index + 1;
-        scan.index = globalIndex; 
-    });
-
-    */
+        
 
     // Return the sttack surface scans, currentPage, totalRecords, and totalPages in the response
     res.status(200).json({
@@ -249,9 +215,6 @@ module.exports.startAttackSurfaceScan = asyncHandler(async (req, res) => {
     const user = await User.findById(req.user._id);
 
     const { domain, projectId } = req.body;  
-
-console.log('projectId:',projectId)
-
 
     const attackSurfaceScan = new AttackSurfaceScan;
     attackSurfaceScan.user = req.user._id;
@@ -922,6 +885,8 @@ async function runAttackSurfaceScan(user, theAttackSurfaceScan, theEndpoints) {
         theAttackSurfaceScan.vulnerabilities = theVulns;
         theAttackSurfaceScan.vulnCount = theVulns.length;
         await theAttackSurfaceScan.save();
+
+        calculateDashboard(organization);
 
 
         //createPDFAndSendEmail(theActiveScan._id);

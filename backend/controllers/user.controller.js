@@ -1091,6 +1091,17 @@ module.exports.getVulnerabilityDistribution = asyncHandler(async (req, res) => {
     res.json({ vulnerabilityCounts:organization.vulnerabilityDistribution })
 });
 
+module.exports.getSeverityDistribution = asyncHandler(async (req, res) => {
+
+    const user = await User.findById(req.user._id);
+    const organization = await Organization.findById(user.organization);
+
+   
+
+    res.status(200);
+    res.json({ severityDistribution:organization.severityDistribution })
+});
+
 
 
 

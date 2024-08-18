@@ -3,10 +3,15 @@ const path = require("path")
 const fs = require("fs")
 const SOAPOrGraphQLScan = require("../models/soapOrGraphQLScan.model")
 const SOAPOrGraphQLScanVulnerability = require("../models/soapOrGraphQLScanVulnerability.model")
+const Organization = require("../models/organization.model")
+
 const { User } = require('../models/user.model');
 const { exec } = require('child_process');
 
 const remediations = require('./remediations/soap-graphql-remediations.json');
+
+const { calculateDashboard } = require("../services/dashboard/dashboardCalculation.service");
+
 
 function getObjectByName(name) {
     // Find the object with the given index
@@ -16,10 +21,13 @@ function getObjectByName(name) {
 
 module.exports.getAllSOAPOrGraphQLScans = asyncHandler(async (req, res) => {
 
+    const user = await User.findById(req.user._id)
+    const organization = await Organization.findById(user.organization)
+
 
     // Trigger an async function that checks if all the scans have got the result files and also the results saved in database.
     // If not,  do that for the scans that do not have records
-    checkAndPopulateScans();
+    checkAndPopulateScans(organization);
 
     // Now proceed
 
@@ -57,7 +65,7 @@ module.exports.getAllSOAPOrGraphQLScans = asyncHandler(async (req, res) => {
 });
 
 
-async function checkAndPopulateScans() {
+async function checkAndPopulateScans(organization) {
 
     const soapOrGraphQLScans = await SOAPOrGraphQLScan.find({}).lean();
 
@@ -72,6 +80,8 @@ async function checkAndPopulateScans() {
 
         }
     }
+
+    calculateDashboard(organization)
 
 }
 

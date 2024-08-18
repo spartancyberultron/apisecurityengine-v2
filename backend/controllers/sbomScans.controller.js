@@ -6,6 +6,8 @@ const SBOMScanVulnerability = require("../models/sbomScanVulnerability.model")
 const { User } = require('../models/user.model');
 
 const { exec } = require('child_process');
+const { calculateDashboard } = require("../services/dashboard/dashboardCalculation.service");
+const Organization = require('../models/organization.model');
 
 module.exports.getAllSBOMScans = asyncHandler(async (req, res) => {
 
@@ -63,6 +65,7 @@ module.exports.getSBOMScanDetails = asyncHandler(async (req, res) => {
 module.exports.startSBOMScan = asyncHandler(async (req, res) => {
 
     const user = await User.findById(req.user._id);
+    const organization = await Organization.findById(user.organization);
 
     const { scanName, projectId, projectPhase } = req.body;
 
@@ -139,7 +142,7 @@ module.exports.startSBOMScan = asyncHandler(async (req, res) => {
                         console.log('JSON object:', jsonObject,);
 
                         // Next lines of code to be executed with the JSON object
-                        processJsonObjectAndSaveResults(jsonObject, newScan._id);
+                        processJsonObjectAndSaveResults(jsonObject, newScan._id, organization);
                     } catch (parseError) {
                         console.error(`Error parsing JSON: ${parseError}`);
                     }
@@ -161,7 +164,7 @@ module.exports.startSBOMScan = asyncHandler(async (req, res) => {
 });
 
 
-async function processJsonObjectAndSaveResults(jsonObject, scanId) {
+async function processJsonObjectAndSaveResults(jsonObject, scanId, organization) {
 
     try {       
 
@@ -199,6 +202,8 @@ async function processJsonObjectAndSaveResults(jsonObject, scanId) {
                 await sbomScanVulnerability.save();
             }
         }
+
+        calculateDashboard(organization)
 
         console.log('SBOMScanVulnerability records created');
 

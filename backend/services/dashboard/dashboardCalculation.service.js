@@ -39,7 +39,7 @@ async function calculateDashboard(organization) {
     calculateAuditFindings(organization);
     //calculateComplianceStatus(organization); // Takes from threat alerts
     calculateNumberOfOpenVulnerabilities(organization);
-   // calculateSeverityDistribution(organization); // Comes from vulnerability distribution 
+    calculateSeverityDistribution(organization); 
    calculateSSDLCScore(organization);
    calculateThreatAlerts(organization);
 
@@ -100,6 +100,165 @@ function getRiskLevel(riskValue) {
     }
 }
 
+const countVulnerabilitiesBySeverity = (vulnerabilities) => {
+    const counts = Array(18).fill(0); // Assuming 18 different vulnerabilities
+    vulnerabilities.forEach(vuln => {
+        const code = vuln.vulnerability.vulnerabilityCode;
+        if (code >= 1 && code <= 18) {
+            counts[code - 1]++;
+        }
+    });
+    return counts;
+};
+
+async function calculateSeverityDistribution(organization) {
+    console.log('Starting severity distribution calculation...');
+
+    // Initialize counters for each severity level
+    let criticalCount = 0;
+    let highCount = 0;
+    let mediumCount = 0;
+    let lowCount = 0;
+
+    // Helper function to increment severity counts
+    function incrementSeverityCount(severity) {
+        switch (severity) {
+            case 'CRITICAL':
+                criticalCount++;
+                break;
+            case 'HIGH':
+                highCount++;
+                break;
+            case 'MEDIUM':
+            case 'MODERATE': // Treat MODERATE as MEDIUM
+                mediumCount++;
+                break;
+            case 'LOW':
+                lowCount++;
+                break;
+            default:
+                console.log('Unknown severity level:', severity);
+                break;
+        }
+    }
+
+    // Process ActiveScanVulnerabilities
+    const activeScans = await ActiveScan.find({})
+        .populate({
+            path: 'theCollectionVersion',
+            populate: {
+                path: 'apiCollection',
+                populate: {
+                    path: 'orgProject',
+                    match: { organization: organization._id } // Filter by organization ID
+                }
+            }
+        })
+        .lean();
+
+    const activeScanIds = activeScans.map(scan => scan._id);
+
+    const activeScanVulnerabilities = await ActiveScanVulnerability.find({ activeScan: { $in: activeScanIds } })
+        .populate({
+            path: 'vulnerability',
+            select: 'severity' // Select only the severity field
+        })
+        .lean();
+
+    activeScanVulnerabilities.forEach(vuln => {
+        incrementSeverityCount(vuln.severity);
+    });
+
+    // Process ProjectVulnerabilities
+    const projectVulnerabilities = await ProjectVulnerability.find({})
+        .populate({
+            path: 'project',
+            populate: {
+                path: 'orgProject',
+                match: { organization: organization._id }
+            }
+        })
+        .lean();
+
+    projectVulnerabilities.forEach(vuln => {
+        if (vuln.project?.orgProject?.organization.toString() === organization._id.toString()) {
+            incrementSeverityCount(vuln.severity);
+        }
+    });
+
+    // Process SOAPOrGraphQLScanVulnerabilities
+    const soapOrGraphQLScanVulnerabilities = await SOAPOrGraphQLScanVulnerability.find({})
+        .populate({
+            path: 'soapOrGraphQLScan',
+            populate: {
+                path: 'orgProject',
+                match: { organization: organization._id }
+            }
+        })
+        .lean();
+
+    soapOrGraphQLScanVulnerabilities.forEach(vuln => {
+        incrementSeverityCount(vuln.severity);
+    });
+
+    // Process SBOMScanVulnerabilities
+    const sbomScanVulnerabilities = await SBOMScanVulnerability.find({})
+        .populate({
+            path: 'sbomScan',
+            populate: {
+                path: 'orgProject',
+                match: { organization: organization._id }
+            }
+        })
+        .lean();
+
+    sbomScanVulnerabilities.forEach(vuln => {
+        incrementSeverityCount(vuln.severity);
+    });
+
+    // Process LLMScans
+    const llmScans = await LLMScan.find({ orgProject: organization._id }).lean();
+
+    const KEYWORDS = ['keyword1', 'keyword2']; // Define your keywords here
+
+    for (const scan of llmScans) {
+        for (const content of scan.resultFileContents) {
+            const contentString = JSON.stringify(content);
+
+            for (const keyword of KEYWORDS) {
+                if (contentString.includes(keyword)) {
+                    const vulnerabilityInfo = await getLLMVulnerability(keyword);
+                    const impact = vulnerabilityInfo.severity;
+
+                    if (impact) {
+                        incrementSeverityCount(impact);
+                    }
+                    break; // Stop checking other keywords if a match is found
+                }
+            }
+        }
+    }
+
+    // Prepare the final counts object
+    const severityDistribution = {
+        'CRITICAL': criticalCount,
+        'HIGH': highCount,
+        'MEDIUM': mediumCount,
+        'LOW': lowCount
+    };
+
+    // Save the counts to the organization document
+    const org1 = await Organization.findById(organization._id);
+    org1.severityDistribution = severityDistribution;
+    await org1.save();
+
+    console.log('Severity distribution saved:', severityDistribution);
+}
+
+
+
+
+
 
 async function calculateVulnerabilityDistribution(organization) {
 
@@ -123,6 +282,8 @@ async function calculateVulnerabilityDistribution(organization) {
     var vuln16Count = 0;
     var vuln17Count = 0;
     var vuln18Count = 0;
+
+
 // Step 1: Retrieve ActiveScans and populate related collections
 const activeScans1 = await ActiveScan.find({})
   .populate({
@@ -144,7 +305,6 @@ const activeScans = activeScans1.filter(scan =>
     
     //console.log('calculateVulnerabilityDistribution->activeScans:', activeScans);
 
-    const activeScanVulns = [];
 
     for (var i = 0; i < activeScans.length; i++) {
 
@@ -474,9 +634,7 @@ async function calculateVulnerabilityTrends(organization) {
 
 }
 
-async function calculateSeverityDistribution(organization) {
-  // Comes from getVulnerabilityDistribution itself
-}
+
 
 async function calculateNumberOfOpenVulnerabilities(organization) {
 
@@ -1846,6 +2004,8 @@ async function calculateDashboardCardData(organization) {
     // Step 4: Get the IDs of these APICollections
     const apiCollectionIds = apiCollections.map(collection => collection._id);
 
+    console.log('apiCollectionIds:',apiCollectionIds)
+
     // Step 5: Find all APICollectionVersions for these APICollections
     const apiCollectionVersions = await APICollectionVersion.find({
         apiCollection: { $in: apiCollectionIds }
@@ -1870,7 +2030,7 @@ async function calculateDashboardCardData(organization) {
 
     //const collectionsPromise = APICollection.find({ user: user._id }).select('_id').lean().exec();
 
-    const collectionsPromise = OrgProject.aggregate([
+   /* const collectionsPromise = OrgProject.aggregate([
         { $match: { organization: organization } },
         {
             $lookup: {
@@ -1888,6 +2048,7 @@ async function calculateDashboardCardData(organization) {
             $project: { _id: 1 }
         }
     ]).exec();
+    */
 
     //const activeScansPromise = ActiveScan.find({ user: user._id }).select('_id').lean().exec();
     const activeScansPromise = OrgProject.aggregate([
@@ -1927,18 +2088,32 @@ async function calculateDashboardCardData(organization) {
         }
     ]).exec();
 
-    const [collections, activeScans] = await Promise.all([collectionsPromise, activeScansPromise]);
+    //const [ activeScans] = await Promise.all([activeScansPromise]);
 
+    const activeScans = await ActiveScan.find({})
+  .populate({
+    path: 'theCollectionVersion',
+    populate: {
+      path: 'apiCollection',
+      populate: {
+        path: 'orgProject',
+        match: { organization: organization._id } // Filter by organization ID
+      }
+    }
+  })
+  .lean(); // Use lean() to get plain JavaScript objects
 
+    console.log('activeScans:',activeScans)
 
     const collectionVersionIds = await APICollectionVersion.find(
-        { apiCollection: { $in: collections.map(collection => collection._id) } }
+        { apiCollection: { $in: apiCollections.map(collection => collection._id) } }
     )
         .select('_id')
         .lean()
         .then(versions => versions.map(v => v._id));
 
 
+    console.log('collectionVersionIds:',collectionVersionIds)    
 
     const endpointsArray = await ApiEndpoint.find({
         theCollectionVersion: { $in: collectionVersionIds }
@@ -2045,6 +2220,7 @@ async function calculateDashboardCardData(organization) {
     //////////////////
 
     // Calculate PII fields count
+    console.log('endpointsArray:',endpointsArray)
     const piiFieldsCount = endpointsArray.reduce((count, endpoint) => count + endpoint.piiFields.length, 0);
 
     dashboardData.collectionsCount = collectionsCount;//collections.length;

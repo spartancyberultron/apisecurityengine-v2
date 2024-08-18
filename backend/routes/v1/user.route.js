@@ -29,6 +29,7 @@ const {
   getTopEndPoints,
   getLast5DaysVulnerabilityTrends,
   getMonthlyVulnerabilityTrends,
+  getSeverityDistribution,
   getLast10Alerts,
   getPIIDataDetails,
   listAllProjects,
@@ -94,6 +95,8 @@ router.get('/getRiskScore', protectUser, getRiskScore);
 router.get('/getTopRisks', protectUser, getTopRisks);
 router.get('/getSSDLCScore', protectUser, getSSDLCScore);
 router.get('/getTop10Vulnerabilities', protectUser, getTop10Vulnerabilities);
+router.get('/getSeverityDistribution', protectUser, getSeverityDistribution);
+
 
 
 
