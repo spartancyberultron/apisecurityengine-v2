@@ -1,34 +1,54 @@
 
+const AttackSurfaceScanVulnerability = require("../../models/attacksurfacescanvulnerability.model");
 const Organization = require("../../models/organization.model");
+const User = require("../../models/user.model");
+const OrgProject = require("../../models/orgproject.model");
+const APICollection = require("../../models/apicollection.model");
+const APICollectionVersion = require("../../models/apicollectionversion.model");
+const LLMScan = require("../../models/llmScan.model");
 
-async function calculateDashboard() {
+
+const mongoose = require('mongoose');
+
+const ProjectVulnerability = require("../../models/projectVulnerability.model");
+const ActiveScanVulnerability = require("../../models/activescanvulnerability.model");
+const SOAPOrGraphQLScanVulnerability = require("../../models/soapOrGraphQLScanVulnerability.model");
+const SBOMScanVulnerability = require("../../models/sbomScanVulnerability.model");
+
+
+
+async function calculateDashboard(organization) {
 
     /*** Calculate dashboard data of all organizations **/
 
-    const orgs = await Organization.find({});
+    // const orgs = await Organization.find({});
 
-    for(var i=0;i<orgs.length;i++){
-        const organization = orgs[i];
+    console.log('organizationinservice:', organization)
 
-        calculateDashboardCardData(organization)
-        calculateVulnerabilityDistribution(organization);
-        calculateTopEndpoints(organization);
-        calculateVulnerabilityTrends(organization);
-        calculateSeverityDistribution(organization);
-        calculateNumberOfOpenVulnerabilities(organization);
-        calculateTimeToResolveVulnerabilities(organization);
-        calculateTop10Vulnerabilities(organization);
-        calculateComplianceStatus(organization);
-        calculateSSDLCScore(organization);
-        calculateAuditFindings(organization);
-        calculateThreatAlerts(organization);
-        calculateThreatTrends(organization);
-        calculateRiskScore(organization);
-        calculateTopRisks(organization);
-    }
+    // for(var i=0;i<orgs.length;i++){
+    //  const organization = orgs[i];
+
+    calculateDashboardCardData(organization)
+    //  calculateVulnerabilityDistribution(organization);
+    //  calculateTopEndpoints(organization);
+    //  calculateVulnerabilityTrends(organization);
+    //  calculateSeverityDistribution(organization);
+    //  calculateNumberOfOpenVulnerabilities(organization);
+    //  calculateTimeToResolveVulnerabilities(organization);
+    //   calculateTop10Vulnerabilities(organization);
+    //  calculateComplianceStatus(organization);
+    // calculateSSDLCScore(organization);
+    //  calculateAuditFindings(organization);
+    //  calculateThreatAlerts(organization);
+    //  calculateThreatTrends(organization);
+    //  calculateRiskScore(organization);
+    calculateTopRisks(organization);
+    //  }
 
 
 }
+
+/*
 
 function getRiskValue(riskScore) {
     switch (riskScore) {
@@ -562,7 +582,7 @@ async function calculateThreatAlerts(organization) {
         });
     }
 
-    const organization = await Organization.findById(user.organization);
+    const org = await Organization.findById(user.organization);
 
    
 
@@ -822,108 +842,495 @@ async function calculateThreatTrends(organization) {
     };
 }
 
+*/
+
 async function calculateRiskScore(organization) {
 
     const [activeScanVulns, sbomScanVulns] = await Promise.all([
         ActiveScanVulnerability.find(),
         SBOMScanVulnerability.find()
-      ]);
-    
-      const severityWeights = {
+    ]);
+
+    const severityWeights = {
         CRITICAL: 1,
         HIGH: 0.75,
         MEDIUM: 0.5,
         LOW: 0.25
-      };
-    
-      let totalWeight = 0;
-      let weightedSum = 0;
-    
-      activeScanVulns.forEach(vuln => {
+    };
+
+    let totalWeight = 0;
+    let weightedSum = 0;
+
+    activeScanVulns.forEach(vuln => {
         const riskScore = vuln.vulnerability && vuln.vulnerability.riskScore;
         if (riskScore && severityWeights[riskScore.toUpperCase()]) {
-          weightedSum += severityWeights[riskScore.toUpperCase()];
-          totalWeight += 1;
+            weightedSum += severityWeights[riskScore.toUpperCase()];
+            totalWeight += 1;
         }
-      });
-    
-      sbomScanVulns.forEach(vuln => {
+    });
+
+    sbomScanVulns.forEach(vuln => {
         const severity = vuln.severity;
         if (severity && severityWeights[severity.toUpperCase()]) {
-          weightedSum += severityWeights[severity.toUpperCase()];
-          totalWeight += 1;
+            weightedSum += severityWeights[severity.toUpperCase()];
+            totalWeight += 1;
         }
-      });
-    
-      const averageRiskScore = totalWeight > 0 ? (weightedSum / totalWeight) : 0;
-      const riskScorePercentage = Math.round(averageRiskScore * 100);
+    });
+
+    const averageRiskScore = totalWeight > 0 ? (weightedSum / totalWeight) : 0;
+    const riskScorePercentage = Math.round(averageRiskScore * 100);
 }
 
-async function calculateTopRisks(organization) {
-// Aggregation for ActiveScanVulnerability
-const activeScanAgg = ActiveScanVulnerability.aggregate([
-    { $unwind: "$vulnerability" },
-    { $group: { _id: "$vulnerability.vulnerabilityName", count: { $sum: 1 }, riskScore: { $first: "$vulnerability.riskScore" } } },
-    { $project: { title: "$_id", count: 1, riskScore: { $ifNull: ["$riskScore", "UNKNOWN"] }, _id: 0 } }
-]);
-
-// Aggregation for LLMScanVulnerability
-const llmScanAgg = LLMScanVulnerability.aggregate([
-    { $group: { _id: "$vulnerabilityName", count: { $sum: 1 } } },
-    { $addFields: { riskScore: "HIGH" } },
-    { $project: { title: "$_id", count: 1, riskScore: 1, _id: 0 } }
-]);
-
-// Aggregation for SBOMScanVulnerability
-const sbomScanAgg = SBOMScanVulnerability.aggregate([
-    { $group: { _id: "$title", count: { $sum: 1 } } },
-    { $addFields: { riskScore: "HIGH" } },
-    { $project: { title: "$_id", count: 1, riskScore: 1, _id: 0 } }
-]);
-
-// Aggregation for SOAPOrGraphQLScanVulnerability
-const soapOrGraphQLScanAgg = SOAPOrGraphQLScanVulnerability.aggregate([
-    { $group: { _id: "$testCaseName", count: { $sum: 1 } } },
-    { $addFields: { riskScore: "HIGH" } },
-    { $project: { title: "$_id", count: 1, riskScore: 1, _id: 0 } }
-]);
+async function calculateTopRisks(org) {
 
 
-// Execute all aggregations in parallel
-const [activeScanResults, llmScanResults, sbomScanResults, soapOrGraphQLScanResults] = await Promise.all([
-    activeScanAgg.exec(),
-    llmScanAgg.exec(),
-    sbomScanAgg.exec(),
-    soapOrGraphQLScanAgg.exec()
-]);
+    // ActiveScanVulnerability
+    const topVulnerabilities = await ActiveScanVulnerability.aggregate([
+        // Step 1: Filter by organization
+        {
+            $lookup: {
+                from: 'activescans', // The collection name for ActiveScan
+                localField: 'activeScan',
+                foreignField: '_id',
+                as: 'activeScanDetails'
+            }
+        },
+        { $unwind: '$activeScanDetails' },
+        {
+            $lookup: {
+                from: 'apicollectionversions', // The collection name for APICollectionVersion
+                localField: 'activeScanDetails.theCollectionVersion',
+                foreignField: '_id',
+                as: 'collectionVersionDetails'
+            }
+        },
+        { $unwind: '$collectionVersionDetails' },
+        {
+            $lookup: {
+                from: 'apicollections', // The collection name for APICollection
+                localField: 'collectionVersionDetails.apiCollection',
+                foreignField: '_id',
+                as: 'apiCollectionDetails'
+            }
+        },
+        { $unwind: '$apiCollectionDetails' },
+        {
+            $lookup: {
+                from: 'orgprojects', // The collection name for OrgProject
+                localField: 'apiCollectionDetails.orgProject',
+                foreignField: '_id',
+                as: 'orgProjectDetails'
+            }
+        },
+        { $unwind: '$orgProjectDetails' },
+        {
+            $match: {
+                'orgProjectDetails.organization': mongoose.Types.ObjectId(org._id)
+            }
+        },
 
-// Combine all results
-const combinedResults = [
-    ...activeScanResults,
-    ...llmScanResults,
-    ...sbomScanResults,
-    ...soapOrGraphQLScanResults
-];
+        // Step 2: Group by vulnerability and count occurrences
+        {
+            $group: {
+                _id: '$vulnerability',
+                count: { $sum: 1 }
+            }
+        },
 
-// Filter out invalid entries (e.g., null titles or counts less than 1)
-const validResults = combinedResults.filter(result => result.title && result.count > 0);
+        // Step 3: Sort by count in descending order
+        {
+            $sort: { count: -1 }
+        },
+
+        // Step 4: Limit to top 10
+        {
+            $limit: 10
+        },
+
+        // Step 5: Lookup vulnerability details (optional, but useful to get vulnerabilityName)
+        {
+            $lookup: {
+                from: 'vulnerabilities', // The collection name for Vulnerability
+                localField: '_id',
+                foreignField: '_id',
+                as: 'vulnerabilityDetails'
+            }
+        },
+        { $unwind: '$vulnerabilityDetails' },
+
+        // Step 6: Project the final output
+        {
+            $project: {
+                _id: 0,
+                vulnerabilityName: '$vulnerabilityDetails.vulnerabilityName',
+                count: 1
+            }
+        }
+    ]);
+
+    console.log('activescantopVulnerabilities:', topVulnerabilities)
 
 
-// Sort combined results by count in descending order
-validResults.sort((a, b) => b.count - a.count);
+
+    // AttackSurfaceScanVulnerability
+    // Top vulnerabilities from AttackSurfaceScanVulnerability
+    const topAttackSurfaceScanVulnerabilities = await AttackSurfaceScanVulnerability.aggregate([
+        {
+            $lookup: {
+                from: 'attacksurfacescans',
+                localField: 'attackSurfaceScan',
+                foreignField: '_id',
+                as: 'attackSurfaceScanDetails'
+            }
+        },
+        { $unwind: '$attackSurfaceScanDetails' },
+        {
+            $lookup: {
+                from: 'orgprojects',
+                localField: 'attackSurfaceScanDetails.orgProject',
+                foreignField: '_id',
+                as: 'orgProjectDetailsForAttackSurface'
+            }
+        },
+        { $unwind: '$orgProjectDetailsForAttackSurface' },
+        {
+            $match: {
+                'orgProjectDetailsForAttackSurface.organization': mongoose.Types.ObjectId(org._id)
+            }
+        },
+        {
+            $group: {
+                _id: '$vulnerability',
+                count: { $sum: 1 }
+            }
+        },
+        {
+            $sort: { count: -1 }
+        },
+        {
+            $limit: 10
+        },
+        {
+            $lookup: {
+                from: 'vulnerabilities',
+                localField: '_id',
+                foreignField: '_id',
+                as: 'vulnerabilityDetailsForAttackSurface'
+            }
+        },
+        { $unwind: '$vulnerabilityDetailsForAttackSurface' },
+        {
+            $project: {
+                _id: 0,
+                vulnerabilityName: '$vulnerabilityDetailsForAttackSurface.vulnerabilityName',
+                count: 1
+            }
+        }
+    ]);
+
+    console.log('topAttackSurfaceScanVulnerabilities:', topAttackSurfaceScanVulnerabilities)
+
+
+    // ProjectVulnerability
+    const topProjectVulnerabilities = await ProjectVulnerability.aggregate([
+        // Step 1: Filter by organization
+        {
+            $lookup: {
+                from: 'projects',
+                localField: 'project',
+                foreignField: '_id',
+                as: 'projectDetails'
+            }
+        },
+        { $unwind: '$projectDetails' },
+        {
+            $lookup: {
+                from: 'orgprojects',
+                localField: 'projectDetails.orgProject',
+                foreignField: '_id',
+                as: 'orgProjectDetailsForProject'
+            }
+        },
+        { $unwind: '$orgProjectDetailsForProject' },
+        {
+            $match: {
+                'orgProjectDetailsForProject.organization': mongoose.Types.ObjectId(org._id)
+            }
+        },
+
+        // Step 2: Group by vulnerability and count occurrences
+        {
+            $group: {
+                _id: '$vulnerability',
+                count: { $sum: 1 }
+            }
+        },
+
+        // Step 3: Sort by count in descending order
+        {
+            $sort: { count: -1 }
+        },
+
+        // Step 4: Limit to top 10
+        {
+            $limit: 10
+        },
+
+        // Step 5: Lookup vulnerability details (optional, but useful to get vulnerabilityName)
+        {
+            $lookup: {
+                from: 'vulnerabilities',
+                localField: '_id',
+                foreignField: '_id',
+                as: 'vulnerabilityDetailsForProject'
+            }
+        },
+        { $unwind: '$vulnerabilityDetailsForProject' },
+
+        // Step 6: Project the final output
+        {
+            $project: {
+                _id: 0,
+                vulnerabilityName: '$vulnerabilityDetailsForProject.vulnerabilityName',
+                count: 1
+            }
+        }
+    ]);
+
+
+    console.log('topProjectVulnerabilities:', topProjectVulnerabilities)
+
+
+    // SBOMScanVulnerability
+
+    // Top vulnerabilities from SBOMScanVulnerability using title as vulnerability name
+    const topSBOMScanVulnerabilities = await SBOMScanVulnerability.aggregate([
+        // Step 1: Filter by organization
+        {
+            $lookup: {
+                from: 'sbomscans',
+                localField: 'sbomScan',
+                foreignField: '_id',
+                as: 'sbomScanDetails'
+            }
+        },
+        { $unwind: '$sbomScanDetails' },
+        {
+            $lookup: {
+                from: 'orgprojects',
+                localField: 'sbomScanDetails.orgProject',
+                foreignField: '_id',
+                as: 'orgProjectDetailsForSBOM'
+            }
+        },
+        { $unwind: '$orgProjectDetailsForSBOM' },
+        {
+            $match: {
+                'orgProjectDetailsForSBOM.organization': mongoose.Types.ObjectId(org._id)
+            }
+        },
+
+        // Step 2: Filter out documents where title is null or empty
+        {
+            $match: {
+                title: { $ne: null },   // Exclude documents where title is null
+                $expr: { $ne: [{ $trim: { input: "$title" } }, ""] }  // Exclude documents where title is an empty string
+            }
+        },
+
+        // Step 3: Group by title (vulnerability name) and count occurrences
+        {
+            $group: {
+                _id: '$title',  // Grouping by the title field as the vulnerability name
+                count: { $sum: 1 }
+            }
+        },
+
+        // Step 4: Sort by count in descending order
+        {
+            $sort: { count: -1 }
+        },
+
+        // Step 5: Limit to top 10
+        {
+            $limit: 10
+        },
+
+        // Step 6: Project the final output
+        {
+            $project: {
+                _id: 0,
+                vulnerabilityName: '$_id',  // The title (vulnerability name)
+                count: 1
+            }
+        }
+    ]);
+    console.log('topSBOMScanVulnerabilities:', topSBOMScanVulnerabilities)
+
+
+
+    // SOAPOrGraphQLScanVulnerability
+    // Top vulnerabilities from SOAPOrGraphQLScanVulnerability using testCaseName as vulnerability name
+    const topSOAPOrGraphQLScanVulnerabilities = await SOAPOrGraphQLScanVulnerability.aggregate([
+        // Step 1: Filter by organization
+        {
+            $lookup: {
+                from: 'soaporgraphqlscans',
+                localField: 'soapOrGraphQLScan',
+                foreignField: '_id',
+                as: 'soapOrGraphQLScanDetails'
+            }
+        },
+        { $unwind: '$soapOrGraphQLScanDetails' },
+        {
+            $lookup: {
+                from: 'orgprojects',
+                localField: 'soapOrGraphQLScanDetails.orgProject',
+                foreignField: '_id',
+                as: 'orgProjectDetailsForSOAPOrGraphQL'
+            }
+        },
+        { $unwind: '$orgProjectDetailsForSOAPOrGraphQL' },
+        {
+            $match: {
+                'orgProjectDetailsForSOAPOrGraphQL.organization': mongoose.Types.ObjectId(org._id)
+            }
+        },
+
+        // Step 2: Filter out documents where testCaseName is null or empty
+        {
+            $match: {
+                testCaseName: { $ne: null },   // Exclude documents where testCaseName is null
+                $expr: { $ne: [{ $trim: { input: "$testCaseName" } }, ""] }  // Exclude documents where testCaseName is an empty string
+            }
+        },
+
+        // Step 3: Group by testCaseName (vulnerability name) and count occurrences
+        {
+            $group: {
+                _id: '$testCaseName',  // Grouping by the testCaseName field as the vulnerability name
+                count: { $sum: 1 }
+            }
+        },
+
+        // Step 4: Sort by count in descending order
+        {
+            $sort: { count: -1 }
+        },
+
+        // Step 5: Limit to top 10
+        {
+            $limit: 10
+        },
+
+        // Step 6: Project the final output
+        {
+            $project: {
+                _id: 0,
+                vulnerabilityName: '$_id',  // The testCaseName (vulnerability name)
+                count: 1
+            }
+        }
+    ]);
+
+    console.log('topSOAPOrGraphQLScanVulnerabilities:', topSOAPOrGraphQLScanVulnerabilities)
+
+
+
+    // LLMScanVulnerability
+    // Top vulnerabilities from LLMScan
+    const KEYWORDS = [
+        'blank', 'atkgen', 'continuation', 'dan', 'donotanswer', 'encoding', 'gcg',
+        'glitch', 'goodside', 'knownbadsignatures', 'leakerplay', 'lmrc', 'malwaregen',
+        'misleading', 'packagehallucination', 'promptinject', 'realtotoxicityprompts',
+        'snowball', 'xss'
+    ];
+
+    const llmScans = await LLMScan.aggregate([
+        // Step 1: Filter by organization
+        {
+            $lookup: {
+                from: 'orgprojects',
+                localField: 'orgProject',
+                foreignField: '_id',
+                as: 'orgProjectDetails'
+            }
+        },
+        { $unwind: '$orgProjectDetails' },
+        {
+            $match: {
+                'orgProjectDetails.organization': mongoose.Types.ObjectId(org._id)
+            }
+        },
+
+        // Step 2: Project the resultFileContents field
+        {
+            $project: {
+                resultFileContents: 1
+            }
+        }
+    ]);
+
+    // Step 3: Extract and process resultFileContents
+    const vulnerabilityCounts = {};
+
+    for (const scan of llmScans) {
+        for (const content of scan.resultFileContents) {
+            const contentString = JSON.stringify(content);
+
+            for (const keyword of KEYWORDS) {
+                if (contentString.includes(keyword)) {
+                    const vulnerabilityName = await getLLMVulnerabilityName(keyword);
+
+                    if (vulnerabilityName) {
+                        if (!vulnerabilityCounts[vulnerabilityName]) {
+                            vulnerabilityCounts[vulnerabilityName] = 0;
+                        }
+                        vulnerabilityCounts[vulnerabilityName] += 1;
+                    }
+                    break; // Once a match is found, no need to check further keywords
+                }
+            }
+        }
+    }
+
+    // Convert vulnerabilityCounts to array of objects
+    const topLLMVulnerabilities = Object.entries(vulnerabilityCounts)
+        .map(([vulnerabilityName, count]) => ({ vulnerabilityName, count }))
+        .sort((a, b) => b.count - a.count)
+        .slice(0, 10); // Limit to top 10
+
+    console.log('topLLMVulnerabilities:', topLLMVulnerabilities)
+
+    const org1 = await Organization.findById(org._id);
+
+    org1.topRisks = {
+        topRESTVulnerabilities: topVulnerabilities,
+        topAttackSurfaceScanVulnerabilities: topAttackSurfaceScanVulnerabilities,
+        topProjectVulnerabilities: topProjectVulnerabilities,
+        topSOAPOrGraphQLScanVulnerabilities: topSOAPOrGraphQLScanVulnerabilities,
+        topSBOMScanVulnerabilities: topSBOMScanVulnerabilities,
+        topLLMVulnerabilities: topLLMVulnerabilities
+    };
+
+    org1.save();
+
+
+
 }
 
-async function calculateDashboardCardData(organization){
-    const user = await User.findById(req.user._id);
+async function calculateDashboardCardData(organization) {
 
-    const orgProjects = await OrgProject.find({ organization: user.organization })
-    .select('_id')
-    .lean();
+    // const user = await User.findById(req.user._id);
+
+    const orgProjects = await OrgProject.find({ organization: organization })
+        .select('_id')
+        .lean();
 
     // Step 2: Get the IDs of these OrgProjects
     const orgProjectIds = orgProjects.map(project => project._id);
 
-    const dashboardData = {};    
+    const dashboardData = {};
 
     //const collectionsCount = await APICollection.countDocuments({user:user._id})
     const collectionsCount = await APICollection.countDocuments({
@@ -935,22 +1342,22 @@ async function calculateDashboardCardData(organization){
     const apiCollections = await APICollection.find({
         orgProject: { $in: orgProjectIds }
     })
-    .select('_id')
-    .lean();
-    
+        .select('_id')
+        .lean();
+
     // Step 4: Get the IDs of these APICollections
     const apiCollectionIds = apiCollections.map(collection => collection._id);
-    
+
     // Step 5: Find all APICollectionVersions for these APICollections
     const apiCollectionVersions = await APICollectionVersion.find({
         apiCollection: { $in: apiCollectionIds }
     })
-    .select('_id')
-    .lean();
-    
+        .select('_id')
+        .lean();
+
     // Step 6: Get the IDs of these APICollectionVersions
     const apiCollectionVersionIds = apiCollectionVersions.map(version => version._id);
-    
+
     // Step 7: Count ApiEndpoints for all these APICollectionVersions
     const endpointsCount = await ApiEndpoint.countDocuments({
         'theCollectionVersion': { $in: apiCollectionVersionIds }
@@ -961,7 +1368,7 @@ async function calculateDashboardCardData(organization){
     const agentsCount = await Project.countDocuments({
         orgProject: { $in: orgProjectIds }
     });
-    
+
 
     //const collectionsPromise = APICollection.find({ user: user._id }).select('_id').lean().exec();
 
@@ -1029,115 +1436,115 @@ async function calculateDashboardCardData(organization){
     const collectionVersionIds = await APICollectionVersion.find(
         { apiCollection: { $in: collections.map(collection => collection._id) } }
     )
-    .select('_id')
-    .lean()
-    .then(versions => versions.map(v => v._id));
-    
-   
+        .select('_id')
+        .lean()
+        .then(versions => versions.map(v => v._id));
 
-    const endpointsArray = await ApiEndpoint.find({ 
-        theCollectionVersion: { $in: collectionVersionIds } 
+
+
+    const endpointsArray = await ApiEndpoint.find({
+        theCollectionVersion: { $in: collectionVersionIds }
     })
-    .select('_id piiFields')
-    .lean();
-    
+        .select('_id piiFields')
+        .lean();
+
 
     const activeScansVulnsCount = await ActiveScanVulnerability.countDocuments({ activeScan: { $in: activeScans.map(activeScan => activeScan._id) } });
 
     const attackSurfaceVulns = await AttackSurfaceScanVulnerability.aggregate([
         {
-          $lookup: {
-            from: 'attacksurfacescans', // Ensure this matches the actual collection name
-            localField: 'attackSurfaceScan',
-            foreignField: '_id',
-            as: 'attackSurfaceScan'
-          }
+            $lookup: {
+                from: 'attacksurfacescans', // Ensure this matches the actual collection name
+                localField: 'attackSurfaceScan',
+                foreignField: '_id',
+                as: 'attackSurfaceScan'
+            }
         },
         { $unwind: '$attackSurfaceScan' },
         {
-          $match: {
-            'attackSurfaceScan.orgProject': { $in: orgProjectIds }
-          }
+            $match: {
+                'attackSurfaceScan.orgProject': { $in: orgProjectIds }
+            }
         },
         {
-          $count: 'totalCount'
+            $count: 'totalCount'
         }
-      ]);
-      const attackSurfaceVulnCount = attackSurfaceVulns.length > 0 ? attackSurfaceVulns[0].totalCount : 0;
+    ]);
+    const attackSurfaceVulnCount = attackSurfaceVulns.length > 0 ? attackSurfaceVulns[0].totalCount : 0;
 
-//////////////////
-      const projectVulns = await ProjectVulnerability.aggregate([
+    //////////////////
+    const projectVulns = await ProjectVulnerability.aggregate([
         {
-          $lookup: {
-            from: 'projects', // Ensure this matches the actual collection name
-            localField: 'project',
-            foreignField: '_id',
-            as: 'project'
-          }
+            $lookup: {
+                from: 'projects', // Ensure this matches the actual collection name
+                localField: 'project',
+                foreignField: '_id',
+                as: 'project'
+            }
         },
         { $unwind: '$project' },
         {
-          $match: {
-            'project.orgProject': { $in: orgProjectIds }
-          }
+            $match: {
+                'project.orgProject': { $in: orgProjectIds }
+            }
         },
         {
-          $count: 'totalCount'
+            $count: 'totalCount'
         }
-      ]);
-      
-      const projectVulnsCount = projectVulns.length > 0 ? projectVulns[0].totalCount : 0;
-/////////////////////
+    ]);
+
+    const projectVulnsCount = projectVulns.length > 0 ? projectVulns[0].totalCount : 0;
+    /////////////////////
 
 
-const soapGraphQLVulns = await SOAPOrGraphQLScanVulnerability.aggregate([
-    {
-      $lookup: {
-        from: 'soaporgraphqlscans', // Ensure this matches the actual collection name
-        localField: 'soapOrGraphQLScan',
-        foreignField: '_id',
-        as: 'soapOrGraphQLScan'
-      }
-    },
-    { $unwind: '$soapOrGraphQLScan' },
-    {
-      $match: {
-        'soapOrGraphQLScan.orgProject': { $in: orgProjectIds }
-      }
-    },
-    {
-      $count: 'totalCount'
-    }
-  ]);
-
-  
-  const soapGraphQLVulnsCount = soapGraphQLVulns.length > 0 ? soapGraphQLVulns[0].totalCount : 0;
-  ////////////////////////////
+    const soapGraphQLVulns = await SOAPOrGraphQLScanVulnerability.aggregate([
+        {
+            $lookup: {
+                from: 'soaporgraphqlscans', // Ensure this matches the actual collection name
+                localField: 'soapOrGraphQLScan',
+                foreignField: '_id',
+                as: 'soapOrGraphQLScan'
+            }
+        },
+        { $unwind: '$soapOrGraphQLScan' },
+        {
+            $match: {
+                'soapOrGraphQLScan.orgProject': { $in: orgProjectIds }
+            }
+        },
+        {
+            $count: 'totalCount'
+        }
+    ]);
 
 
-  const sbomScanVulns = await SBOMScanVulnerability.aggregate([
-    {
-      $lookup: {
-        from: 'sbomscans', // Ensure this matches the actual collection name
-        localField: 'sbomScan',
-        foreignField: '_id',
-        as: 'sbomScan'
-      }
-    },
-    { $unwind: '$sbomScan' },
-    {
-      $match: {
-        'sbomScan.orgProject': { $in: orgProjectIds }
-      }
-    },
-    {
-      $count: 'totalCount'
-    }
-  ]);
-  
-  const sbomScanVulnsCount = sbomScanVulns.length > 0 ? sbomScanVulns[0].totalCount : 0;
+    const soapGraphQLVulnsCount = soapGraphQLVulns.length > 0 ? soapGraphQLVulns[0].totalCount : 0;
+    ////////////////////////////
 
-  //////////////////
+
+    const sbomScanVulns = await SBOMScanVulnerability.aggregate([
+        {
+            $lookup: {
+                from: 'sbomscans', // Ensure this matches the actual collection name
+                localField: 'sbomScan',
+                foreignField: '_id',
+                as: 'sbomScan'
+            }
+        },
+        { $unwind: '$sbomScan' },
+        {
+            $match: {
+                'sbomScan.orgProject': { $in: orgProjectIds }
+            }
+        },
+        {
+            $count: 'totalCount'
+        }
+    ]);
+
+    const sbomScanVulnsCount = sbomScanVulns.length > 0 ? sbomScanVulns[0].totalCount : 0;
+
+    //////////////////
 
     // Calculate PII fields count
     const piiFieldsCount = endpointsArray.reduce((count, endpoint) => count + endpoint.piiFields.length, 0);
@@ -1146,16 +1553,142 @@ const soapGraphQLVulns = await SOAPOrGraphQLScanVulnerability.aggregate([
     dashboardData.endPointsCount = endpointsCount;//endpointsArray.length;
     dashboardData.agentsCount = agentsCount;
 
-    
 
-    dashboardData.vulnerabilitiesCount = activeScansVulnsCount + attackSurfaceVulnCount + projectVulnsCount+
-    soapGraphQLVulnsCount + sbomScanVulnsCount;//activeScansVulnsArray.length;
-    
+
+    dashboardData.vulnerabilitiesCount = activeScansVulnsCount + attackSurfaceVulnCount + projectVulnsCount +
+        soapGraphQLVulnsCount + sbomScanVulnsCount;//activeScansVulnsArray.length;
+
     dashboardData.alertsCount = activeScansVulnsCount;//0;
     dashboardData.piiDataFieldsCount = piiFieldsCount;
     dashboardData.falsePositivesCount = 0;
 
 }
+
+
+function getLLMVulnerabilityName(probe) {
+
+
+
+    const vulnerabilities = {
+        "blank": {
+            "vulnerability": "Empty prompt is a tactic to bypass security measures in place",
+            "owasp": "LLM 07:2023 - Inadequate AI Alignment",
+            "cwe": ["CWE-398: Indicator of Poor Code Quality"],
+            "description": "An empty prompt might be unexpected and could be exploited by an attacker to inject malicious code or manipulate the LLM's behavior in unintended ways."
+        },
+        "atkgen": {
+            "vulnerability": "Red-teaming LLM autonomously attacks a target seeking to provoke a harmful response.",
+            "owasp": "LLM01:2023 - Prompt Injections",
+            "cwe": ["CWE-77: Improper Neutralisation of Special Elements used in a Command ('Command Injection')"],
+            "description": "The red-teaming LLM isn't aligned with the target LLM's goals, aiming to elicit harmful outputs instead of following intended use. This misalignment exposes weaknesses in the target LLM's training or safety measures that could be exploited by malicious actors."
+        },
+        "continuation": {
+            "vulnerability": "Continuation of Undesirable Word",
+            "owasp": "LLM01:2023 - Prompt Injections",
+            "cwe": ["CWE-77: Improper Neutralisation of Special Elements used in a Command ('Command Injection')"],
+            "description": "Vulnerability occurs because the model is influenced by the way prompts are crafted. By testing if the model completes an undesirable word, the attacker is probing the limitations of the prompt and potentially exploiting them to generate harmful content."
+        },
+        "dan": {
+            "vulnerability": "Do Anything Now(DAN Attack Vulnerability)",
+            "owasp": "LLM04:2023 - Unauthorised Code Execution",
+            "cwe": ["CWE-94: Improper Control of Generation of Code ('Code Injection')"],
+            "description": "An attacker can craft a specially designed prompt that could potentially trick the LLM into executing unauthorized code on the system, bypassing security measures."
+        },
+        "donotanswer": {
+            "vulnerability": "Prompts that could be misused to cause harm or violate ethical principles.",
+            "owasp": "LLM07:2023 - Inadequate AI Alignment",
+            "cwe": ["CWE-398: Indicator of Poor Code Quality"],
+            "description": "Responsible AI avoids generating outputs that misalign with human values, goals, or safety. Prompts that could lead to harmful or unethical outputs highlight this misalignment."
+        },
+        "encoding": {
+            "vulnerability": "Tricking an LLM by hiding malicious code within seemingly normal text.",
+            "owasp": "LLM01:2023 - Prompt Injections",
+            "cwe": ["CWE-77: Improper Neutralisation of Special Elements used in a Command ('Command Injection')"],
+            "description": "Vulnerability allows attackers to manipulate an LLM by disguising malicious code within seemingly normal text through encoding techniques."
+        },
+        "gcg": {
+            "vulnerability": "Prompt injection through a malicious addition.",
+            "owasp": "LLM01:2023 - Prompt Injections",
+            "cwe": ["CWE-77: Improper Neutralisation of Special Elements used in a Command ('Command Injection')"],
+            "description": "Vulnerability occurs when an attacker manipulates the LLM's prompt with a malicious suffix, causing it to deviate from its intended behavior."
+        },
+        "glitch": {
+            "vulnerability": "Probing the LLM to find inputs that cause unexpected behavior.",
+            "owasp": "LLM01:2023 - Prompt Injections",
+            "cwe": ["CWE-77: Improper Neutralisation of Special Elements used in a Command ('Command Injection')"],
+            "description": "Vulnerability occurs when an attacker injects malicious code into prompts fed to the LLM, causing it to behave abnormally."
+        },
+        "goodside": {
+            "vulnerability": "Crafted input tricks LLM to disregard prior instructions and follow attacker's commands.",
+            "owasp": "LLM01:2023 - Prompt Injections",
+            "cwe": ["CWE-77: Improper Neutralisation of Special Elements used in a Command ('Command Injection')"],
+            "description": "Vulnerability involves getting large language models (LLMs) to ignore their designers’ plans by including malicious text such as “ignore your previous instructions” in the user input."
+        },
+        "knownbadsignatures": {
+            "vulnerability": "Malicious content injection probes for LLMs.",
+            "owasp": "LLM01:2023 - Prompt Injections",
+            "cwe": ["CWE-77: Improper Neutralisation of Special Elements used in a Command ('Command Injection')"],
+            "description": "An attacker crafts specific prompts to trick the LLM into generating malicious content (like phishing emails, malware code) by manipulating its understanding of the desired output."
+        },
+        "leakerplay": {
+            "vulnerability": "Vulnerable LLM unintentionally reproduce training data in its outputs.",
+            "owasp": "LLM02:2023 - Data Leakage",
+            "cwe": ["CWE-200: Information Exposure"],
+            "description": "Vulnerability occurs when an LLM unintentionally reveals information from its training data, including potentially sensitive details. In this case, the probe is trying to see if the LLM will directly copy information from its training data."
+        },
+        "lmrc": {
+            "vulnerability": "Limited probing of the LLM's capabilities.",
+            "owasp": "LLM01:2023 - Prompt Injections",
+            "cwe": ["CWE-77: Improper Neutralisation of Special Elements used in a Command ('Command Injection')"],
+            "description": "Attackers manipulate user input to trick the LLM into following their instructions instead of the intended ones, potentially leading to data leaks or unauthorized actions."
+        },
+        "malwaregen": {
+            "vulnerability": "LLM susceptibility to prompts for malicious code generation",
+            "owasp": "LLM04:2023 - Unauthorised Code Execution",
+            "cwe": ["CWE-94: Improper Control of Generation of Code ('Code Injection')"],
+            "description": "An attacker tricks the LLM into generating malicious code, potentially allowing for unauthorized execution on a system."
+        },
+        "misleading": {
+            "vulnerability": "LLM susceptibility to manipulation for generating deceptive content.",
+            "owasp": "LLM07: Inadequate AI Alignment",
+            "cwe": ["CWE-398: Indicator of Poor Code Quality"],
+            "description": "Vulnerability arises when an LLM model is not aligned with the desired goals or expectations, potentially leading it to generate misleading or false claims."
+        },
+        "packagehallucination": {
+            "vulnerability": "Crafting prompts for code generation that request insecure, non-existent packages.",
+            "owasp": "LLM04:2023 - Unauthorized Code Execution",
+            "cwe": ["CWE-94: Improper Control of Generation of Code ('Code Injection')"],
+            "description": "By requesting non-existent packages, the attacker attempts to trick the code generation into fetching and executing malicious code from an unintended source."
+        },
+        "promptinject": {
+            "vulnerability": "Ability to inject prompts during inference to manipulate model outputs",
+            "owasp": "LLM01:2023 - Prompt Injections",
+            "cwe": ["CWE-77: Improper Neutralisation of Special Elements used in a Command ('Command Injection')"],
+            "description": "Prompt injection attacks trick large language models (LLMs) into processing malicious code or data by manipulating the prompts they receive. This can lead to the LLM generating harmful outputs or revealing sensitive information."
+        },
+        "realtoxicityprompts": {
+            "vulnerability": "Limited test set for prompts that might induce toxic outputs from a large language model.",
+            "owasp": "LLM01:2023 - Prompt Injections",
+            "cwe": ["CWE-77: Improper Neutralisation of Special Elements used in a Command ('Command Injection')"],
+            "description": "An attacker can inject malicious prompts to trick the LLM into generating toxic content, even if it wasn't explicitly trained on such content. This can be done by crafting specific prompts that exploit the LLM's internal biases or reasoning processes."
+        },
+        "snowball": {
+            "vulnerability": "LLM tricked into cascading false claims by complex questions exploiting knowledge gaps.",
+            "owasp": "LLM07: Inadequate AI Alignment",
+            "cwe": ["CWE-398: Indicator of Poor Code Quality"],
+            "description": "Snowballed Hallucination probes exploit the model's limitations in reasoning and justification, causing it to confidently provide incorrect answers. Inadequate AI Alignment refers to a mismatch between the model's goals and the user's goals. In this case, the model is not aligned with the goal of providing accurate information."
+        },
+        "xss": {
+            "vulnerability": "Insecure LLM output handling can expose systems to cross-site scripting (XSS) and other attacks.",
+            "owasp": "LLM02:2023 - Data Leakage",
+            "cwe": ["CWE-200: Information Exposure"],
+            "description": "Data leakage occurs when an LLM accidentally reveals sensitive information through its responses, enabling unauthorized access to private data."
+        }
+    };
+
+    return vulnerabilities[probe].vulnerability || '';
+}
+
 
 module.exports = {
     calculateDashboard,

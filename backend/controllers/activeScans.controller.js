@@ -51,6 +51,9 @@ const { sensitiveDataInQueryParamsCheck } = require("../services/securityTests/s
 const { unauthenticatedEndpointReturningSensitiveDataCheck } = require("../services/securityTests/unauthenticatedEndpointReturningSensitiveDataCheck.service");
 const { walletHijackingPossibleCheck } = require("../services/securityTests/walletHijackingPossibleCheck.service");
 
+const { calculateDashboard } = require("../services/dashboard/dashboardCalculation.service");
+
+
 
 const {
     checkCipherSuitesVulnerabilities,
@@ -98,6 +101,11 @@ async function getVulnSeverityAndPriority(vulnId) {
 // Get all quick scans 
 module.exports.getAllActiveScans = asyncHandler(async (req, res) => {
 
+    const user = await User.findById(req.user._id);
+    const organization = await Organization.findById(user.organization);
+    
+
+    calculateDashboard(organization);
 
     const pageNumber = parseInt(req.query.pageNumber) || 1; // Get the pageNumber from the query parameters (default to 1 if not provided)
     const pageSize = 10; // Number of active scans per page

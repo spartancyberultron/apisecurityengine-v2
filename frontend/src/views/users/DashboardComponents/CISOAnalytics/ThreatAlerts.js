@@ -147,7 +147,7 @@ const ThreatAlerts = () => {
                         }}>
                         <div style={{ flex: 1, minWidth: 0, marginTop: 100 }}>
 
-                     {threatAlerts.categories && threatAlerts.categories.length >0 ?     
+                     {threatAlerts && threatAlerts.categories && threatAlerts.categories.length >0 ?     
                             <Chart
                                 options={chartOptions}
                                 series={chartSeries}
