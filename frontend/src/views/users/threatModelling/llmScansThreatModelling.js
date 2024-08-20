@@ -17,12 +17,12 @@ import { MdOutlineDelete } from "react-icons/md";
 
 import { FaEye } from "react-icons/fa";
 
-const ThreatModelling = () => {
+const LLMScans = () => {
 
   //const [toast, addToast] = useState(0)
   const navigate = useNavigate()
 
-  const [activeScans, setActiveScans] = useState([])
+  const [llmScans, setLLMScans] = useState([])
   const [onLoading, setOnLoading] = useState(false);
 
   const [pageCount, setPageCount] = useState(100);
@@ -42,6 +42,7 @@ const ThreatModelling = () => {
       width: '50%',
       right: 'auto',
       bottom: 'auto',
+      height: '15%',
       backgroundColor: '#ffffff',
       borderRadius: 15,
       borderColor: 'ffffff'
@@ -57,7 +58,7 @@ const ThreatModelling = () => {
 
     //console.log('requestedPage', requestedPage)
 
-    fetchActiveScans(true, requestedPage);
+    fetchLLMScans(true, requestedPage);
 
     const newOffset = (event.selected * itemsPerPage) % totalRecords;
     //console.log(
@@ -108,7 +109,7 @@ const ThreatModelling = () => {
     try {
 
       // Make the API request
-      const response = await axios.post('api/v1/activeScans/deleteActiveScan', requestBody, {
+      const response = await axios.post('api/v1/llmScans/deleteLLMScan', requestBody, {
         headers: {
           Authorization: `Bearer ${bearerToken}`,
         },
@@ -116,7 +117,6 @@ const ThreatModelling = () => {
 
       // Handle the API response
       setOnDeleting(false);
-
 
       if (response.data.hasOwnProperty('error')) {
 
@@ -179,18 +179,18 @@ const ThreatModelling = () => {
   const isFirstTime = useRef(true);
 
 
-  const fetchActiveScans = async (isFirstTime, pageNumber) => {
+  const fetchLLMScans = async (isFirstTime, pageNumber) => {
 
     if (isFirstTime) {
       setOnLoading(true);
     }
   
     const token = localStorage.getItem('ASIToken');
-    const response = await axios.get(`/api/v1/activeScans/getAllActiveScans?pageNumber=${pageNumber}`, {
+    const response = await axios.get(`/api/v1/llmScans/getAllLLMScans?pageNumber=${pageNumber}`, {
       headers: { Authorization: `Bearer ${token}` },
     });
   
-    setActiveScans(response.data.activeScans);
+    setLLMScans(response.data.llmScans);
     setCurrentPage(response.data.currentPage);
     setTotalRecords(response.data.totalRecords);
   
@@ -198,17 +198,18 @@ const ThreatModelling = () => {
   };
 
 
+
   useEffect(() => {
 
     const interval = setInterval(() => {
 
-      fetchActiveScans(false, currentPage);
+      fetchLLMScans(false, currentPage);
 
     }, 30000);
     
 
     // Make the initial call immediately
-    fetchActiveScans(true, currentPage);
+    fetchLLMScans(true, currentPage);
     isFirstTime.current = false;
 
     // Clean up the interval on component unmount
@@ -216,9 +217,11 @@ const ThreatModelling = () => {
 
   }, []);
 
+
+
   const goToViewReport = async (scanId) => {
 
-    navigate('/threat-modelling-scan-detail?scanId=' + scanId);
+    navigate('/threat-modelling-scan-detail-llm?scanId=' + scanId);
   };
 
 
@@ -230,23 +233,17 @@ const ThreatModelling = () => {
       }
     },
     {
+      label: "Scan Name",
+      options: {
+          filter: true,           
+      }
+    },  
+    {
       label: "Project",
       options: {
           filter: true,           
       }
-    },
-    {
-      label: "Collection",
-      options: {
-          filter: false,           
-      }
-    },
-    {
-      label: "Endpoints",
-      options: {
-          filter: false,           
-      }
-    },
+    },   
     {
       label: "Started At",
       options: {
@@ -258,13 +255,7 @@ const ThreatModelling = () => {
       options: {
           filter: false,           
       }
-    },
-    {
-      label: "Vulnerabilities",
-      options: {
-          filter: false,           
-      }
-    },
+    },    
     {
       label: "Status",
       options: {
@@ -275,18 +266,20 @@ const ThreatModelling = () => {
           let bgColor;
           let theColor;
 
-          if (value == 'COMPLETED') {
+          console.log('value:',value)
+
+          if (value == 'completed') {
 
             bgColor = '#28C76F';
             theColor = '#fff';
 
-          } else if (value == 'FAILED') {
+          } else if (value == 'failed') {
 
             bgColor = '#A6001B';
             theColor = '#fff';
 
 
-          } else if (value == 'IN PROGRESS') {
+          } else if (value == 'in progress') {
 
             bgColor = '#FFC300';
             theColor = 'black';
@@ -303,13 +296,14 @@ const ThreatModelling = () => {
               <div style={{
                 padding: 5, backgroundColor: bgColor, color: theColor, width: 120,
                 textAlign: 'center', borderRadius: 10, fontSize: 12, fontWeight:'normal'
-              }}>{value}</div>
+              }}>{value.toUpperCase()}</div>
 
             </div>
           )
         }
       }
-    },    
+    },
+    
     {
       label: "View",
       options: {
@@ -322,7 +316,7 @@ const ThreatModelling = () => {
               alignItems: "center"
             }} >
 
-              {(value.status == 'in progress' || value.status == 'completed') ?
+              {(value.status == 'completed') ?
                 <CButton color="primary" variant="outline"
                   onClick={() => goToViewReport(value._id)}
                   className="primaryButton" style={{ width: '100%',  
@@ -339,7 +333,32 @@ const ThreatModelling = () => {
         }
       }
     },
-    
+    {
+      label: "Actions",
+      options: {
+        filter: false,
+        download: false,
+        customBodyRender: (value, tableMeta, updateValue) => {
+          return (<
+            div style={{
+              display: "flex",
+              alignItems: "center"
+            }
+            } >
+            <CButton color="danger"
+              onClick={() => handleClick(value)}
+              variant="outline"
+              className="m-1"
+              style={{ width: '100%', fontSize: 12, fontWeight: 'bold', color:'red', borderColor:'red', display:'flex', flexDirection:'row', 
+              alignItems:'center', justifyContent:'center' }}>
+              <MdOutlineDelete size={20} style={{ color: 'red' }}/>
+              <span style={{marginLeft:5}}>Delete</span>
+              </CButton>
+          </div>
+          )
+        }
+      }
+    },
 
   ];
 
@@ -391,60 +410,73 @@ const ThreatModelling = () => {
     }
   };
 
+
   var tableData = [];
 
-  for (var i = 0; i < activeScans.length; i++) {
 
-    if(activeScans[i].theCollectionVersion){
+  for (var i = 0; i < llmScans.length; i++) {
 
     var dataItem = [];
 
     dataItem.push(i+1);
-    dataItem.push(activeScans[i].theCollectionVersion && activeScans[i].theCollectionVersion.apiCollection.orgProject?activeScans[i].theCollectionVersion.apiCollection.orgProject.name:'---');
+    dataItem.push(llmScans[i].scanName);
+    dataItem.push(llmScans[i].orgProject?llmScans[i].orgProject.name:'---');
 
-    dataItem.push(activeScans[i].theCollectionVersion && activeScans[i].theCollectionVersion.apiCollection.collectionName?activeScans[i].theCollectionVersion.apiCollection.collectionName:'<Name not found>');
 
-    dataItem.push(activeScans[i].endpointsScanned);
+    dataItem.push((new Date(llmScans[i].createdAt)).toLocaleDateString('en-US') + ' - ' + (new Date(llmScans[i].createdAt)).toLocaleTimeString('en-US'));
 
-    dataItem.push((new Date(activeScans[i].createdAt)).toLocaleDateString('en-US') + ' - ' + (new Date(activeScans[i].createdAt)).toLocaleTimeString('en-US'));
-
-    if (activeScans[i].scanCompletedAt) {
-      dataItem.push((new Date(activeScans[i].scanCompletedAt)).toLocaleDateString('en-US')
-        + ' - ' + (new Date(activeScans[i].scanCompletedAt)).toLocaleTimeString('en-US'));
+    if (llmScans[i].scanCompletedAt) {
+      dataItem.push((new Date(llmScans[i].scanCompletedAt)).toLocaleDateString('en-US')
+        + ' - ' + (new Date(llmScans[i].scanCompletedAt)).toLocaleTimeString('en-US'));
     } else {
       dataItem.push('---');
     }
 
-    dataItem.push((activeScans[i].vulnerabilities).length); 
+    //dataItem.push((llmScans[i].vulnerabilities).length);    
 
-    if(activeScans[i].status){
-      dataItem.push(activeScans[i].status.toUpperCase());
+    if(llmScans[i].status){
+      dataItem.push(llmScans[i].status);
     }else{
       dataItem.push('');
     }
 
     
-    dataItem.push(activeScans[i]); // for view report link
+    dataItem.push(llmScans[i]); // for view report link
+    dataItem.push(llmScans[i]._id); // for delete
 
     tableData.push(dataItem);
   }
+
+  const goToStartLLMScan = (e) => {
+
+    e.preventDefault();
+    navigate('/start-llm-scan')
   }
 
-
-  
 
 
   return (
     <div className="activeScans">
 
-    
+      {setModalIsOpen && (
+        <Modal
+          isOpen={modalIsOpen}
+          onRequestClose={closeModal}
+          style={customStyles}
+          contentLabel="Remediations"
+        >
+          <text style={{ color: '#000', fontSize: 18 }}>Are you sure you want to permanently delete this scan?</text>
+          <br/><br/>
+          <button onClick={() => handleConfirmation(true)} style={{ width: 100, borderWidth: 0, backgroundColor: '#28C76F', color:'white', padding: 10 }}>Yes</button>
+          <button onClick={() => handleConfirmation(false)} style={{ marginLeft: 30, borderWidth: 0, width: 100, backgroundColor: 'red', color:'white', padding: 10 }}>No</button>
+        </Modal>
+      )}
+
 
       <div style={{ width: '100%' }}>
         <div>
           <div style={{ marginBottom: '2rem', display: 'flex', flexDirection: 'row', justifyContent: 'space-between' }}>
-
-
-            
+          
           </div>
 
 
@@ -454,7 +486,6 @@ const ThreatModelling = () => {
 
 
           {!onLoading &&
-
             <>
 
               <ThemeProvider theme={getMuiTheme()}>
@@ -486,4 +517,7 @@ const ThreatModelling = () => {
   )
 }
 
-export default ThreatModelling
+export default LLMScans
+
+
+

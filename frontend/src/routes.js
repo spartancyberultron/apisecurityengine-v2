@@ -63,8 +63,10 @@ import SOAPGraphQLScans from './views/users/soapOrGraphQLScans/soapGraphQLScans'
 import StartSOAPGraphQLScan from './views/users/soapOrGraphQLScans/startSOAPGraphQLScan';
 import ViewSOAPGraphQLScanReport from './views/users/soapOrGraphQLScans/viewSOAPGraphQLScanReport';
 
-import ThreatModelling from './views/users/threatModelling/threatModelling';
+
+import ThreatModellingMain from './views/users/threatModelling/threatModellingMain';
 import ThreatModellingScanDetail from './views/users/threatModelling/threatModellingScanDetail';
+import ThreatModellingLLMScanDetail from './views/users/threatModelling/llmScanDetailThreatModelling';
 
 import APIInventory from './views/users/inventory/apiInventory';
 import AddAPICollection from './views/users/inventory/addAPICollection';
@@ -114,8 +116,9 @@ const routes = [
   { path: '/soap-graphql-scans', name: 'SOAP/GraphQL Scans', element: SOAPGraphQLScans},
   { path: '/start-soap-graphql-scan', name: 'Start SOAP/GraphQL Scan', element: StartSOAPGraphQLScan},
   { path: '/view-soap-graphql-scan-report', name: 'View SOAP/GraphQL Scan Report', element: ViewSOAPGraphQLScanReport},
-  { path: '/threat-modelling', name: 'Threat Modelling', element: ThreatModelling},
+  { path: '/threat-modelling', name: 'Threat Modelling', element: ThreatModellingMain},
   { path: '/threat-modelling-scan-detail', name: 'Threat Modelling Scan Detail', element: ThreatModellingScanDetail},
+  { path: '/threat-modelling-scan-detail-llm', name: 'Threat Modelling Scan Detail - LLM', element: ThreatModellingLLMScanDetail},
   { path: '/organization', name: 'Organization', element: Organization},
   { path: '/protection', name: 'Protection', element: Protection},
   { path: '/hosts-under-protection', name: 'Hosts Under Protection', element: HostsUnderProtection},

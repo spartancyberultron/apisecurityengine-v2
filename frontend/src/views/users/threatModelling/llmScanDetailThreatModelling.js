@@ -25,9 +25,9 @@ import { extractHostAndEndpoint } from '../utils';
 import { CiEdit } from "react-icons/ci";
 
 import Chart from 'react-apexcharts'
-import remediationData from './llm-remediations.json';
+import remediationData from '../llmScans/llm-remediations.json';
 
-const ViewLLMScanReport = () => {
+const ThreatModellingLLMScanDetail = () => {
 
   const location = useLocation();
 
@@ -45,6 +45,7 @@ const ViewLLMScanReport = () => {
 
   const [currentVulnForRiskAcceptance, setCurrentVulnForRiskAcceptance] = React.useState(null);
   const [submittingReason, setSubmittingReason] = useState(false);
+  const [threatModellingModalIsOpen, setThreatModellingModalIsOpen] = React.useState(false);
 
   const [exportingPDF, setExportingPDF] = useState(false);
   const [acceptanceModalIsOpen, setAcceptanceModalIsOpen] = useState(false);
@@ -268,6 +269,8 @@ const openCostOfBreachModal = async (value) => {
 
 
 const processContent = (data) => {
+
+    if(data){
   // Use a regular expression to match code blocks and split the text accordingly
   const parts = data.split(/(?<=\n)(?=```)/);
   
@@ -293,6 +296,9 @@ const processContent = (data) => {
   });
 
   return htmlContent;
+}else{
+    return '';
+}
 };
 
 
@@ -301,10 +307,24 @@ const closeCostOfBreachModal = async () => {
   setCostOfBreachModalIsOpen(false);
 };
 
+const closeThreatModellingModal = async () => {
+
+    setThreatModellingModalIsOpen(false);
+  };
+
 const closeModal = async () => {
 
   setModalIsOpen(false);
 };
+
+const openThreatModellingModal = async (value) => {
+
+    console.log('mauu:',value)
+
+    setCurrentVulnerability(value);
+
+    setThreatModellingModalIsOpen(true);
+  };
 
 
 console.log('currentVulnerability:', currentVulnerability)
@@ -646,6 +666,29 @@ console.log('currentVulnerability:', currentVulnerability)
       }
     },     
     {
+        label: "Threat Modelling",
+        options: {
+          filter: false,
+          download: false,
+          customBodyRender: (value, tableMeta, updateValue) => {
+            return (
+              <div style={{
+                display: "flex",
+                alignItems: "center"
+              }} >
+  
+                <CButton color="primary" variant="outline"
+                  onClick={() => openThreatModellingModal(value)}
+                  className="primaryButton" style={{ fontSize: 13, width:200,
+                   color: 'white', backgroundColor:'#444', borderColor:'#444' }}>View Threat Modelling
+                </CButton>
+  
+              </div>
+            )
+          }
+        }
+      },  
+    {
       label: "Risk Acceptance",
       options: {
         filter: true,
@@ -684,15 +727,6 @@ console.log('currentVulnerability:', currentVulnerability)
         }
       }
     },
-    {
-      label: "RiskAcceptanceHiddenColumn",
-      options: {
-        filter: false,
-        display:false,
-        filterType: 'dropdown', // Adjust based on your filter type
-        filterList: [],        
-      }
-    }
     
 
   ];
@@ -741,15 +775,6 @@ console.log('currentVulnerability:', currentVulnerability)
       body: {
         noMatch: 'No vulnerabilities found',
       }
-    },
-    setRowProps: (row, dataIndex, rowIndex) => {
-
-      console.log('row', row)
-      return {
-        style: {
-          backgroundColor: row[13] === 'Yes' ? "#FFCCCC" : "#ffffff" // Alternate row colors
-        }
-      };
     }
   };
 
@@ -781,10 +806,11 @@ console.log('currentVulnerability:', currentVulnerability)
       dataItem.push(vulnDetails.cwe); // CWE
 
       dataItem.push(vulnDetails); // for cost of breach
+      dataItem.push(vulnDetails); // for threat modelling
+
       dataItem.push(vulnDetails); // for remediations
 
       dataItem.push(vulnDetails); // For risk acceptance
-      dataItem.push(vulnDetails.riskAcceptance?vulnDetails.riskAcceptance:'No'); // For risk acceptance
       
 
       tableData.push(dataItem);
@@ -1220,12 +1246,105 @@ console.log('currentVulnerability:', currentVulnerability)
         </Modal>
  
 
+        <Modal
+          isOpen={threatModellingModalIsOpen}
+          onRequestClose={closeThreatModellingModal}
+          style={customStyles2}
+          contentLabel="Threat Modelling"
+        >
+
+          <button style={{ float: 'right', backgroundColor: 'transparent', borderWidth: 0 }} onClick={closeThreatModellingModal} >
+            <AiFillCloseCircle size={30} color={'#000'} />
+          </button>
+
+          {currentVulnerability && 
+
+            <div className="modalWindow" style={{ backgroundColor: '#c2eef4', height:'100%' }}>
+
+<h4>Cost of Breach for <strong>{currentVulnerability.owasp}</strong></h4>
+
+
+
+{JSON.stringify(currentVulnerability.owasp).includes('01') || JSON.stringify(currentVulnerability.owasp).includes('01') && (
+<object type="text/html" data={global.baseUrl + "/breach-cost-html-llm/llm01.html"} width="100%" height="100%"
+style={{ alignSelf: 'center', borderWidth: 0, marginLeft:'0vw' }}>
+</object>     
+)}
+
+{(JSON.stringify(currentVulnerability.owasp).includes('02') || JSON.stringify(currentVulnerability.owasp).includes('02')) && ( 
+<object type="text/html" data={global.baseUrl + "/breach-cost-html-llm/llm02.html"} width="100%" height="100%"
+  style={{ alignSelf: 'center', borderWidth: 0, marginLeft:'0vw' }}>
+</object>     
+) }   
+
+{(JSON.stringify(currentVulnerability.owasp).includes('03') || JSON.stringify(currentVulnerability.owasp).includes('03')) && (       
+<object type="text/html" data={global.baseUrl + "/breach-cost-html-llm/llm03.html"} width="100%" height="100%"
+  style={{ alignSelf: 'center', borderWidth: 0, marginLeft:'0vw' }}>
+</object>     
+)}   
+
+{(JSON.stringify(currentVulnerability.owasp).includes('04') || JSON.stringify(currentVulnerability.owasp).includes('04')) && (       
+
+<object type="text/html" data={global.baseUrl + "/breach-cost-html-llm/llm04.html"} width="100%" height="100%"
+  style={{ alignSelf: 'center', borderWidth: 0, marginLeft:'0vw' }}>
+</object>     
+) }   
+
+{(JSON.stringify(currentVulnerability.owasp).includes('05') || JSON.stringify(currentVulnerability.owasp).includes('05')) && (       
+
+<object type="text/html" data={global.baseUrl + "/breach-cost-html-llm/llm05.html"} width="100%" height="100%"
+  style={{ alignSelf: 'center', borderWidth: 0, marginLeft:'0vw' }}>
+</object>     
+) }   
+
+{(JSON.stringify(currentVulnerability.owasp).includes('06') || JSON.stringify(currentVulnerability.owasp).includes('06')) && (       
+
+<object type="text/html" data={global.baseUrl + "/breach-cost-html-llm/llm06.html"} width="100%" height="100%"
+  style={{ alignSelf: 'center', borderWidth: 0, marginLeft:'0vw' }}>
+</object>     
+)}   
+
+{(JSON.stringify(currentVulnerability.owasp).includes('07') || JSON.stringify(currentVulnerability.owasp).includes('07')) && (       
+<object type="text/html" data={global.baseUrl + "/breach-cost-html-llm/llm07.html"} width="100%" height="100%"
+  style={{ alignSelf: 'center', borderWidth: 0, marginLeft:'0vw' }}>
+</object>     
+)}   
+
+{(JSON.stringify(currentVulnerability.owasp).includes('08') || JSON.stringify(currentVulnerability.owasp).includes('08')) && (       
+<object type="text/html" data={global.baseUrl + "/breach-cost-html-llm/llm08.html"} width="100%" height="100%"
+  style={{ alignSelf: 'center', borderWidth: 0, marginLeft:'0vw' }}>
+</object>     
+)}   
+
+{(JSON.stringify(currentVulnerability.owasp).includes('09') || JSON.stringify(currentVulnerability.owasp).includes('09')) && (       
+
+<object type="text/html" data={global.baseUrl + "/breach-cost-html-llm/llm09.html"} width="100%" height="100%"
+  style={{ alignSelf: 'center', borderWidth: 0, marginLeft:'0vw' }}>
+</object>     
+)}   
+
+{(JSON.stringify(currentVulnerability.owasp).includes('10') || JSON.stringify(currentVulnerability.owasp).includes('10')) && (       
+
+<object type="text/html" data={global.baseUrl + "/breach-cost-html-llm/llm10.html"} width="100%" height="100%"
+  style={{ alignSelf: 'center', borderWidth: 0, marginLeft:'0vw' }}>
+</object>     
+) }    
+
+
+
+            </div>
+          }
+
+
+        </Modal>        
+
+
 
     </div>
   )
 }
 
-export default ViewLLMScanReport
+export default ThreatModellingLLMScanDetail
 
 
 

@@ -17,6 +17,8 @@ const ProjectVulnerability = require("../../models/projectVulnerability.model");
 const ActiveScanVulnerability = require("../../models/activescanvulnerability.model");
 const ActiveScan = require("../../models/activescan.model");
 
+const SOAPOrGraphQLScan = require("../../models/soapOrGraphQLScan.model");
+
 const SOAPOrGraphQLScanVulnerability = require("../../models/soapOrGraphQLScanVulnerability.model");
 const SBOMScanVulnerability = require("../../models/sbomScanVulnerability.model");
 const Ticket = require("../../models/ticket.model");
@@ -1992,6 +1994,8 @@ async function calculateDashboardCardData(organization) {
     });
 
 
+
+
     //const endpointsCount = await ApiEndpoint.countDocuments({user:user._id})
     const apiCollections = await APICollection.find({
         orgProject: { $in: orgProjectIds }
@@ -2223,8 +2227,21 @@ async function calculateDashboardCardData(organization) {
     console.log('endpointsArray:',endpointsArray)
     const piiFieldsCount = endpointsArray.reduce((count, endpoint) => count + endpoint.piiFields.length, 0);
 
-    dashboardData.collectionsCount = collectionsCount;//collections.length;
-    dashboardData.endPointsCount = endpointsCount;//endpointsArray.length;
+
+    const soapGraohQLScansCount = await SOAPOrGraphQLScan.countDocuments({
+        orgProject: { $in: orgProjectIds }
+    });
+
+
+  /*  const soapGraohQLVulnsCount = await SOAPOrGraphQLScanVulnerability.countDocuments({
+        'soapOrGraphQLScan.orgProject': { $in: orgProjectIds }
+    });*/
+    
+    console.log('soapGraohQLScansCount:',soapGraohQLScansCount)
+    console.log('soapGraphQLVulnsCount:',soapGraphQLVulnsCount)
+
+    dashboardData.collectionsCount = collectionsCount + soapGraohQLScansCount;//collections.length;
+    dashboardData.endPointsCount = endpointsCount + soapGraphQLVulnsCount;//endpointsArray.length;
     dashboardData.agentsCount = agentsCount;
 
 

@@ -1,0 +1,57 @@
+<html>
+
+<body>
+
+   <p> OWASP LLM08 addresses the vulnerabilities associated with Excessive Agency in Large Language Models (LLMs). Excessive agency refers to scenarios where LLMs take unintended actions due to excessive functionality, permissions, or autonomy. Let’s analyze this risk using the STRIDE and DREAD threat modeling approaches.</p>
+    
+    <h3>STRIDE</h3>
+    <ul>
+        <li><strong>Spoofing:</strong> (Low) An LLM itself can't spoof its identity. However, malicious prompts might trick the LLM into acting like a trusted source. (High impact)</li>
+        <li><strong>Tampering:</strong> (Medium) Malicious actors could tamper with the LLM's training data or configuration, leading to unintended actions. (High impact)</li>
+        <li><strong>Repudiation:</strong> (Low) Not applicable for LLMs.</li>
+        <li><strong>Information Disclosure:</strong> (High) LLMs with excessive agency could disclose sensitive information accidentally. (High impact)</li>
+        <li><strong>Denial-of-Service:</strong> (Medium) An LLM overloaded with tasks due to excessive agency could become unavailable. (Medium impact)</li>
+        <li><strong>Elevation of Privilege:</strong> (High) An LLM with unnecessary permissions could elevate its own privileges or those of others. (High impact)</li>
+    </ul>
+
+    <h3>DREAD</h3>
+    <ul>
+        <li><strong>Damage:</strong> (High) Excessive agency could lead to financial loss, data breaches, or reputational damage. (High impact)</li>
+        <li><strong>Reproducibility:</strong> (Medium) Crafting prompts or exploiting vulnerabilities to trigger excessive agency can be moderately difficult. (Medium impact)</li>
+        <li><strong>Exploitability:</strong> (Medium) The success rate of exploiting excessive agency depends on the specific LLM and its environment. (Medium impact)</li>
+        <li><strong>Affected Users:</strong> (High) Excessive agency can impact a large number of users depending on the LLM's deployment. (High impact)</li>
+        <li><strong>Discoverability:</strong> (Medium) Security professionals can identify signs of excessive agency through monitoring and logging. (Medium impact)</li>
+    </ul>
+
+    <h3>Threat Category Based on STRIDE & DREAD:</h3>
+    <ul>
+        <li><strong>Critical:</strong> 
+            <ul>
+                <li>Elevation of Privilege (STRIDE: High, DREAD: High) - This can have severe consequences and is moderately difficult to exploit.</li>
+            </ul>
+        </li>
+        <li><strong>High:</strong>
+            <ul>
+                <li>Information Disclosure (STRIDE: High, DREAD: High) - Accidental sensitive information disclosure can be impactful.</li>
+                <li>Tampering (STRIDE: Medium, DREAD: High) - Malicious tampering can have severe consequences.</li>
+                <li>Spoofing a trusted source through prompts (STRIDE: Low, DREAD: High) - While spoofing itself is low risk, the potential impact is high.</li>
+            </ul>
+        </li>
+        <li><strong>Medium:</strong>
+            <ul>
+                <li>Denial-of-Service (STRIDE: Medium, DREAD: Medium) - The impact and exploitability are moderate.</li>
+            </ul>
+        </li>
+        <li><strong>Low:</strong>
+            <ul>
+                <li>Repudiation (STRIDE: Low, DREAD: N/A) - Not applicable for LLMs.</li>
+                <li>Spoofing identity (STRIDE: Low, DREAD: Low) - The LLM itself can't spoof.</li>
+            </ul>
+        </li>
+    </ul>
+
+    <p>Overall, excessive agency is a high-risk vulnerability due to its potential for causing significant damage and impacting a large number of users.</p>
+
+</body>
+
+</html>

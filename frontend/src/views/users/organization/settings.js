@@ -26,10 +26,75 @@ const defaultSettings = {
   "Lack of Resource & Rate Limiting": { vulnId:18, severity: "HIGH", priority: "HIGH" },
 };
 
+const defaultSettingsSOAPGraphQL = {
+  'Directory Browsing Vulnerability': { severity: 'MEDIUM', priority: 'LOW' },
+  'Cookie No HttpOnly Flag': { severity: 'HIGH', priority: 'MEDIUM' },
+  'Cookie Without Secure Flag': { severity: 'HIGH', priority: 'MEDIUM' },
+  'Password Autocomplete in Browser': { severity: 'MEDIUM', priority: 'LOW' },
+  'Incomplete or No Cache-control and Pragma HTTP Header Set': { severity: 'MEDIUM', priority: 'LOW' },
+  'Web Browser XSS Protection Not Enabled': { severity: 'HIGH', priority: 'MEDIUM' },
+  'Cross-Domain JavaScript Source File Inclusion': { severity: 'HIGH', priority: 'HIGH' },
+  'Content-Type Header Missing': { severity: 'MEDIUM', priority: 'LOW' },
+  'X-Frame-Options Header Scanner': { severity: 'HIGH', priority: 'MEDIUM' },
+  'X-Content-Type-Options Header Missing': { severity: 'MEDIUM', priority: 'LOW' },
+  'Information Disclosure - Debug Error Messages': { severity: 'HIGH', priority: 'MEDIUM' },
+  'Information Disclosure - Sensitive Informations in URL': { severity: 'HIGH', priority: 'MEDIUM' },
+  'Information Disclosure - Sensitive Information in HTTP Referrer Header': { severity: 'HIGH', priority: 'MEDIUM' },
+  'HTTP Parameter Override': { severity: 'HIGH', priority: 'MEDIUM' },
+  'Information Disclosure - Suspicious Comments': { severity: 'MEDIUM', priority: 'LOW' },
+  'Viewstate Scanner': { severity: 'HIGH', priority: 'MEDIUM' },
+  'Secure Pages Include Mixed Content': { severity: 'MEDIUM', priority: 'LOW' },
+  'Source Code Disclosure - /WEB-INF folder': { severity: 'HIGH', priority: 'HIGH' },
+  'Remote Code Execution - Shell Shock': { severity: 'CRITICAL', priority: 'CRITICAL' },
+  'Backup File Disclosure': { severity: 'MEDIUM', priority: 'LOW' },
+  'Weak Authentication Method': { severity: 'HIGH', priority: 'HIGH' },
+  'Absence of Anti-CSRF Tokens': { severity: 'HIGH', priority: 'HIGH' },
+  'Private IP Disclosure': { severity: 'MEDIUM', priority: 'LOW' },
+  'Anti CSRF Tokens Scanner': { severity: 'HIGH', priority: 'HIGH' },
+  'HTTP Parameter Pollution scanner': { severity: 'HIGH', priority: 'MEDIUM' },
+  'Cross-Domain Misconfiguration': { severity: 'HIGH', priority: 'HIGH' },
+  'Source Code Disclosure': { severity: 'HIGH', priority: 'HIGH' },
+  'Remote Code Execution': { severity: 'CRITICAL', priority: 'CRITICAL' },
+  'External Redirect': { severity: 'HIGH', priority: 'MEDIUM' },
+  'Session ID in URL Rewrite': { severity: 'HIGH', priority: 'MEDIUM' },
+  'Buffer Overflow': { severity: 'CRITICAL', priority: 'CRITICAL' },
+  'Format String Error': { severity: 'CRITICAL', priority: 'CRITICAL' },
+  'Integer Overflow Error': { severity: 'CRITICAL', priority: 'CRITICAL' },
+  'CRLF Injection': { severity: 'HIGH', priority: 'MEDIUM' },
+  'Parameter Tampering': { severity: 'HIGH', priority: 'HIGH' },
+  'Server Side Include': { severity: 'HIGH', priority: 'HIGH' },
+  'Cross Site Scripting (Reflected)': { severity: 'HIGH', priority: 'HIGH' },
+  'Session Fixation': { severity: 'HIGH', priority: 'HIGH' },
+  'Cross Site Scripting (Persistent)': { severity: 'HIGH', priority: 'HIGH' },
+  'SQL Injection': { severity: 'CRITICAL', priority: 'CRITICAL' },
+  'SQL Injection - MySQL': { severity: 'CRITICAL', priority: 'CRITICAL' },
+  'SQL Injection - Hypersonic SQL': { severity: 'CRITICAL', priority: 'CRITICAL' },
+  'SQL Injection - Oracle': { severity: 'CRITICAL', priority: 'CRITICAL' },
+  'SQL Injection - PostgreSQL': { severity: 'CRITICAL', priority: 'CRITICAL' },
+  'Possible Username Enumeration': { severity: 'MEDIUM', priority: 'LOW' },
+  'Path Traversal': { severity: 'HIGH', priority: 'HIGH' },
+  'Remote File Inclusion': { severity: 'CRITICAL', priority: 'CRITICAL' },
+  'Insecure JSF ViewState': { severity: 'HIGH', priority: 'HIGH' },
+  'Charset Mismatch': { severity: 'MEDIUM', priority: 'LOW' },
+  'Server Side Code Injection': { severity: 'CRITICAL', priority: 'CRITICAL' },
+  'Remote OS Command Injection': { severity: 'CRITICAL', priority: 'CRITICAL' },
+  'XPath Injection': { severity: 'CRITICAL', priority: 'CRITICAL' },
+  'Application Error Disclosure': { severity: 'HIGH', priority: 'HIGH' },
+  'XML External Entity Attack': { severity: 'CRITICAL', priority: 'CRITICAL' },
+  'Generic Padding Oracle': { severity: 'HIGH', priority: 'HIGH' },
+  'Expression Language Injection': { severity: 'HIGH', priority: 'HIGH' },
+  'SOAP Action Spoofing': { severity: 'HIGH', priority: 'HIGH' },
+  'Insecure HTTP Method': { severity: 'HIGH', priority: 'HIGH' },
+  'WSDL File Passive Scanner': { severity: 'MEDIUM', priority: 'LOW' },
+  'Loosely Scoped Cookie': { severity: 'MEDIUM', priority: 'LOW' },
+};
+
 
 const Settings = () => {
 
   const [settings, setSettings] = useState(defaultSettings);
+  const [settingsSOAP, setSettingsSOAP] = useState(defaultSettingsSOAPGraphQL);
+
   const [piiSettings, setPiiSettings] = useState([]);
   const [onLoading, setOnLoading] = useState(false);
 
@@ -230,6 +295,10 @@ const handleSaveSettings = async () => {
             <div style={{ display: 'flex', flexDirection: 'row', marginBottom: 30, justifyContent: 'space-between', margin: 20 }}>
               <div className="theCards" style={{ width: '49%' }}>
                 <h4>Severity and Priority Settings </h4>
+                <hr/>
+
+                <h5>REST API Scans</h5>
+
                 <span>Define the severity and priority of issues, as per your organization policy </span>
                 <table style={{ marginTop: 30, width: '100%' }}>
                   <thead>
@@ -275,6 +344,57 @@ const handleSaveSettings = async () => {
                     ))}
                   </tbody>
                 </table>
+
+                <hr/>
+
+          <h5>SOAP/GraphQL API Scans</h5>
+                <span>Define the severity and priority of issues, as per your organization policy </span>
+                <table style={{ marginTop: 30, width: '100%' }}>
+      <thead>
+        <tr>
+          <th style={{ padding: 10 }}>Vulnerability Type</th>
+          <th style={{ padding: 10 }}>Severity</th>
+          <th style={{ padding: 10 }}>Priority</th>
+        </tr>
+      </thead>
+      <tbody>
+        {Object.keys(defaultSettingsSOAPGraphQL).map(key => (
+          <tr key={key}>
+            <td>{key}</td>
+            <td>
+              <select
+                value={settingsSOAP[key]?.severity || defaultSettingsSOAPGraphQL[key].severity}
+                onChange={(e) => setSettingsSOAP({
+                  ...settings,
+                  [key]: { ...settingsSOAP[key], severity: e.target.value }
+                })}
+              >
+                <option value="CRITICAL">CRITICAL</option>
+                <option value="HIGH">HIGH</option>
+                <option value="MEDIUM">MEDIUM</option>
+                <option value="LOW">LOW</option>
+              </select>
+            </td>
+            <td>
+              <select
+                value={settingsSOAP[key]?.priority || defaultSettingsSOAPGraphQL[key].priority}
+                onChange={(e) => setSettingsSOAP({
+                  ...settingsSOAP,
+                  [key]: { ...settingsSOAP[key], priority: e.target.value }
+                })}
+              >
+                <option value="CRITICAL">CRITICAL</option>
+                <option value="HIGH">HIGH</option>
+                <option value="MEDIUM">MEDIUM</option>
+                <option value="LOW">LOW</option>
+              </select>
+            </td>
+          </tr>
+        ))}
+      </tbody>
+    </table>
+
+
               </div>
               <div className="theCards" style={{ width: '49%' }}>
                 <h4>PII Settings </h4>

@@ -1,0 +1,33 @@
+<html>
+
+<body>
+
+   <p> To analyze the cost and impact of a data breach specifically for the OWASP LLM03: Training Data Poisoning scenario, we use the STRIDE and DREAD threat modeling models. This scenario involves an attacker tampering with the training data used to develop a Large Language Model (LLM), introducing vulnerabilities, biases, or backdoors.</p>
+    
+    <p>Here’s a breakdown of the STRIDE and DREAD analysis:</p>
+
+<h3>STRIDE</h3>
+<ul>
+<li>Spoofing: (Low) An attacker wouldn't directly spoof the training data itself. However, they could potentially spoof the source of the data, making it appear trustworthy when it's not. (Medium if the source is heavily relied upon)</li>
+<li>Tampering: (Critical) This is the core of training data poisoning. An attacker tampering with the data can introduce vulnerabilities, biases, or backdoors.</li>
+<li>Repudiation: (Low) Not directly applicable here. Repudiation focuses on denying actions, which isn't a concern for the model itself.</li>
+<li>Information Disclosure: (Medium) Poisoned data might lead to the model revealing sensitive information it learned from the training data.</li>
+<li>Denial of Service: (Medium) In severe cases, a large amount of poisoned data could disrupt the training process or make the model unusable.</li>
+<li>Elevation of Privilege: (Low) Not applicable. Elevation of privilege deals with attackers gaining more control within a system, which isn't a concern for the LLM itself.</li>
+</ul>
+
+<h3>DREAD</h3>
+<ul>
+<li>Damage: (High) A successful poisoning attack can cause significant damage to the LLM's functionality, leading to biased or misleading outputs, security vulnerabilities, and reputational harm.</li>
+<li>Reproducibility: (Medium) An attacker might need some technical knowledge to poison the data, but the general concept is reproducible.</li>
+<li>Exploitability: (Medium) The exploitability depends on the attacker's access and the specific vulnerabilities introduced.</li>
+<li>Affected Users: (High) A poisoned LLM can impact a large number of users who rely on its outputs.</li>
+<li>Discoverability: (Medium) Data poisoning might go unnoticed for some time, especially if it's subtle. However, thorough data analysis and monitoring can help discover it.</li>
+</ul>
+
+<h3>Criticality Categories</h3>
+<p>Based on the STRIDE and DREAD analysis, Training Data Poisoning falls under the High criticality category. The potential damage and impact on users are significant, and the attack can be difficult to detect and mitigate.</p>
+
+</body>
+
+</html>

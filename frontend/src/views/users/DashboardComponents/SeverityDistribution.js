@@ -116,6 +116,10 @@ verticalAlign: 'middle',
 },
 };
 
+console.log('severityChartSeries:',severityChartSeries)
+console.log('severitychartOptions:',severitychartOptions)
+
+
     return (
 
 
@@ -155,7 +159,8 @@ verticalAlign: 'middle',
 
                 <>
 
-                  {severityChartSeries && severityChartSeries.length > 0 && !(severityChartSeries[0] == 0  && severityChartSeries[1] == 0  && severityChartSeries[2] == 0 && severityChartSeries[3] == 0 )  
+                  {severityDistribution && severityDistribution.length>0
+                  
                     ?
 
                    

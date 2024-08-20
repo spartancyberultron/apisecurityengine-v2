@@ -132,6 +132,86 @@ const ThreatModellingScanDetail = () => {
 }
 
 
+function getHeaderDescAndExploitability(headerString) {
+
+  var headerName = '';
+
+  const parts = headerString.split(':');
+  if (parts.length < 2) {
+    headerName = headerString; // No colon found, return the original string
+  }else{
+    headerName = parts[0];
+  }
+
+  headerName = headerName.toLowerCase()
+
+  if(headerName.includes('content-security-policy')){
+
+    return {
+      description:'The host lacks a Content Security Policy (CSP) security header, leaving it vulnerable to cross-site scripting (XSS) and data injection attacks.',
+      exploitability:'Attackers can exploit this vulnerability by injecting malicious scripts into the web application, leading to data theft, session hijacking, or unauthorized actions.'
+    }
+
+  }else if(headerName.includes('strict')){
+
+    return {
+      description:'The vulnerability occurs when a web host does not have HTTP Strict Transport Security (HSTS) headers enabled, allowing attackers to perform man-in-the-middle attacks by forcing users to access the site over an insecure HTTP connection.',
+      exploitability:'Exploitable by attackers intercepting or manipulating the insecure HTTP traffic, potentially compromising the integrity and confidentiality of user data.'
+    }
+
+  }else if(headerName.includes('x-frame-options')){
+
+    return {
+      description:'The "Security Headers Not Enabled on Host - X-Frame-Options" vulnerability occurs when the X-Frame-Options header is not set, allowing the website to be embedded in an iframe.',
+      exploitability:'This vulnerability can be exploited to perform clickjacking attacks, where an attacker tricks users into clicking on something different from what the user perceives, potentially leading to unauthorized actions or data breaches.'
+    }
+    
+  }else if(headerName.includes('x-content-type-options')){
+
+    return {
+      description:'The "X-Content-Type-Options" header is not enabled on the host, allowing the browser to interpret files as a different MIME type than declared, which can lead to security risks like MIME type sniffing.',
+      exploitability:'Attackers can exploit this vulnerability to execute malicious content by tricking the browser into misinterpreting the content type, potentially leading to cross-site scripting (XSS) or other injection attacks.'
+    }
+    
+  }else if(headerName.includes('x-xss-protection')){
+
+    return {
+      description:'The security header "X-XSS-Protection" is not enabled on the host, leaving the application vulnerable to cross-site scripting (XSS) attacks.',
+      exploitability:'Attackers can exploit this vulnerability to inject malicious scripts into web pages, potentially stealing sensitive information or executing unauthorized actions.'
+    }
+    
+  }else if(headerName.includes('cross-origin')){
+
+    return {
+      description:'The "Security Headers Not Enabled on Host - Cross-Origin Resource Sharing" vulnerability occurs when a web server does not properly set security headers, allowing potentially malicious sites to interact with it via CORS.',
+      exploitability:' This vulnerability can be exploited by attackers to perform cross-origin requests, leading to data theft, unauthorized actions, or exposure of sensitive information.'
+    }
+    
+  }else if(headerName.includes('referrer-policy')){
+
+    return {
+      description:'The "Referrer-Policy" security header is not enabled, which can lead to unintended leakage of sensitive information in the HTTP referrer header when navigating from HTTPS to HTTP sites.',
+      exploitability:' Attackers can exploit this by capturing referrer headers to gain access to sensitive data, which can then be used for further attacks such as phishing or data theft.'
+    }
+    
+  }else if(headerName.includes('feature-policy')){
+
+    return {
+      description:'The "Feature-Policy" security header is not enabled on the host, which limits control over which browser features can be used in the application.',
+      exploitability:'Attackers can exploit this by leveraging unused or potentially unsafe browser features, increasing the risk of attacks like cross-site scripting (XSS) and data exfiltration.'
+    }
+    
+  }else{
+    return {
+      description:'',
+      exploitability:''
+    }
+  }
+
+  
+}
+
+
 
   console.log('findings:',findings)
 
@@ -322,6 +402,7 @@ const ThreatModellingScanDetail = () => {
   };
 
 
+  
 
   const openThreatModellingModal = async (value) => {
 
@@ -420,11 +501,11 @@ value.vulnerability.vulnerabilityCode == 6) &&
                 className="primaryButton" style={{ fontSize: 13, color: 'white', width:200 }}>
 
                   {value.vulnerability.vulnerabilityCode == 10 &&
-                  'View Missing Headers'
+                  'View Missing Headers and Exploitability'
                   }
 
                   {value.vulnerability.vulnerabilityCode == 4 &&
-                  'View SSL Problems'
+                  'View SSL Problems and Exploitability'
                   }
 
                   {value.vulnerability.vulnerabilityCode == 8 &&
@@ -1730,24 +1811,43 @@ value.vulnerability.vulnerabilityCode == 6) &&
            <h4>Missing Headers</h4>
            <hr/>
          
-            {findings && findings.map((item, index) => (
-                <span 
-                    key={index} 
-                    dangerouslySetInnerHTML={{ __html: convertHeaderString(item) }}
-                    style={{
-                        padding: 5,
-                        width: '100%',
-                        textAlign: 'left',
-                        borderRadius: 10,
-                        fontSize: 15,
-                        fontWeight: 'normal',
-                        marginRight: 5,
-                        color: '#000',
-                        backgroundColor: '#fff',
-                        margin: 5
-                    }}
-                />
-            ))}
+           
+           {findings && findings.map((item, index) => (
+
+<div style={{backgroundColor:'#fff', marginBottom:20, padding:10}}>
+  <span 
+      key={index} 
+      dangerouslySetInnerHTML={{ __html: convertHeaderString(item) }}
+      style={{
+          padding: 0,
+          width: '100%',
+          textAlign: 'left',
+          borderRadius: 10,
+          fontSize: 17,
+          fontWeight: 'normal',
+          marginRight: 5,
+          color: '#000',
+          backgroundColor: 'transparent',
+          margin: 0
+      }}
+  />
+
+{(getHeaderDescAndExploitability(item)).description !== '' &&
+<>
+<span>
+<br/>
+      <strong>Description:</strong>{(getHeaderDescAndExploitability(item)).description}
+    </span> <br/>
+    <span>
+    <strong>Exploitability:</strong>{(getHeaderDescAndExploitability(item)).exploitability}
+    </span>
+
+    </>
+}
+
+    </div>
+
+))}
         </div>      
         }
 

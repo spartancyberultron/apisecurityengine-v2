@@ -520,6 +520,15 @@ const ViewSOAPGraphQLScanReport = () => {
         }
       }
     },
+    {
+      label: "RiskAcceptanceHiddenColumn",
+      options: {
+        filter: false,
+        display:false,
+        filterType: 'dropdown', // Adjust based on your filter type
+        filterList: [],        
+      }
+    }
       
 
   ];
@@ -567,6 +576,15 @@ const ViewSOAPGraphQLScanReport = () => {
       body: {
         noMatch: 'No vulnerabilities found',
       }
+    },
+    setRowProps: (row, dataIndex, rowIndex) => {
+
+      console.log('row', row)
+      return {
+        style: {
+          backgroundColor: row[10] === 'Yes' ? "#FFCCCC" : "#ffffff" // Alternate row colors
+        }
+      };
     }
   };
 
@@ -597,6 +615,7 @@ const ViewSOAPGraphQLScanReport = () => {
       dataItem.push(soapOrGraphQLScan.vulnerabilities[i]); // for remediations
 
       dataItem.push(soapOrGraphQLScan.vulnerabilities[i]); // For risk acceptance
+      dataItem.push(soapOrGraphQLScan.vulnerabilities[i].riskAcceptance?soapOrGraphQLScan.vulnerabilities[i].riskAcceptance:'No'); // For risk acceptance
 
 
       tableData.push(dataItem);
