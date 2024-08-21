@@ -2682,6 +2682,9 @@ async function runActiveScan(user, theCollectionVersion, endpoints, scanId) {
                 }
             }
 
+            theActiveScan.vulnCount = theVulns.length;
+            await theActiveScan.save();
+
         } catch (error) {
 
             console.log('error:', error)
@@ -2730,7 +2733,12 @@ async function runActiveScan(user, theCollectionVersion, endpoints, scanId) {
                     theEndpoints[i].save();
                 }
 
+              
+
             }
+
+            theActiveScan.vulnCount = theVulns.length;
+            await theActiveScan.save();
         } catch (error) {
             console.log('execption occured in check for BASIC AUTHENTICATION DETECTED ')
         }
@@ -2796,6 +2804,9 @@ async function runActiveScan(user, theCollectionVersion, endpoints, scanId) {
                     theEndpoints[i].save();
                 }
             }
+
+            theActiveScan.vulnCount = theVulns.length;
+            await theActiveScan.save();
         } catch (error) {
             console.log('execption occured in check for SENSITIVE DATA IN QUERY PARAMS')
         }
@@ -2858,6 +2869,9 @@ async function runActiveScan(user, theCollectionVersion, endpoints, scanId) {
                     theEndpoints[i].save();
                 }
             }
+
+            theActiveScan.vulnCount = theVulns.length;
+            await theActiveScan.save();
         } catch (error) {
             console.log('execption occured in check for SENSITIVE DATA IN PATH PARAMS')
         }
@@ -2906,6 +2920,9 @@ async function runActiveScan(user, theCollectionVersion, endpoints, scanId) {
                     theEndpoints[i].vulnCount = theEndpoints[i].vulnCount + 1;
                     theEndpoints[i].save();
                 }
+
+                theActiveScan.vulnCount = theVulns.length;
+                await theActiveScan.save();
 
             } catch (error) {
                 console.log('execption occured in check for LACK OF RESOURCES AND RATE LIMITING');
@@ -2964,6 +2981,9 @@ async function runActiveScan(user, theCollectionVersion, endpoints, scanId) {
                     }
                 }
             }
+
+            theActiveScan.vulnCount = theVulns.length;
+            await theActiveScan.save();
         } catch (error) {
             console.log('Exception occurred in check for HTTP VERB TAMPERING POSSIBLE:', error);
             // Handle the error condition here, log the error, and continue or take appropriate actions.
@@ -3087,6 +3107,9 @@ async function runActiveScan(user, theCollectionVersion, endpoints, scanId) {
 
             }
 
+
+            theActiveScan.vulnCount = theVulns.length;
+            await theActiveScan.save();
 
         } catch (error) {
 
