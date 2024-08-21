@@ -38,29 +38,29 @@ async function calculateDashboard(organization) {
     // for(var i=0;i<orgs.length;i++){
     //  const organization = orgs[i];
 
-    calculateAuditFindings(organization);
+    await calculateAuditFindings(organization);
     //calculateComplianceStatus(organization); // Takes from threat alerts
-    calculateNumberOfOpenVulnerabilities(organization);
-    calculateSeverityDistribution(organization); 
-   calculateSSDLCScore(organization);
-   calculateThreatAlerts(organization);
+    await calculateNumberOfOpenVulnerabilities(organization);
+    await calculateSeverityDistribution(organization); 
+    await calculateSSDLCScore(organization);
+    await calculateThreatAlerts(organization);
 
-   calculateThreatTrends(organization);
-   calculateTopEndpoints(organization);
+    await calculateThreatTrends(organization);
+    await calculateTopEndpoints(organization);
 
-   calculateVulnerabilityDistribution(organization);
-   calculateVulnerabilityTrends(organization);
-   calculateDashboardCardData(organization)
+    await calculateVulnerabilityDistribution(organization);
+    await calculateVulnerabilityTrends(organization);
+    await calculateDashboardCardData(organization)
 
 
-   calculateTimeToResolveVulnerabilities(organization);
-   calculateTop10Vulnerabilities(organization);
+    await calculateTimeToResolveVulnerabilities(organization);
+    await calculateTop10Vulnerabilities(organization);
    
    
    
   
-   calculateRiskScore(organization);
-   calculateTopRisks(organization);
+    await calculateRiskScore(organization);
+    await calculateTopRisks(organization);
 
    /* 
     

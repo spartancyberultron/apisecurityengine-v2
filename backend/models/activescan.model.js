@@ -53,6 +53,9 @@ const activeScanSchema = new mongoose.Schema({
   projectPhase: {
     type: String,
     enum: ['Design', 'Development', 'Testing', 'Maintenance']
+  },
+  vulnCount: {
+    type: Number,
   }
 }, {
   timestamps: true,

@@ -137,14 +137,14 @@ module.exports.getAllActiveScans = asyncHandler(async (req, res) => {
     //console.log('activeScans-', activeScans)
 
 
-    for (var i = 0; i < activeScans.length; i++) {
+   /* for (var i = 0; i < activeScans.length; i++) {
 
-        var vulnerabilities = await ActiveScanVulnerability.find({ activeScan: activeScans[i]._id })
+        var vulnerabilities = await ActiveScanVulnerability.countDocuments({ activeScan: activeScans[i]._id })
 
         //console.log('vulnerabilities:',vulnerabilities)
 
         activeScans[i].vulnerabilities = vulnerabilities;
-    }
+    }*/
 
     // Return the active scans, currentPage, totalRecords, and totalPages in the response
     res.status(200).json({
@@ -3097,7 +3097,7 @@ async function runActiveScan(user, theCollectionVersion, endpoints, scanId) {
         // Scan completion
         theActiveScan.scanCompletedAt = new Date();
         theActiveScan.status = 'completed';
-        theActiveScan.vulnerabilities = theVulns;
+        theActiveScan.vulnCount = theVulns.length;
         await theActiveScan.save();
 
         calculateDashboard(organization);
