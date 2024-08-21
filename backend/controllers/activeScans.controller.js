@@ -1928,10 +1928,10 @@ module.exports.runScanFromPostman = asyncHandler(async (req, res) => {
 
     const organization = await Organization.findOne({ clientId: apisecurityengineClientId, clientSecret: apisecurityengineClientSecret })
 
-    console.log('organization:',organization)
+    //console.log('organization:',organization)
     const user = await User.findById(organization.primaryUser).populate('organization')
 
-    console.log('organization:', organization)
+    //console.log('organization:', organization)
     console.log('user:', user)
 
     const apiKey = organization.postmanAPIKey;// 'PMAK-66b22f121aa5e100014fae49-9d74842c0ddfebba8af5cbbdd652361f0d';
@@ -2379,6 +2379,8 @@ async function runActiveScan(user, theCollectionVersion, endpoints, scanId) {
         // 1. Test for ENDPOINT NOT SECURED BY SSL
         try {
 
+
+            console.log('Test for ENDPOINT NOT SECURED BY SSL:')
             // This check will happen only on unique hosts found across all endpoints
 
             // Extract unique hosts
@@ -2690,6 +2692,7 @@ async function runActiveScan(user, theCollectionVersion, endpoints, scanId) {
         try {
 
             // 2. Test for BASIC AUTHENTICATION DETECTED  
+            console.log('Test for BASIC AUTHENTICATION DETECTED  ')
             for (var i = 0; i < theEndpoints.length; i++) {
 
                 //console.log('second loop')
@@ -2738,9 +2741,10 @@ async function runActiveScan(user, theCollectionVersion, endpoints, scanId) {
         try {
 
             // 3. Test for SENSITIVE DATA IN QUERY PARAMS
+            console.log('Test for SENSITIVE DATA IN QUERY PARAMS ')
             for (var i = 0; i < theEndpoints.length; i++) {
 
-                //console.log('third loop')
+                console.log('third loop')
 
 
                 //var pIIData = await runTestForSensitiveDataInQueryParams(theEndpoints[i])
@@ -2801,6 +2805,7 @@ async function runActiveScan(user, theCollectionVersion, endpoints, scanId) {
         try {
 
             // 2. Test for SENSITIVE DATA IN PATH PARAMS
+            console.log('Test for SENSITIVE DATA IN PATH PARAMS ')
             for (var i = 0; i < theEndpoints.length; i++) {
 
                 //console.log('fourth loop')
@@ -2861,6 +2866,7 @@ async function runActiveScan(user, theCollectionVersion, endpoints, scanId) {
 
 
         // 4. Test for LACK OF RESOURCES AND RATE LIMITING    
+        console.log('Test for LACK OF RESOURCES AND RATE LIMITING  ')
         for (var i = 0; i < theEndpoints.length; i++) {
 
             //console.log('fifth loop')
@@ -2911,6 +2917,7 @@ async function runActiveScan(user, theCollectionVersion, endpoints, scanId) {
 
 
         // 4. Test for HTTP VERB TAMPERING POSSIBLE    
+        console.log('Test for HTTP VERB TAMPERING POSSIBLE    ')
         try {
             for (var i = 0; i < theEndpoints.length; i++) {
 
@@ -2967,6 +2974,7 @@ async function runActiveScan(user, theCollectionVersion, endpoints, scanId) {
 
 
         // 4. Test for SECURITY HEADERS NOT ENABLED ON HOST
+        console.log('Test for SECURITY HEADERS NOT ENABLED ON HOST  ')
         try {
 
             // This check will happen only on unique hosts found across all endpoints
@@ -3019,40 +3027,41 @@ async function runActiveScan(user, theCollectionVersion, endpoints, scanId) {
 
                             var remediation = '';
 
+                            var findingsString = JSON.stringify(findings);
 
-                            if (findings.includes("Content-Security-Policy")) {
+
+                            if (findingsString.includes("content-security-policy")) {
                                 remediation = remediation + '<br/><br>' + (getObjectByIndex(12)).remediation;
                             }
 
-                            if (findings.includes("Strict-Transport-Security")) {
+                            if (findingsString.includes("strict-transport-security")) {
                                 remediation = remediation + '<br/><br>' + (getObjectByIndex(13)).remediation;
                             }
 
-                            if (findings.includes("X-Frame-Options")) {
+                            if (findingsString.includes("x-frame-options")) {
                                 remediation = remediation + '<br/><br>' + (getObjectByIndex(14)).remediation;
                             }
 
-                            if (findings.includes("X-Content-Type-Options")) {
+                            if (findingsString.includes("x-content-type-options")) {
                                 remediation = remediation + '<br/><br>' + (getObjectByIndex(15)).remediation;
                             }
 
-                            if (findings.includes("X-XSS-Protection")) {
+                            if (findingsString.includes("x-xss-protection")) {
                                 remediation = remediation + '<br/><br>' + (getObjectByIndex(16)).remediation;
                             }
 
-                            if (findings.includes("Cross-Origin Resource Sharing")) {
+                            if (findingsString.includes("cross-origin")) {
                                 remediation = remediation + '<br/><br>' + (getObjectByIndex(17)).remediation;
                             }
 
-                            if (findings.includes("Referrer-Policy")) {
+                            if (findingsString.includes("referrer-policy")) {
                                 remediation = remediation + '<br/><br>' + (getObjectByIndex(18)).remediation;
                             }
 
-                            if (findings.includes("Feature-Policy")) {
+                            if (findingsString.includes("feature-policy")) {
                                 remediation = remediation + '<br/><br>' + (getObjectByIndex(19)).remediation;
                             }
 
-                            // var remediation = (getObjectByIndex(12)).remediation;
 
                             const result = await getVulnSeverityAndPriority(10);
                             const severity = result ? result.severity : null;

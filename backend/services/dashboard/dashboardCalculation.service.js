@@ -415,7 +415,7 @@ const activeScans = activeScans1.filter(scan =>
 
     org1.vulnerabilityDistribution = vulnerabilityCounts;   
 
-    org1.save();
+    await org1.save();
 
 
 }
@@ -542,7 +542,7 @@ async function calculateTopEndpoints(organization) {
 
     org1.topEndpoints = topEndpoints;   
 
-    org1.save();
+    await org1.save();
 
 
 
@@ -629,7 +629,7 @@ async function calculateVulnerabilityTrends(organization) {
     
     const org1 = await Organization.findById(organization._id);
     org1.vulnerabilityTrends = activeScansByMonth;
-    org1.save();
+    await org1.save();
 
 
     
@@ -719,7 +719,7 @@ async function calculateNumberOfOpenVulnerabilities(organization) {
       
     const org1 = await Organization.findById(organization._id);
     org1.numberOfOpenVulnerabilities = vulnerabilities;
-    org1.save();
+    await org1.save();
 
 
 
@@ -759,7 +759,7 @@ async function calculateTimeToResolveVulnerabilities(organization) {
        
     const org1 = await Organization.findById(organization._id);
     org1.timeToResolveVulnerabilities = averageResolutionTimeMinutes;
-    org1.save();
+    await org1.save();
 
 }
 
@@ -941,7 +941,7 @@ filteredVulnerabilities.forEach(vuln => {
 
   const org1 = await Organization.findById(organization._id);
 org1.ssdlcScore = counts;
-org1.save();
+await org1.save();
 
 }
 
@@ -977,7 +977,7 @@ async function calculateAuditFindings(organization) {
 
     const org1 = await Organization.findById(organization._id);
     org1.auditFindings = auditFindings;
-    org1.save();
+    await org1.save();
     
 }
 
@@ -1196,7 +1196,7 @@ const response = {
 
 const org1 = await Organization.findById(organization._id);
     org1.threatAlerts = response;
-    org1.save();
+    await org1.save();
 
 
 }
@@ -1395,7 +1395,7 @@ async function calculateThreatTrends(organization) {
 
     const org1 = await Organization.findById(organization._id);
     org1.threatTrends = data;
-    org1.save();
+    await org1.save();
 
 
 }
@@ -1541,7 +1541,7 @@ async function calculateRiskScore(organization) {
 
     const org1 = await Organization.findById(organization._id);
     org1.riskScore = riskScorePercentage;
-    org1.save();
+    await org1.save();
 
 
 }
@@ -1970,7 +1970,7 @@ const topLLMVulnerabilities = vulnerabilityData
         topLLMVulnerabilities: topLLMVulnerabilities
     };
 
-    org1.save();
+    await org1.save();
 
 
 
@@ -2258,7 +2258,7 @@ async function calculateDashboardCardData(organization) {
 
     const org1 = await Organization.findById(organization._id);
     org1.dashboardCardData = dashboardData;
-    org1.save();
+    await org1.save();
 
 
 }

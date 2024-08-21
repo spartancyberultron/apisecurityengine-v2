@@ -4,12 +4,14 @@ const Organization = require("../../models/organization.model");
 /* Test for "Sensitive Data in Query Params" */
 async function sensitiveDataInQueryParamsCheck(endpoint, organizationId) {
 
-    console.log('organizationId:',organizationId)
+   // console.log('organizationId:',organizationId)
+
+try{
 
     const enabledPIIDataForOrg = await getEnabledPIIData(organizationId);
 
 
-    console.log('enabledPIIDataForOrg:',enabledPIIDataForOrg)
+    //console.log('enabledPIIDataForOrg:',enabledPIIDataForOrg)
 
     let issueFound = false;
     let findings = [];
@@ -17,9 +19,12 @@ async function sensitiveDataInQueryParamsCheck(endpoint, organizationId) {
 
     var pIIData = [];
 
-    for (var j = 0; j < endpoint.queryParams.length; j++) {
+    console.log('endpoint.queryParams:',endpoint.queryParams)
 
-        const theKey = (endpoint.queryParams[j].key || '').toLowerCase();
+    if(endpoint.queryParams){
+    for (var i = 0; i < endpoint.queryParams.length; i++) {
+
+        const theKey = (endpoint.queryParams[i].key || '').toLowerCase();
 
         for(var j=0;j<enabledPIIDataForOrg.length;j++){
           
@@ -35,17 +40,24 @@ async function sensitiveDataInQueryParamsCheck(endpoint, organizationId) {
         }        
     }
 
+   // console.log('endpoint:',endpoint)
     console.log('pIIData:',pIIData)
 
     if(pIIData.length> 0){
         findings = pIIData;
         issueFound = true;
     }    
+  }
 
     return {
         issueFound:issueFound,
         findings: findings,
     };
+
+
+  } catch (error) {
+    console.log('execption occured in check forSensitive data in query params ')
+}
 }
 
 async function getEnabledPIIData(organizationId) {

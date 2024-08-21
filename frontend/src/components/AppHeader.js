@@ -70,7 +70,7 @@ const AppHeader = () => {
   useEffect(() => {
 
     setCurrentRoute(location.pathname);
-    getLast10Alerts();
+   // getLast10Alerts();
 
   }, [refreshFlag])
 

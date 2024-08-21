@@ -4,12 +4,12 @@ const Organization = require("../../../models/organization.model");
 /* Test for "Sensitive Data in Path Params" */
 async function sensitiveDataInPathParamsCheck(url, organizationId) {
 
-    console.log('organizationId:',organizationId)
+  //  console.log('organizationId:',organizationId)
 
     const enabledPIIDataForOrg = await getEnabledPIIData(organizationId);
 
 
-    console.log('enabledPIIDataForOrg:',enabledPIIDataForOrg)
+   // console.log('enabledPIIDataForOrg:',enabledPIIDataForOrg)
 
 
     let issueFound = false;
@@ -30,8 +30,8 @@ async function sensitiveDataInPathParamsCheck(url, organizationId) {
         for(var j=0;j<enabledPIIDataForOrg.length;j++){
           
 
-            console.log('theParam:',theParam)
-            console.log('enabledPIIDataForOrg[j]:',enabledPIIDataForOrg[j])
+           // console.log('theParam:',theParam)
+           // console.log('enabledPIIDataForOrg[j]:',enabledPIIDataForOrg[j])
     
             if (enabledPIIDataForOrg[j].includes(theParam)){
                 // First letter of each word caps

@@ -446,12 +446,14 @@ const SOAPGraphQLScans = () => {
       dataItem.push('---');
     }
 
+    
+
 
    // dataItem.push((soapOrGraphQLScans[i].vulnerabilities).length);   
    
    dataItem.push(soapOrGraphQLScans[i].vulnerabilities);    
 
-   dataItem.push(soapOrGraphQLScans[i].status?(soapOrGraphQLScans[i].status).toUpperCase():'COMPLETED');    
+   dataItem.push(soapOrGraphQLScans[i].status.toUpperCase());    
 
 
     

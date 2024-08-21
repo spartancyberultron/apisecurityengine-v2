@@ -12,6 +12,10 @@ const remediations = require('./remediations/soap-graphql-remediations.json');
 
 const { calculateDashboard } = require("../services/dashboard/dashboardCalculation.service");
 
+const util = require('util');
+
+// Promisify the exec function
+const execPromise = util.promisify(exec);
 
 function getObjectByName(name) {
     // Find the object with the given index
@@ -25,9 +29,7 @@ module.exports.getAllSOAPOrGraphQLScans = asyncHandler(async (req, res) => {
     const organization = await Organization.findById(user.organization)
 
 
-    // Trigger an async function that checks if all the scans have got the result files and also the results saved in database.
-    // If not,  do that for the scans that do not have records
-    checkAndPopulateScans(organization);
+   
 
     // Now proceed
 
@@ -53,6 +55,10 @@ module.exports.getAllSOAPOrGraphQLScans = asyncHandler(async (req, res) => {
         soapOrGraphQLScans[i].vulnerabilities = vulnerabilities;
     }
 
+     // Trigger an async function that checks if all the scans have got the result files and also the results saved in database.
+    // If not,  do that for the scans that do not have records
+    checkAndPopulateScans(organization);
+
     // Return the SOAP/GraphQL scans, currentPage, totalRecords, and totalPages in the response
     res.status(200).json({
         soapOrGraphQLScans,
@@ -76,7 +82,42 @@ async function checkAndPopulateScans(organization) {
         if (vulnCount == 0) {
             // Check if file exists and it has lines that start with WARN-NEW: or AIL-NEW: 0
 
-            parseScanResults('./soap-graphql-scan-results/' + soapOrGraphQLScans[i]._id + '.txt', soapOrGraphQLScans[i]);
+            const result  = await parseScanResults('./soap-graphql-scan-results/' + soapOrGraphQLScans[i]._id + '.txt', soapOrGraphQLScans[i]);
+
+            if (result.error) {
+                console.error('Error parsing scan results:', result.error);
+                // Handle the error case here
+            } else {
+                console.log('Scan results parsed successfully');
+                console.log('result:',result)
+
+                // Now update the scan status
+                const scan = await SOAPOrGraphQLScan.findById(soapOrGraphQLScans[i]._id);
+                scan.scanCompletedAt = new Date();
+
+                const vulns = await SOAPOrGraphQLScanVulnerability.countDocuments({soapOrGraphQLScan:scan._id})
+
+
+                if(vulns==0){
+                    const fifteenMinutes = 15 * 60 * 1000; // 15 minutes in milliseconds
+                    const currentTime = new Date();
+    
+                    // Check if 15 minutes have passed since scan.createdAt
+                    if (currentTime - scan.createdAt > fifteenMinutes) {
+                        scan.status = 'completed';
+                        await scan.save();
+                    }
+                    
+
+                }else{
+                    scan.status = 'completed';
+                    await scan.save();
+                }
+                
+               
+                // Continue with the successful case
+            }
+            
 
         }
     }
@@ -86,36 +127,28 @@ async function checkAndPopulateScans(organization) {
 }
 
 
-
-
 async function parseScanResults(filename, soapOrGraphQLScan) {
-
     const toolCommand = 'cat ' + filename;
 
-    exec(toolCommand, async (error, stdout, stderr) => {
+    try {
+        // Execute the command and await its result
+        const { stdout, stderr } = await execPromise(toolCommand);
 
-        if (error) {
-            console.error(`Error executing command: ${error}`);
-            return;
-        }
+        // Handle any potential errors in stderr
         if (stderr) {
             console.error(`Error in command output: ${stderr}`);
-            return;
+            // Return a value to indicate an error
+            return { error: 'Error in command output' };
         }
-
 
         const testCases = parseText(stdout);
 
-
-        for (var i = 0; i < testCases.length; i++) {
-
-            const result = getMappings(testCases[i].vulnName);
+        for (const testCase of testCases) {
+            const result = getMappings(testCase.vulnName);
 
             if (result.hasOwnProperty('testCaseName')) {
-
-               var obj = getObjectByName(result.testCaseName);
-
-               console.log('obj:',obj)
+                const obj = getObjectByName(result.testCaseName);
+                console.log('obj:', obj);
 
                 // Save the vulnerabilities
                 const newVuln = new SOAPOrGraphQLScanVulnerability({
@@ -125,23 +158,24 @@ async function parseScanResults(filename, soapOrGraphQLScan) {
                     exploitability: result.exploitability,
                     owasp: result.owasp,
                     cwe: result.cwe,
-                    endpoints: testCases[i].endpoints,
-                    remediation:obj.remediation,
-                    severity:obj.severity,
-
+                    endpoints: testCase.endpoints,
+                    remediation: obj.remediation,
+                    severity: obj.severity,
                 });
-                newVuln.save();
+
+                await newVuln.save();
             }
         }
 
 
-        const scan = await SOAPOrGraphQLScan.findById(soapOrGraphQLScan._id)
-        scan.scanCompletedAt = new Date();
-        scan.status = 'completed';
-        scan.save()
-
-    });
-
+        // Return a success indicator
+        return { success: true };
+    } catch (error) {
+        // Catch and log any errors from exec or other async operations
+        console.error(`Error executing command: ${error.message}`);
+        // Return an error object
+        return { error: error.message };
+    }
 }
 
 
@@ -1651,28 +1685,7 @@ module.exports.startSOAPOrGraphQLScan = asyncHandler(async (req, res) => {
         orgProject: projectId,
         projectPhase: projectPhase
     });
-    newScan.save();
-
-    /*
-    var filePath = path.join(__dirname, "..", "uploads", "soap-and-graphql-files", originalname);
-    //var jsonContent = fs.readFileSync(filePath, 'utf8');
-
-    const newScan = new SBOMScan({
-        scanName: scanName,
-        user: user._id,
-        sbomFilePath: filePath
-    });
-    newScan.save();
-
-    console.log('filePath:', filePath);
-
-    // Set the target directory
-    const targetDirectory = path.join(__dirname, "..", "uploads", "sbom-files", "result-files");
-
-    // Change directory to the target directory
-    process.chdir(targetDirectory);
-
-    */
+    newScan.save();    
 
     let toolCommand;
 

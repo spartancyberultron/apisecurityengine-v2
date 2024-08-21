@@ -3,11 +3,11 @@ const Organization = require("../../../models/organization.model");
 /* Test for "Sensitive Data in Query Params" */
 async function sensitiveDataInQueryParamsCheck(queryParams, organizationId) {
 
-    console.log('organizationId:',organizationId)
+    //console.log('organizationId:',organizationId)
 
     const enabledPIIDataForOrg = await getEnabledPIIData(organizationId);
 
-    console.log('enabledPIIDataForOrg:',enabledPIIDataForOrg)
+   // console.log('enabledPIIDataForOrg:',enabledPIIDataForOrg)
 
 
     let issueFound = false;
@@ -26,8 +26,8 @@ async function sensitiveDataInQueryParamsCheck(queryParams, organizationId) {
             for(var j=0;j<enabledPIIDataForOrg.length;j++){
           
 
-                console.log('theKey:',theKey)
-                console.log('enabledPIIDataForOrg[j]:',enabledPIIDataForOrg[j])
+               // console.log('theKey:',theKey)
+              //  console.log('enabledPIIDataForOrg[j]:',enabledPIIDataForOrg[j])
         
                 if (enabledPIIDataForOrg[j].includes(theKey)){
                     // First letter of each word caps

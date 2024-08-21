@@ -777,37 +777,40 @@ module.exports.sendRequestInfo = asyncHandler(async (req, res) => {
                         var remediation = ''; 
             
                        
-                        if(findings.includes("Content-Security-Policy")){
-                            remediation = remediation + '<br/><br>' +(getObjectByIndex(12)).remediation;
-                        }
+                        var findingsString = JSON.stringify(findings);
 
-                        if(findings.includes("Strict-Transport-Security")){
-                            remediation = remediation + '<br/><br>' +(getObjectByIndex(13)).remediation;
-                        }
 
-                        if(findings.includes("X-Frame-Options")){
-                            remediation = remediation + '<br/><br>' +(getObjectByIndex(14)).remediation;
-                        }
+                            if (findingsString.includes("content-security-policy")) {
+                                remediation = remediation + '<br/><br>' + (getObjectByIndex(12)).remediation;
+                            }
 
-                        if(findings.includes("X-Content-Type-Options")){
-                            remediation = remediation + '<br/><br>' +(getObjectByIndex(15)).remediation;
-                        }
+                            if (findingsString.includes("strict-transport-security")) {
+                                remediation = remediation + '<br/><br>' + (getObjectByIndex(13)).remediation;
+                            }
 
-                        if(findings.includes("X-XSS-Protection")){
-                            remediation = remediation + '<br/><br>' +(getObjectByIndex(16)).remediation;
-                        }
+                            if (findingsString.includes("x-frame-options")) {
+                                remediation = remediation + '<br/><br>' + (getObjectByIndex(14)).remediation;
+                            }
 
-                        if(findings.includes("Cross-Origin Resource Sharing")){
-                            remediation = remediation + '<br/><br>' +(getObjectByIndex(17)).remediation;
-                        }
+                            if (findingsString.includes("x-content-type-options")) {
+                                remediation = remediation + '<br/><br>' + (getObjectByIndex(15)).remediation;
+                            }
 
-                        if(findings.includes("Referrer-Policy")){
-                            remediation = remediation + '<br/><br>' +(getObjectByIndex(18)).remediation;
-                        }
+                            if (findingsString.includes("x-xss-protection")) {
+                                remediation = remediation + '<br/><br>' + (getObjectByIndex(16)).remediation;
+                            }
 
-                        if(findings.includes("Feature-Policy")){
-                            remediation = remediation + '<br/><br>' +(getObjectByIndex(19)).remediation;
-                        }
+                            if (findingsString.includes("cross-origin")) {
+                                remediation = remediation + '<br/><br>' + (getObjectByIndex(17)).remediation;
+                            }
+
+                            if (findingsString.includes("referrer-policy")) {
+                                remediation = remediation + '<br/><br>' + (getObjectByIndex(18)).remediation;
+                            }
+
+                            if (findingsString.includes("feature-policy")) {
+                                remediation = remediation + '<br/><br>' + (getObjectByIndex(19)).remediation;
+                            }
 
                        // var remediation = (getObjectByIndex(12)).remediation;
 
