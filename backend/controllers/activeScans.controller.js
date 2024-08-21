@@ -2943,7 +2943,7 @@ async function runActiveScan(user, theCollectionVersion, endpoints, scanId) {
         for (var i = 0; i < theEndpoints.length; i++) {
 
             //console.log('fifth loop')
-
+/*
             try {
 
                 // var isRateLimitingNotApplied = await runTestForLackOfResourcesAndRateLimiting(theEndpoints[i])
@@ -2986,7 +2986,7 @@ async function runActiveScan(user, theCollectionVersion, endpoints, scanId) {
             } catch (error) {
                 console.log('execption occured in check for LACK OF RESOURCES AND RATE LIMITING');
                 continue;
-            }
+            } */
         }
 
 

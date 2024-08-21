@@ -36,6 +36,8 @@ async function httpVerbTamperingPossibleCheck(endpoint, timeout = 10000) {
                 requestUrl = `${protocol}://${host}${port ? `:${port}` : '/'}${path}`;
             }
 
+		console.log('requestUrl:',requestUrl)
+
             const response = await axios.request({
                 method,
                 url: requestUrl,
