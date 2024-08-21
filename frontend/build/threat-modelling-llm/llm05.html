@@ -1,0 +1,38 @@
+<html>
+
+<body>
+
+   <p> To analyze the cost and impact of a data breach specifically for the OWASP LLM05: Supply Chain Vulnerabilities scenario, we use the STRIDE and DREAD threat modeling models. This scenario focuses on vulnerabilities within an LLM's development life cycle, including potential risks from data sources, model providers, and deployment platforms.</p>
+    
+    <p>Here’s a breakdown of the STRIDE and DREAD analysis:</p>
+
+<h3>STRIDE</h3>
+<ul>
+<li>Spoofing: (Medium) A malicious actor could impersonate a legitimate data source or model provider, potentially injecting tampered data or models.</li>
+<li>Tampering: (High) Attackers could tamper with training data, pre-trained models, or deployment platforms to manipulate outputs or introduce biases. (Critical if it affects safety-critical systems)</li>
+<li>Repudiation: (Low) Less applicable here. Difficulty in proving who created a specific model isn't a major security concern.</li>
+<li>Information Disclosure: (Medium) Sensitive information from training data or models could be leaked unintentionally.</li>
+<li>Denial-of-Service: (Medium) Poisoned data or malicious plugins could disrupt LLM functionality.</li>
+<li>Elevation of Privilege: (Low) Not a major concern for LLMs themselves.</li>
+</ul>
+
+<h3>DREAD</h3>
+<ul>
+<li>Damage Potential: (High) Compromised LLMs can generate biased, misleading, or harmful outputs. (Critical if it affects safety-critical systems)</li>
+<li>Reproducibility: (Medium) A successful attack on one LLM could be replicated to target similar models.</li>
+<li>Exploitability: (Medium) The complexity of exploiting supply chain vulnerabilities can vary depending on the attacker's skill and chosen method.</li>
+<li>Affected Users: (Varies) The impact depends on the LLM's deployment and user base. (Critical if it affects a large number of users or critical infrastructure)</li>
+<li>Discoverability: (Medium) Anomalies in LLM behavior might raise suspicion, but targeted attacks could be difficult to detect.</li>
+</ul>
+
+<h3>Threat Level by Category</h3>
+<ul>
+<li>Critical: Tampering with safety-critical LLMs, high Damage Potential with many Affected Users.</li>
+<li>High: Spoofing, Tampering (general), Information Disclosure (severe cases), high Damage Potential.</li>
+<li>Medium: Denial-of-Service, most Exploitability scenarios, moderate Damage Potential.</li>
+<li>Low: Repudiation, low Discoverability with minimal impact.</li>
+</ul>
+
+</body>
+
+</html>

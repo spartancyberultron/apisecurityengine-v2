@@ -114,7 +114,7 @@ const countVulnerabilitiesBySeverity = (vulnerabilities) => {
 };
 
 async function calculateSeverityDistribution(organization) {
-    console.log('Starting severity distribution calculation...');
+   // console.log('Starting severity distribution calculation...');
 
     // Initialize counters for each severity level
     let criticalCount = 0;
@@ -139,7 +139,7 @@ async function calculateSeverityDistribution(organization) {
                 lowCount++;
                 break;
             default:
-                console.log('Unknown severity level:', severity);
+               // console.log('Unknown severity level:', severity);
                 break;
         }
     }
@@ -254,7 +254,7 @@ async function calculateSeverityDistribution(organization) {
     org1.severityDistribution = severityDistribution;
     await org1.save();
 
-    console.log('Severity distribution saved:', severityDistribution);
+    //console.log('Severity distribution saved:', severityDistribution);
 }
 
 
@@ -1508,13 +1508,13 @@ async function calculateRiskScore(organization) {
     let totalWeight = 0;
     let weightedSum = 0;
 
-    console.log('activeScanVulns:',activeScanVulns)
-    console.log('sbomScanVulns:',sbomScanVulns)
+  //  console.log('activeScanVulns:',activeScanVulns)
+    //console.log('sbomScanVulns:',sbomScanVulns)
 
 
     activeScanVulns.forEach(vuln => {
         const riskScore = vuln.severity;
-        console.log('riskScore:',riskScore)
+       // console.log('riskScore:',riskScore)
         if (riskScore && severityWeights[riskScore.toUpperCase()]) {
             weightedSum += severityWeights[riskScore.toUpperCase()];
             totalWeight += 1;
@@ -1529,12 +1529,12 @@ async function calculateRiskScore(organization) {
         }
     });
 
-    console.log('severityWeights:',severityWeights)
+    //console.log('severityWeights:',severityWeights)
 
-    console.log('totalWeight:',totalWeight)
+  //  console.log('totalWeight:',totalWeight)
 
     const averageRiskScore = totalWeight > 0 ? (weightedSum / totalWeight) : 0;
-    console.log('averageRiskScore:',averageRiskScore)
+    //console.log('averageRiskScore:',averageRiskScore)
 
 
     const riskScorePercentage = Math.round(averageRiskScore * 100);
@@ -1924,7 +1924,7 @@ for (const scan of llmScans) {
             if (contentString.includes(keyword)) {
                 const vulnerabilityInfo = await getLLMVulnerability(keyword);
 
-                console.log('vulnerabilityInfo:',vulnerabilityInfo)
+             //   console.log('vulnerabilityInfo:',vulnerabilityInfo)
                 const vulnerabilityName = vulnerabilityInfo.vulnerability;
                 const impact = vulnerabilityInfo.severity;
 
@@ -1951,13 +1951,13 @@ for (const scan of llmScans) {
     }
 }
 
-console.log('vulnerabilityData:',vulnerabilityData);
+//console.log('vulnerabilityData:',vulnerabilityData);
 
 const topLLMVulnerabilities = vulnerabilityData
     .sort((a, b) => b.count - a.count) // Sort by count in descending order
     .slice(0, 10); // Limit to top 10
 
-    console.log('topLLMVulnerabilities:', topLLMVulnerabilities)
+    //console.log('topLLMVulnerabilities:', topLLMVulnerabilities)
 
     const org1 = await Organization.findById(org._id);
 
@@ -2008,7 +2008,7 @@ async function calculateDashboardCardData(organization) {
     // Step 4: Get the IDs of these APICollections
     const apiCollectionIds = apiCollections.map(collection => collection._id);
 
-    console.log('apiCollectionIds:',apiCollectionIds)
+  //  console.log('apiCollectionIds:',apiCollectionIds)
 
     // Step 5: Find all APICollectionVersions for these APICollections
     const apiCollectionVersions = await APICollectionVersion.find({
@@ -2107,7 +2107,7 @@ async function calculateDashboardCardData(organization) {
   })
   .lean(); // Use lean() to get plain JavaScript objects
 
-    console.log('activeScans:',activeScans)
+  //  console.log('activeScans:',activeScans)
 
     const collectionVersionIds = await APICollectionVersion.find(
         { apiCollection: { $in: apiCollections.map(collection => collection._id) } }
@@ -2117,7 +2117,7 @@ async function calculateDashboardCardData(organization) {
         .then(versions => versions.map(v => v._id));
 
 
-    console.log('collectionVersionIds:',collectionVersionIds)    
+  //  console.log('collectionVersionIds:',collectionVersionIds)    
 
     const endpointsArray = await ApiEndpoint.find({
         theCollectionVersion: { $in: collectionVersionIds }
@@ -2224,7 +2224,7 @@ async function calculateDashboardCardData(organization) {
     //////////////////
 
     // Calculate PII fields count
-    console.log('endpointsArray:',endpointsArray)
+    //console.log('endpointsArray:',endpointsArray)
     const piiFieldsCount = endpointsArray.reduce((count, endpoint) => count + endpoint.piiFields.length, 0);
 
 
@@ -2237,8 +2237,8 @@ async function calculateDashboardCardData(organization) {
         'soapOrGraphQLScan.orgProject': { $in: orgProjectIds }
     });*/
     
-    console.log('soapGraohQLScansCount:',soapGraohQLScansCount)
-    console.log('soapGraphQLVulnsCount:',soapGraphQLVulnsCount)
+    //console.log('soapGraohQLScansCount:',soapGraohQLScansCount)
+    //console.log('soapGraphQLVulnsCount:',soapGraphQLVulnsCount)
 
     dashboardData.collectionsCount = collectionsCount + soapGraohQLScansCount;//collections.length;
     dashboardData.endPointsCount = endpointsCount + soapGraphQLVulnsCount;//endpointsArray.length;
@@ -2253,7 +2253,7 @@ async function calculateDashboardCardData(organization) {
     dashboardData.piiDataFieldsCount = piiFieldsCount;
     dashboardData.falsePositivesCount = 0;
 
-    console.log('dashboardData:',dashboardData)
+    //console.log('dashboardData:',dashboardData)
 
 
     const org1 = await Organization.findById(organization._id);

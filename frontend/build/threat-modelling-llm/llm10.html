@@ -1,0 +1,39 @@
+<html>
+
+<body>
+
+   <p> OWASP LLM10 addresses the risk of Model Theft, where unauthorized access and theft of a Large Language Model (LLM) by malicious actors can lead to significant security issues. This analysis uses the STRIDE and DREAD models to assess the severity of this threat.</p>
+    
+    <h3>STRIDE</h3>
+    <ul>
+        <li><strong>Spoofing:</strong> (Low) An attacker is unlikely to spoof an LLM model itself.</li>
+        <li><strong>Tampering:</strong> (Medium) An attacker might tamper with the model during theft, potentially corrupting its functionality.</li>
+        <li><strong>Repudiation:</strong> (Low) Not a major concern for model theft.</li>
+        <li><strong>Information Disclosure:</strong> (Critical) Exposing the model itself leaks valuable intellectual property and insights.</li>
+        <li><strong>Denial-of-Service:</strong> (Medium) Stealing the model might limit access for legitimate users, though it does not constitute a complete denial of service.</li>
+        <li><strong>Elevation of Privilege:</strong> (Low) Not applicable directly to model theft.</li>
+    </ul>
+
+    <h3>DREAD</h3>
+    <ul>
+        <li><strong>Damage:</strong> (Critical) A stolen model can cause significant financial loss and reputational damage.</li>
+        <li><strong>Reproducibility:</strong> (High) Once stolen, the model's capabilities can be easily replicated by the attacker.</li>
+        <li><strong>Exploitability:</strong> (Medium) Requires some technical knowledge to exploit the stolen model effectively.</li>
+        <li><strong>Affected Users:</strong> (High) Theft can impact all users relying on the LLM model, potentially leading to widespread issues.</li>
+        <li><strong>Discoverability:</strong> (Medium) Model theft might not be immediately discovered, especially if the theft is discreet.</li>
+    </ul>
+
+    <h3>Risk Levels</h3>
+    <p>Based on the STRIDE and DREAD analysis, the risk levels for OWASP LLM10: Model Theft are categorized as follows:</p>
+    <ul>
+        <li><strong>Critical:</strong> Information Disclosure (STRIDE), Damage (DREAD)</li>
+        <li><strong>High:</strong> Reproducibility (DREAD), Affected Users (DREAD)</li>
+        <li><strong>Medium:</strong> Tampering (STRIDE), Denial-of-Service (STRIDE), Exploitability (DREAD), Discoverability (DREAD)</li>
+        <li><strong>Low:</strong> Spoofing (STRIDE), Repudiation (STRIDE), Elevation of Privilege (STRIDE)</li>
+    </ul>
+
+    <p>Model Theft presents a high-risk vulnerability due to its potential for significant damage and impact on users. Implementing robust security measures and access controls is essential to mitigate this risk.</p>
+
+</body>
+
+</html>

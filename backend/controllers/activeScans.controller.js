@@ -104,7 +104,7 @@ module.exports.getAllActiveScans = asyncHandler(async (req, res) => {
     const user = await User.findById(req.user._id);
     const organization = await Organization.findById(user.organization);
     
-calculateDashboard(organization)
+//calculateDashboard(organization)
 
     const pageNumber = parseInt(req.query.pageNumber) || 1; // Get the pageNumber from the query parameters (default to 1 if not provided)
     const pageSize = 10; // Number of active scans per page
