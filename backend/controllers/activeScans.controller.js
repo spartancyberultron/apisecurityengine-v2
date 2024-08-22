@@ -167,7 +167,7 @@ module.exports.getAllActiveScans = asyncHandler(async (req, res) => {
         }
       ]).then(result => result[0]?.totalCount || 0);
 
-      
+console.log('break1');      
       const activeScans = await ActiveScan.find()
       .populate({
           path: 'theCollectionVersion',
@@ -187,6 +187,7 @@ module.exports.getAllActiveScans = asyncHandler(async (req, res) => {
       .exec();
 
    
+console.log('break2');
 
     // Return the active scans, currentPage, totalRecords, and totalPages in the response
     res.status(200).json({
@@ -284,19 +285,28 @@ module.exports.getActiveScanDetails = asyncHandler(async (req, res) => {
         })
        
         .lean();
-
+console.log('break1');
         
 
     const vulnerabilities = await ActiveScanVulnerability.find({ activeScan: scanId }).populate('vulnerability endpoint')
     .skip(skip)
     .limit(limit).lean();
 
+	console.log('break2');
+
+
     const totalCount = await ActiveScanVulnerability.countDocuments({ activeScan: scanId })
 
     activeScan.vulnerabilities = vulnerabilities;
 
+	console.log('break3');
+
+
     const endpointsCount = await ApiEndpoint.count({ theCollection: activeScan.theCollection })
     activeScan.endpointsCount = endpointsCount;
+
+	console.log('break4');
+
 
     // Return the scans
     res.status(200);

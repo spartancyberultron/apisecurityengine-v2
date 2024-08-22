@@ -49,8 +49,14 @@ app.use(express.json());
 
 app.use(limiter)
 
-app.use(cors());
-app.options('*', cors());
+app.use(cors({
+  origin: 'https://appnew.apisecurityengine.com',
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization']
+}));
+
+//app.use(cors());
+//app.options('*', cors());
 
 app.get('/', (req, res) => {
 	res.send('Server is running....');
