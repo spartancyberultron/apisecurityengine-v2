@@ -26,8 +26,9 @@ import { CiEdit } from "react-icons/ci";
 
 
 import Chart from 'react-apexcharts'
+import ThreatModelling from "./threatModelling";
 
-const ThreatModellingScanDetail = () => {
+const ThreatModellingScnDetail = () => {
 
   const location = useLocation();
 
@@ -38,17 +39,16 @@ const ThreatModellingScanDetail = () => {
   const [activeScan, setActiveScan] = useState(null)
   const [onLoading, setOnLoading] = useState(true);
   const [modalIsOpen, setModalIsOpen] = React.useState(false);
-  const [currentVulnerability, setCurrentVulnerability] = React.useState(null);
-
   const [findingsModalIsOpen, setFindingsModalIsOpen] = React.useState(false);
-
-  const [threatModellingModalIsOpen, setThreatModellingModalIsOpen] = React.useState(false);
-  const [costOfBreachModalIsOpen, setCostOfBreachModalIsOpen] = React.useState(false);
+  const [currentVulnerability, setCurrentVulnerability] = React.useState(null);
   
   const [currentVulnForRiskAcceptance, setCurrentVulnForRiskAcceptance] = React.useState(null);
-
+  const [threatModellingModalIsOpen, setThreatModellingModalIsOpen] = React.useState(false);
   const [exportingPDF, setExportingPDF] = useState(false);
   const [reasonEmptyError, setReasonEmptyError] = useState(false);
+
+  const [findings, setFindings] = useState([]);
+  const [sslFindings, setSSLFindings] = useState([]);
 
   const [submittingReason, setSubmittingReason] = useState(false);
 
@@ -56,8 +56,11 @@ const ThreatModellingScanDetail = () => {
   const [riskAcceptance, setRiskAcceptance] = useState("No");
   const [reason, setReason] = useState('');
 
-  const [findings, setFindings] = useState([]);
-  const [sslFindings, setSSLFindings] = useState([]);
+  const [costOfBreachModalIsOpen, setCostOfBreachModalIsOpen] = React.useState(false);
+
+  const [page, setPage] = useState(0);
+  const [count, setCount] = useState(0);
+  const [rowsPerPage, setRowsPerPage] = useState(10);
 
   const toaster = useRef()
   const exampleToast = (
@@ -86,29 +89,18 @@ const ThreatModellingScanDetail = () => {
     setAcceptanceModalIsOpen(true);
   };
 
-  const handleModalClose = () => {
-    //setShowModal(false);
+  const openThreatModellingModal = async (value) => {
+
+    setCurrentVulnerability(value);
+
+    setThreatModellingModalIsOpen(true);
   };
 
-  const handleDropdownChange = (event) => {
+ 
 
-    console.log('event.target.value:',event.target.value)
-    setRiskAcceptance(event.target.value);
-  };
+  const closeThreatModellingModal = async () => {
 
-  const openFindingsModal = async (value, currentVuln) => {
-
-   
-
-    setFindings(value);
-
-    if(currentVuln.vulnerability.vulnerabilityCode == 4){
-        setSSLFindings(currentVuln.sslFindings);
-    }
-
-    setCurrentVulnerability(currentVuln)
-
-    setFindingsModalIsOpen(true);
+    setThreatModellingModalIsOpen(false);
   };
 
   function convertHeaderString(headerString) {
@@ -130,7 +122,6 @@ const ThreatModellingScanDetail = () => {
 
     return `<strong>${properHeaderName}</strong>:${description.trim()}`;
 }
-
 
 function getHeaderDescAndExploitability(headerString) {
 
@@ -212,15 +203,14 @@ function getHeaderDescAndExploitability(headerString) {
 }
 
 
-
-  console.log('findings:',findings)
-
-  const closeFindingsModal = async () => {
-
-    setFindingsModalIsOpen(false);
+  const handleModalClose = () => {
+    //setShowModal(false);
   };
 
+  const handleDropdownChange = (event) => {
 
+    setRiskAcceptance(event.target.value);
+  };
 
   const customStyles1 = {
   overlay: {
@@ -238,9 +228,41 @@ function getHeaderDescAndExploitability(headerString) {
     maxWidth: '1000px',
     width: '90%',
     maxHeight: '80%',
-    height:'80%',
     overflowY: 'auto'
   }
+};
+
+const customStyles2 = {
+  content: {
+    top: '50%',
+    left: '50%',
+    transform: 'translate(-50%, -50%)', // Center the modal
+    width: 'auto', // Width adjusts to content
+    height: '70%', // Height adjusts to content
+    maxWidth: '90%', // Optional: Limit width to 90% of the viewport
+    maxHeight: '90%', // Optional: Limit height to 90% of the viewport
+    backgroundColor: '#c2eef4',
+    borderRadius: 15,
+    borderColor: 'yellow',
+    zIndex: 10000,
+    overflow: 'auto', // Ensure content scrolls if it overflows
+  },
+};
+
+
+const openCostOfBreachModal = async (value) => {
+
+
+  setCurrentVulnerability(value);
+
+  setCostOfBreachModalIsOpen(true);
+};
+
+
+
+const closeCostOfBreachModal = async () => {
+
+  setCostOfBreachModalIsOpen(false);
 };
 
 
@@ -251,7 +273,7 @@ function getHeaderDescAndExploitability(headerString) {
 
     }else{
 
-      setSubmittingReason(true);     
+      setSubmittingReason(true);    
 
       const data = {
         activeScanVulnId: currentVulnForRiskAcceptance._id,
@@ -312,25 +334,6 @@ function getHeaderDescAndExploitability(headerString) {
     },
   };
 
-  const customStyles2 = {
-    content: {
-      top: '50%',
-      left: '50%',
-      transform: 'translate(-50%, -50%)', // Center the modal
-      width: 'auto', // Width adjusts to content
-      height: 'auto', // Height adjusts to content
-      maxWidth: '90%', // Optional: Limit width to 90% of the viewport
-      maxHeight: '90%', // Optional: Limit height to 90% of the viewport
-      backgroundColor: '#c2eef4',
-      borderRadius: 15,
-      borderColor: 'yellow',
-      zIndex: 10000,
-      overflow: 'auto', // Ensure content scrolls if it overflows
-    },
-  };
-
-
-
   const override: CSSProperties = {
     display: "block",
     margin: "0 auto",
@@ -352,7 +355,7 @@ function getHeaderDescAndExploitability(headerString) {
 
     setScanId(theScanId);
 
-    loadScanDetails(theScanId);
+    loadScanDetails(theScanId, 0, rowsPerPage);
 
   }, []);
 
@@ -361,21 +364,23 @@ function getHeaderDescAndExploitability(headerString) {
   }, [onLoading]);
 
 
-  const loadScanDetails = async (theScanId) => {
+  const loadScanDetails = async (theScanId, page, rowsPerPage) => {
+
+    setOnLoading(true);
 
     const data = {
       scanId: theScanId,
     };
 
     const token = localStorage.getItem('ASIToken');
-    const response = await axios.post('api/v1/activeScans/getActiveScanDetails', data, {
+    const response = await axios.post(`api/v1/activeScans/getActiveScanDetails/${page}/${rowsPerPage}`, data, {
       headers: { Authorization: `Bearer ${token}` },
     });
 
     setActiveScan(response.data.activeScan);
+    setCount(response.data.totalCount);   
 
     setOnLoading(false);
-
   };
 
 
@@ -385,7 +390,6 @@ function getHeaderDescAndExploitability(headerString) {
 
     const urlToOpen = global.reportAPIURL + scanId + '/' + activeScan.user._id;
     window.open(urlToOpen, '_blank');
-
   }
 
 
@@ -396,41 +400,35 @@ function getHeaderDescAndExploitability(headerString) {
     setModalIsOpen(true);
   };
 
+  const openFindingsModal = async (value, currentVuln) => {
+
+   
+
+    setFindings(value);
+
+    if(currentVuln.vulnerability.vulnerabilityCode == 4){
+        setSSLFindings(currentVuln.sslFindings);
+    }
+
+    setCurrentVulnerability(currentVuln)
+
+    setFindingsModalIsOpen(true);
+  };
+
+  console.log('findings:',findings)
+
+  const closeFindingsModal = async () => {
+
+    setFindingsModalIsOpen(false);
+  };
+
   const closeModal = async () => {
 
     setModalIsOpen(false);
   };
 
-
-  
-
-  const openThreatModellingModal = async (value) => {
-
-    setCurrentVulnerability(value);
-
-    setThreatModellingModalIsOpen(true);
-  };
-
-  const openCostOfBreachModal = async (value) => {
-
-    setCurrentVulnerability(value);
-
-    setCostOfBreachModalIsOpen(true);
-  };
-
-  const closeThreatModellingModal = async () => {
-
-    setThreatModellingModalIsOpen(false);
-  };
-
-  const closeCostOfBreachModal = async () => {
-
-    setCostOfBreachModalIsOpen(false);
-  };
-
   const closeAcceptanceModal = async () => {
 
-    console.log('comes')
     setAcceptanceModalIsOpen(false);
 
   };
@@ -655,13 +653,14 @@ value.vulnerability.vulnerabilityCode == 6) &&
 
               <CButton color="primary" variant="outline"
                 onClick={() => openRemediationModal(value)}
-                className="primaryButton" style={{ fontSize: 13, color: 'white',width:200 }}>View Remediations
+                className="primaryButton" style={{ fontSize: 13, color: 'white', width:200 }}>View Remediations
               </CButton>
+
             </div>
           )
         }
       }
-    }, 
+    },
     {
       label: "Cost of Breach",
       options: {
@@ -674,6 +673,7 @@ value.vulnerability.vulnerabilityCode == 6) &&
               alignItems: "center",
               flexDirection:'column'
             }} >
+
              
 
               <CButton color="primary" variant="outline"
@@ -686,7 +686,7 @@ value.vulnerability.vulnerabilityCode == 6) &&
           )
         }
       }
-    },     
+    },   
     {
       label: "Threat Modelling",
       options: {
@@ -709,8 +709,77 @@ value.vulnerability.vulnerabilityCode == 6) &&
           )
         }
       }
-    },   
-
+    },     
+    {
+      label: "Risk Acceptance",
+      options: {
+        filter: true,
+        filterType: 'dropdown', // Adjust based on your filter type
+        filterList: [],
+        customBodyRender: (value, tableMeta, updateValue) => {
+          return (
+            <div style={{
+              display: "flex",
+              alignItems: "center",
+              flexDirection: 'column',
+            }}>
+              {value.riskAcceptance && value.riskAcceptance === 'Yes' ?
+                <span style={{
+                  backgroundColor: '#28c76f', color: '#fff', padding: 5,
+                  width: 120,
+                  textAlign: 'center',
+                  borderRadius: 10,
+                  fontSize: 12,
+                  fontWeight: 'normal',
+                  marginRight: 5,
+                  margin: 5
+                }} onClick={() => handleModalOpen(value)}>Yes &nbsp;&nbsp;&nbsp;<CiEdit size={20} /></span>
+                :
+                <span style={{
+                  backgroundColor: '#ea5455', color: '#fff', padding: 5,
+                  width: 120,
+                  textAlign: 'center',
+                  borderRadius: 10,
+                  fontSize: 12,
+                  fontWeight: 'normal',
+                  marginRight: 5,
+                  margin: 5
+                }} onClick={() => handleModalOpen(value)}>No &nbsp;&nbsp;&nbsp;<CiEdit size={20} /></span>
+              }
+            </div>
+          )
+        },
+        filterOptions: {
+          names: ['Yes', 'No'],
+          logic: (value, filterVal) => {
+            return filterVal.length > 0 ? filterVal.includes(value.riskAcceptance) : true;
+          },
+          display: (filterList, onChange, index, column) => (
+            <div>
+              <select
+                onChange={(event) => onChange(event.target.value)}
+                value={filterList[index] || 'All'}
+              >
+                <option value='All'>All</option>
+                <option value='Yes'>Yes</option>
+                <option value='No'>No</option>
+              </select>
+            </div>
+          ),
+        },
+      }
+    },
+    {
+      label: "RiskAcceptanceHiddenColumn",
+      options: {
+        filter: false,
+        display:false,
+        filterType: 'dropdown', // Adjust based on your filter type
+        filterList: [],
+        
+        
+      }
+    }
   ];
 
   const getMuiTheme = () => createTheme({
@@ -724,7 +793,7 @@ value.vulnerability.vulnerabilityCode == 6) &&
             },
           }
         }
-      },
+      },  
       MUIDataTableHeadCell: {
         styleOverrides: {
           root: {
@@ -750,12 +819,34 @@ value.vulnerability.vulnerabilityCode == 6) &&
     search: true,
     searchOpen: false,
     viewColumns: true,
+    pagination:true,
     selectableRows: false, // <===== will turn off checkboxes in rows
     rowsPerPage: 20,
     rowsPerPageOptions: [],
     textLabels: {
       body: {
         noMatch: 'No vulnerabilities found',
+      }
+    },
+    setRowProps: (row, dataIndex, rowIndex) => {
+
+      console.log('row', row)
+      return {
+        style: {
+          backgroundColor: row[13] === 'Yes' ? "#FFCCCC" : "#ffffff" // Alternate row colors
+        }
+      };
+    },
+    serverSide: true,
+    count: count,
+    page: page,
+    rowsPerPage: rowsPerPage,
+    onTableChange: (action, tableState) => {
+      if (action === 'changePage' || action === 'changeRowsPerPage') {
+        const { page, rowsPerPage } = tableState;
+        setPage(page);
+        setRowsPerPage(rowsPerPage);
+        loadScanDetails(scanId, page, rowsPerPage);
       }
     }
   };
@@ -769,7 +860,7 @@ value.vulnerability.vulnerabilityCode == 6) &&
 
       var dataItem = [];
 
-      dataItem.push(i + 1);
+      dataItem.push(((page) * 10) + (i+1));
       dataItem.push(activeScan.vulnerabilities[i].vulnerability.vulnerabilityName);
 
       var endpointObject = activeScan.vulnerabilities[i].endpoint;
@@ -811,19 +902,23 @@ value.vulnerability.vulnerabilityCode == 6) &&
 
 
       dataItem.push(activeScan.vulnerabilities[i].description);
+
       dataItem.push(activeScan.vulnerabilities[i]);
 
-      dataItem.push(activeScan.vulnerabilities[i].vulnerability.riskScore);
+      dataItem.push(activeScan.vulnerabilities[i].severity);
 
       dataItem.push(activeScan.vulnerabilities[i].vulnerability.owasp);
-      dataItem.push(activeScan.vulnerabilities[i].vulnerability.cwe);
+      
+      dataItem.push((activeScan.vulnerabilities[i].vulnerability.cwe).concat(activeScan.vulnerabilities[i].additionalCWEs));
 
-      dataItem.push(activeScan.vulnerabilities[i]); // For remediation
+      dataItem.push(activeScan.vulnerabilities[i]);
 
+      dataItem.push(activeScan.vulnerabilities[i]); 
+      dataItem.push(activeScan.vulnerabilities[i]); 
 
-      dataItem.push(activeScan.vulnerabilities[i]); // For cost of breach
-      dataItem.push(activeScan.vulnerabilities[i]); // For threat modelling
+      dataItem.push(activeScan.vulnerabilities[i]); // For risk acceptance
 
+      dataItem.push(activeScan.vulnerabilities[i].riskAcceptance?activeScan.vulnerabilities[i].riskAcceptance:'No'); // For risk acceptance
 
       tableData.push(dataItem);
     }
@@ -1113,75 +1208,48 @@ value.vulnerability.vulnerabilityCode == 6) &&
 
   const vulnDistroChartSeries = dataArray;
 
+
   var totalPIIs = [];
 
-  
 
   if (activeScan) {
 
     for (var i = 0; i < activeScan.vulnerabilities.length; i++) {
 
-      if (activeScan.vulnerabilities[i].vulnerability.vulnerabilityCode == 6) {
+      if (activeScan.vulnerabilities[i].vulnerability.vulnerabilityCode == 2||
+        activeScan.vulnerabilities[i].vulnerability.vulnerabilityCode == 5 ||
+        activeScan.vulnerabilities[i].vulnerability.vulnerabilityCode == 6 ||
+        activeScan.vulnerabilities[i].vulnerability.vulnerabilityCode == 7) {
 
-       // var endpoint = activeScan.vulnerabilities[i].endpoint;
-      //  var piiFields = endpoint.piiFields;
-
+        
         var piiFields = activeScan.vulnerabilities[i].findings;
 
         totalPIIs = totalPIIs.concat(piiFields);
-       
       }
     }
   }
 
 
-  //var piiLabelsArray = [];
-  //var piiDataArray = [];
-  //var piiBgColorsArray = [];
 
-  const pieColors1 = [
-    '#FF5733', '#33A02C', '#1F77B4', '#FF8C00', '#32CD32',
-    '#6495ED', '#FF4500', '#228B22', '#4169E1', '#FF6347',
-    '#7CFC00', '#8A2BE2', '#FFD700', '#00FFFF', '#FF1493',
-    '#ADFF2F', '#A0522D', '#20B2AA', '#FF69B4', '#F4A460',
-    '#9400D3', '#00CED1', '#E9967A', '#2E8B57', '#8B008B',
-    '#00FA9A', '#8B0000', '#9932CC', '#2F4F4F', '#FFD700',
-    '#40E0D0', '#7B68EE', '#32CD32', '#FF4500', '#D8BFD8'
-  ];
-  
   const piiCounts = {};
 
-  // Count each unique PII string
-  totalPIIs.forEach(pii => {
-      if (piiCounts[pii] !== undefined) {
-          piiCounts[pii]++;
-      } else {
-          piiCounts[pii] = 1;
-      }
-  });
-  
-  // Extract labels and counts into separate arrays
-  const piiLabelsArray = Object.keys(piiCounts);
-  const piiDataArray = Object.values(piiCounts);
+// Count each unique PII string
+totalPIIs.forEach(pii => {
+    if (piiCounts[pii] !== undefined) {
+        piiCounts[pii]++;
+    } else {
+        piiCounts[pii] = 1;
+    }
+});
 
-
-
-  var data2 = {
-    labels: piiLabelsArray,
-    datasets: [
-      {
-        label: 'Sensitive Data',
-        data: piiDataArray,
-      //  backgroundColor: piiBgColorsArray,
-        borderWidth: 1,
-      },
-    ],
-  };
+// Extract labels and counts into separate arrays
+const piiLabelsArray = Object.keys(piiCounts);
+const piiDataArray = Object.values(piiCounts);
 
 
   const piichartOptions = {
     labels: piiLabelsArray,
-   // colors: piiBgColorsArray,
+    //colors: piiBgColorsArray,
     legend: {
       position: 'bottom',
       verticalAlign: 'middle',
@@ -1189,9 +1257,7 @@ value.vulnerability.vulnerabilityCode == 6) &&
 
   };
 
-  const piiChartSeries = piiDataArray;
-
-
+  const piiChartSeries = piiDataArray; 
 
 
   return (
@@ -1239,11 +1305,12 @@ value.vulnerability.vulnerabilityCode == 6) &&
                   </td>
                   <td style={{ padding: 10, borderWidth: 1, borderColor: '#fff' }}>
 
-                  {(activeScan.theCollectionVersion && activeScan.theCollectionVersion.apiCollection.collectionName) ? 
+                    {(activeScan.theCollectionVersion && activeScan.theCollectionVersion.apiCollection.collectionName) ? 
                     activeScan.theCollectionVersion.apiCollection.collectionName : '<Name not found>'}
 
                   </td>
                 </tr>
+
 
                 <tr>
 
@@ -1252,7 +1319,7 @@ value.vulnerability.vulnerabilityCode == 6) &&
                   </td>
                   <td style={{ padding: 10, borderWidth: 1, borderColor: '#fff' }}>
 
-                    {activeScan.endpointsCount}
+                    {activeScan.endpointsScanned}
 
                   </td>
                 </tr>
@@ -1288,13 +1355,39 @@ value.vulnerability.vulnerabilityCode == 6) &&
                   </td>
                 </tr>
 
-
-
                 <tr>
 
                   <td style={{ padding: 10, borderWidth: 0, borderColor: '#000', width: 400, background: '#fff' }}>
 
-                    <span style={{ fontWeight: 'bold', }}>Scan Completed At</span>
+                    <span style={{ fontWeight: 'bold', }}>Scan Status</span>
+                  </td>
+                  <td style={{ padding: 10, borderWidth: 1, borderColor: '#fff', width: 400 }}>
+
+              
+
+        {activeScan.status == 'completed' &&
+                     <span style={{backgroundColor:'#28C76F', color:'#fff', padding:10, }}>{activeScan.status.toUpperCase()}</span>
+        }
+
+       
+
+      {activeScan.status == 'in progress' &&
+                     <span style={{backgroundColor:'#FFC300', color:'#black', padding:10}}>{activeScan.status.toUpperCase()}</span>
+        }
+
+                             
+
+
+                  </td>
+                </tr>
+              
+
+              {activeScan.status == 'completed' &&
+                <tr>
+
+                  <td style={{ padding: 10, borderWidth: 0, borderColor: '#000', width: 400, background: '#fff' }}>
+
+                    <span style={{ fontWeight: 'bold',  }}>Scan Completed At</span>
                   </td>
                   <td style={{ padding: 10, borderWidth: 1, borderColor: '#fff', width: 400 }}>
 
@@ -1302,6 +1395,7 @@ value.vulnerability.vulnerabilityCode == 6) &&
 
                   </td>
                 </tr>
+              }
 
               </table>
 
@@ -1429,7 +1523,7 @@ value.vulnerability.vulnerabilityCode == 6) &&
 
 
 
-        {onLoading == true ?
+        {onLoading == true && page==0 ?
 
           <div style={{ display: 'flex', flexDirection: 'row', justifyContent: 'space-around', marginTop: 50 }}>
 
@@ -1606,102 +1700,52 @@ value.vulnerability.vulnerabilityCode == 6) &&
 
         </Modal>
 
-
-
         <Modal
-          isOpen={threatModellingModalIsOpen}
-          onRequestClose={closeThreatModellingModal}
-          style={customStyles2}
-          contentLabel="Threat Modelling"
-        >
+          isOpen={acceptanceModalIsOpen}
+          onRequestClose={closeAcceptanceModal}
+          style={customStyles1}
+          contentLabel="Risk Acceptance"
+          ariaHideApp={false}
+    >
+      <button style={{ float: 'right', backgroundColor: 'transparent', borderWidth: 0 }} onClick={closeAcceptanceModal}>
+        <AiFillCloseCircle size={30} color={'#000'} />
+      </button>
 
-          <button style={{ float: 'right', backgroundColor: 'transparent', borderWidth: 0 }} onClick={closeThreatModellingModal} >
-            <AiFillCloseCircle size={30} color={'#000'} />
-          </button>
+      {currentVulnForRiskAcceptance && (
+        <div className="modalWindow" style={{ backgroundColor: '#fff', padding:10 }}>
+          <h5 style={{ color: '#000' }}>{currentVulnForRiskAcceptance.vulnerability.vulnerabilityName}</h5>
+          <hr/>
+          <span style={{ color: '#000' }}><strong>Endpoint</strong> : {currentVulnForRiskAcceptance.endpoint.url}</span>
+          <div style={{ marginTop: 20 }}>
+            <label>Risk Accepted?</label><br/>
+            <select onChange={handleDropdownChange} style={{ padding:5, width:'100%'}} value={riskAcceptance}>              
+                <option value="No">No</option>
+                <option value="Yes">Yes</option>
+            </select>
+            <textarea
+              value={reason}
+              onChange={(e) => setReason(e.target.value)}
+              placeholder="Please enter a reason"
+              style={{ width: '100%', marginTop: '10px', padding:5 }}
+            />
 
-          {currentVulnerability && currentVulnerability.vulnerability &&
+{reasonEmptyError &&
+            <span style={{color:'red', fontSize:12, display:'flex'}}>Please enter a reason</span>
+}
 
-            <div className="modalWindow" style={{ backgroundColor: '#c2eef4', height:'100%' }}>
-
-            <h4>Threat Modelling for <strong>{currentVulnerability.vulnerability.owasp[0]}</strong></h4>
-
-
-        {currentVulnerability.vulnerability.owasp.includes('API1:2023 Broken Object Level Authorization') &&
-            <object type="text/html" data={global.baseUrl + "/threat-modelling-html/brokenObjectLevelAuthorization.html"} width="100%" height="100%"
-              style={{ alignSelf: 'center', borderWidth: 0, marginLeft:'0vw' }}>
-            </object>     
-        }   
-
-        {currentVulnerability.vulnerability.owasp.includes('API2:2023 Broken Authentication') &&
-            <object type="text/html" data={global.baseUrl + "/threat-modelling-html/brokenAuthentication.html"} width="100%" height="100%"
-              style={{ alignSelf: 'center', borderWidth: 0, marginLeft:'0vw' }}>
-            </object>     
-        }   
-
-
-        {currentVulnerability.vulnerability.owasp.includes('API3:2023 Broken Object Property Level Authorization') &&
-            <object type="text/html" data={global.baseUrl + "/threat-modelling-html/brokenObjectPropertyLevelAuthorization.html"} width="100%" height="100%"
-              style={{ alignSelf: 'center', borderWidth: 0, marginLeft:'0vw' }}>
-            </object>     
-        }   
-
-
-        {currentVulnerability.vulnerability.owasp.includes('API4:2023 Unrestricted Resource Consumption') &&
-            <object type="text/html" data={global.baseUrl + "/threat-modelling-html/unrestrictedResourceConsumption.html"} width="100%" height="100%"
-              style={{ alignSelf: 'center', borderWidth: 0, marginLeft:'0vw' }}>
-            </object>     
-        }   
-
-
-        {currentVulnerability.vulnerability.owasp.includes('API5:2023 Broken Function Level Authorization') &&
-            <object type="text/html" data={global.baseUrl + "/threat-modelling-html/brokenFunctionLevelAuthorization.html"} width="100%" height="100%"
-              style={{ alignSelf: 'center', borderWidth: 0, marginLeft:'0vw' }}>
-            </object>     
-        }   
-
-
-        {currentVulnerability.vulnerability.owasp[0] == 'API6:2023 Unrestricted Access to Sensitive Business Flows' &&
-            <object type="text/html" data={global.baseUrl + "/threat-modelling-html/unrestrictedAccessToSensitiveBusinessFlows.html"} width="100%" height="100%"
-              style={{ alignSelf: 'center', borderWidth: 0, marginLeft:'0vw' }}>
-            </object>     
-        }   
-
-
-        {currentVulnerability.vulnerability.owasp.includes('API7:2023 Server Side Request Forgery') &&
-            <object type="text/html" data={global.baseUrl + "/threat-modelling-html/serverSideRequestForgery.html"} width="100%" height="100%"
-              style={{ alignSelf: 'center', borderWidth: 0, marginLeft:'0vw' }}>
-            </object>     
-        }   
-
-
-        {currentVulnerability.vulnerability.owasp.includes('API8:2023 Security Misconfiguration') &&
-            <object type="text/html" data={global.baseUrl + "/threat-modelling-html/securityMisconfiguration.html"} width="100%" height="100%"
-              style={{ alignSelf: 'center', borderWidth: 0, marginLeft:'0vw' }}>
-            </object>     
-        }   
-
-
-        {currentVulnerability.vulnerability.owasp.includes('API9:2023 Improper Inventory Management') &&
-            <object type="text/html" data={global.baseUrl + "/threat-modelling-html/improperInventoryManagement.html"} width="100%" height="100%"
-              style={{ alignSelf: 'center', borderWidth: 0, marginLeft:'0vw' }}>
-            </object>     
-        }   
-
-        {currentVulnerability.vulnerability.owasp.includes('API10:2023 Unsafe Consumption of APIs') &&
-            <object type="text/html" data={global.baseUrl + "/threat-modelling-html/unsafeConsumptionOfAPIs.html"} width="100%" height="100%"
-              style={{ alignSelf: 'center', borderWidth: 0, marginLeft:'0vw' }}>
-            </object>     
-        }                
-
-            </div>
-          }
-
-
-        </Modal>        
+            <button className="primaryButton" disabled={submittingReason}
+                    onClick={handleAcceptanceSave} 
+                    style={{borderRadius:5, marginTop:10}}>
+                      Save Risk Acceptance
+            </button>
+          </div>
+        </div>
+      )}
+    </Modal>
 
 
 
-        <Modal
+    <Modal
           isOpen={costOfBreachModalIsOpen}
           onRequestClose={closeCostOfBreachModal}
           style={customStyles2}
@@ -1790,7 +1834,8 @@ value.vulnerability.vulnerabilityCode == 6) &&
           }
 
 
-        </Modal>      
+        </Modal>        
+
 
 
         <Modal
@@ -1811,43 +1856,42 @@ value.vulnerability.vulnerabilityCode == 6) &&
            <h4>Missing Headers</h4>
            <hr/>
          
-           
-           {findings && findings.map((item, index) => (
+            {findings && findings.map((item, index) => (
 
-<div style={{backgroundColor:'#fff', marginBottom:20, padding:10}}>
-  <span 
-      key={index} 
-      dangerouslySetInnerHTML={{ __html: convertHeaderString(item) }}
-      style={{
-          padding: 0,
-          width: '100%',
-          textAlign: 'left',
-          borderRadius: 10,
-          fontSize: 17,
-          fontWeight: 'normal',
-          marginRight: 5,
-          color: '#000',
-          backgroundColor: 'transparent',
-          margin: 0
-      }}
-  />
+              <div style={{backgroundColor:'#fff', marginBottom:20, padding:10}}>
+                <span 
+                    key={index} 
+                    dangerouslySetInnerHTML={{ __html: convertHeaderString(item) }}
+                    style={{
+                        padding: 0,
+                        width: '100%',
+                        textAlign: 'left',
+                        borderRadius: 10,
+                        fontSize: 17,
+                        fontWeight: 'normal',
+                        marginRight: 5,
+                        color: '#000',
+                        backgroundColor: 'transparent',
+                        margin: 0
+                    }}
+                />
 
 {(getHeaderDescAndExploitability(item)).description !== '' &&
 <>
-<span>
-<br/>
-      <strong>Description:</strong>{(getHeaderDescAndExploitability(item)).description}
-    </span> <br/>
-    <span>
-    <strong>Exploitability:</strong>{(getHeaderDescAndExploitability(item)).exploitability}
-    </span>
+            <span>
+            <br/>
+                    <strong>Description:</strong>{(getHeaderDescAndExploitability(item)).description}
+                  </span> <br/>
+                  <span>
+                  <strong>Exploitability:</strong>{(getHeaderDescAndExploitability(item)).exploitability}
+                  </span>
 
-    </>
+                  </>
 }
 
-    </div>
+                  </div>
 
-))}
+            ))}
         </div>      
         }
 
@@ -1964,7 +2008,99 @@ value.vulnerability.vulnerabilityCode == 6) &&
           
 
 
-        </Modal>            
+        </Modal>   
+
+        <Modal
+          isOpen={threatModellingModalIsOpen}
+          onRequestClose={closeThreatModellingModal}
+          style={customStyles2}
+          contentLabel="Threat Modelling"
+        >
+
+          <button style={{ float: 'right', backgroundColor: 'transparent', borderWidth: 0 }} onClick={closeThreatModellingModal} >
+            <AiFillCloseCircle size={30} color={'#000'} />
+          </button>
+
+          {currentVulnerability && currentVulnerability.vulnerability &&
+
+            <div className="modalWindow" style={{ backgroundColor: '#c2eef4', height:'100%' }}>
+
+            <h4>Threat Modelling for <strong>{currentVulnerability.vulnerability.owasp[0]}</strong></h4>
+
+
+        {currentVulnerability.vulnerability.owasp.includes('API1:2023 Broken Object Level Authorization') &&
+            <object type="text/html" data={global.baseUrl + "/threat-modelling-html/brokenObjectLevelAuthorization.html"} width="100%" height="100%"
+              style={{ alignSelf: 'center', borderWidth: 0, marginLeft:'0vw' }}>
+            </object>     
+        }   
+
+        {currentVulnerability.vulnerability.owasp.includes('API2:2023 Broken Authentication') &&
+            <object type="text/html" data={global.baseUrl + "/threat-modelling-html/brokenAuthentication.html"} width="100%" height="100%"
+              style={{ alignSelf: 'center', borderWidth: 0, marginLeft:'0vw' }}>
+            </object>     
+        }   
+
+
+        {currentVulnerability.vulnerability.owasp.includes('API3:2023 Broken Object Property Level Authorization') &&
+            <object type="text/html" data={global.baseUrl + "/threat-modelling-html/brokenObjectPropertyLevelAuthorization.html"} width="100%" height="100%"
+              style={{ alignSelf: 'center', borderWidth: 0, marginLeft:'0vw' }}>
+            </object>     
+        }   
+
+
+        {currentVulnerability.vulnerability.owasp.includes('API4:2023 Unrestricted Resource Consumption') &&
+            <object type="text/html" data={global.baseUrl + "/threat-modelling-html/unrestrictedResourceConsumption.html"} width="100%" height="100%"
+              style={{ alignSelf: 'center', borderWidth: 0, marginLeft:'0vw' }}>
+            </object>     
+        }   
+
+
+        {currentVulnerability.vulnerability.owasp.includes('API5:2023 Broken Function Level Authorization') &&
+            <object type="text/html" data={global.baseUrl + "/threat-modelling-html/brokenFunctionLevelAuthorization.html"} width="100%" height="100%"
+              style={{ alignSelf: 'center', borderWidth: 0, marginLeft:'0vw' }}>
+            </object>     
+        }   
+
+
+        {currentVulnerability.vulnerability.owasp[0] == 'API6:2023 Unrestricted Access to Sensitive Business Flows' &&
+            <object type="text/html" data={global.baseUrl + "/threat-modelling-html/unrestrictedAccessToSensitiveBusinessFlows.html"} width="100%" height="100%"
+              style={{ alignSelf: 'center', borderWidth: 0, marginLeft:'0vw' }}>
+            </object>     
+        }   
+
+
+        {currentVulnerability.vulnerability.owasp.includes('API7:2023 Server Side Request Forgery') &&
+            <object type="text/html" data={global.baseUrl + "/threat-modelling-html/serverSideRequestForgery.html"} width="100%" height="100%"
+              style={{ alignSelf: 'center', borderWidth: 0, marginLeft:'0vw' }}>
+            </object>     
+        }   
+
+
+        {currentVulnerability.vulnerability.owasp.includes('API8:2023 Security Misconfiguration') &&
+            <object type="text/html" data={global.baseUrl + "/threat-modelling-html/securityMisconfiguration.html"} width="100%" height="100%"
+              style={{ alignSelf: 'center', borderWidth: 0, marginLeft:'0vw' }}>
+            </object>     
+        }   
+
+
+        {currentVulnerability.vulnerability.owasp.includes('API9:2023 Improper Inventory Management') &&
+            <object type="text/html" data={global.baseUrl + "/threat-modelling-html/improperInventoryManagement.html"} width="100%" height="100%"
+              style={{ alignSelf: 'center', borderWidth: 0, marginLeft:'0vw' }}>
+            </object>     
+        }   
+
+        {currentVulnerability.vulnerability.owasp.includes('API10:2023 Unsafe Consumption of APIs') &&
+            <object type="text/html" data={global.baseUrl + "/threat-modelling-html/unsafeConsumptionOfAPIs.html"} width="100%" height="100%"
+              style={{ alignSelf: 'center', borderWidth: 0, marginLeft:'0vw' }}>
+            </object>     
+        }                
+
+            </div>
+          }
+
+
+        </Modal>        
+     
 
       </>
 
@@ -1972,4 +2108,7 @@ value.vulnerability.vulnerabilityCode == 6) &&
   )
 }
 
-export default ThreatModellingScanDetail
+export default ThreatModellingScnDetail
+
+
+

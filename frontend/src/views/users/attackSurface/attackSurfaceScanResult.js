@@ -57,6 +57,10 @@ const AttackSurfaceScanResult = () => {
 
   const [costOfBreachModalIsOpen, setCostOfBreachModalIsOpen] = React.useState(false);
 
+  const [page, setPage] = useState(0);
+  const [count, setCount] = useState(0);
+  const [rowsPerPage, setRowsPerPage] = useState(10);
+
   const toaster = useRef()
   const exampleToast = (
     <CToast>
@@ -357,7 +361,7 @@ const closeCostOfBreachModal = async () => {
 
     setScanId(theScanId);
 
-    loadScanDetails(theScanId);
+    loadScanDetails(theScanId, 0, rowsPerPage);
 
   }, []);
 
@@ -366,18 +370,21 @@ const closeCostOfBreachModal = async () => {
   }, [onLoading]);
 
 
-  const loadScanDetails = async (theScanId) => {
+  const loadScanDetails = async ( theScanId, page, rowsPerPage) => {
+
+    setOnLoading(true);
 
     const data = {
       scanId: theScanId,
     };
 
     const token = localStorage.getItem('ASIToken');
-    const response = await axios.post('api/v1/attackSurfaceScans/getAttackSurfaceScanDetails', data, {
+    const response = await axios.post(`api/v1/attackSurfaceScans/getAttackSurfaceScanDetails/${page}/${rowsPerPage}`, data, {
       headers: { Authorization: `Bearer ${token}` },
     });
 
     setAttackSurfaceScan(response.data.attackSurfaceScan);
+    setCount(response.data.totalCount)
 
     setOnLoading(false);
   };
@@ -773,8 +780,7 @@ const closeCostOfBreachModal = async () => {
     searchOpen: false,
     viewColumns: true,
     selectableRows: false, // <===== will turn off checkboxes in rows
-    rowsPerPage: 20,
-    rowsPerPageOptions: [],
+    rowsPerPageOptions: [10, 20, 60, 100, 150],
     textLabels: {
       body: {
         noMatch: 'No vulnerabilities found',
@@ -788,6 +794,18 @@ const closeCostOfBreachModal = async () => {
           backgroundColor: row[13] === 'Yes' ? "#FFCCCC" : "#ffffff" // Alternate row colors
         }
       };
+    },
+    serverSide: true,
+    count: count,
+    page: page,
+    rowsPerPage: rowsPerPage,
+    onTableChange: (action, tableState) => {
+      if (action === 'changePage' || action === 'changeRowsPerPage') {
+        const { page, rowsPerPage } = tableState;
+        setPage(page);
+        setRowsPerPage(rowsPerPage);
+        loadScanDetails(scanId, page, rowsPerPage);
+      }
     }
     
   };

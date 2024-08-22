@@ -33,74 +33,74 @@ const { v4: uuidv4 } = require('uuid');
 
 // Get all api collections
 module.exports.fetchAPICollections = asyncHandler(async (req, res) => {
+    const page = parseInt(req.params.page, 10) || 1;
+    const rowsPerPage = parseInt(req.params.rowsPerPage, 10) || 10;
 
-  //  const pageNumber = parseInt(req.query.pageNumber) || 1; // Get the pageNumber from the query parameters (default to 1 if not provided)
-  //  const pageSize = 10; // Number of active scans per page
-
-   // const totalRecords = await APICollection.countDocuments({ user: req.user._id });
-   // const totalPages = Math.ceil(totalRecords / pageSize);
-
-
-    const page = req.params.page ? parseInt(req.params.page, 10) : 1;
-    const rowsPerPage = req.params.rowsPerPage ? parseInt(req.params.rowsPerPage, 10) : 10;
-
-    console.log('page:',page)
-    console.log('rowsPerPage:',rowsPerPage)
-
-      // Validate and parse page and rowsPerPage
-      const pageNumber = parseInt(page, 10);
-      const rowsPerPageNumber = parseInt(rowsPerPage, 10);
-
-      if (isNaN(pageNumber) || isNaN(rowsPerPageNumber) || pageNumber < 1 || rowsPerPageNumber < 1) {
-          return res.status(400).json({ success: false, message: "Invalid pagination parameters" });
-      }
-
-      const skip = (pageNumber-1) * rowsPerPageNumber;
-      const limit = rowsPerPageNumber;
-
-      console.log("skip:",skip)
-      console.log("limit:",limit)
-
-
-    // Calculate the skip value based on the pageNumber and pageSize
-    //const skip = (pageNumber - 1) * pageSize;
-
-    // First, find all OrgProjects related to the user's organization
-const orgProjects = await OrgProject.find({ organization: req.user.organization })
-.select('_id')
-.lean();
-
-const orgProjectIds = orgProjects.map(project => project._id);
-
-// Then, count APICollections related to these OrgProjects
-const totalCount = await APICollection.countDocuments({ orgProject: { $in: orgProjectIds } });
-
-
-// Then, fetch APICollections related to these OrgProjects
-const apiCollections = await APICollection.find({ orgProject: { $in: orgProjectIds } })
-.populate('orgProject')
-.sort({ createdAt: -1 })
-.skip(skip)
-.limit(limit)
-.lean();
-
-
-    for (var i = 0; i < apiCollections.length; i++) {
-
-        var versionCount = await APICollectionVersion.countDocuments({ apiCollection: apiCollections[i]._id })
-        apiCollections[i].versionCount = versionCount;
-
-        var latestVersion = await APICollectionVersion.findOne({ apiCollection: apiCollections[i]._id }).sort({ createdAt: -1 }).exec();
-        apiCollections[i].latestVersion = latestVersion;
+    if (page < 1 || rowsPerPage < 1) {
+        return res.status(400).json({ success: false, message: "Invalid pagination parameters" });
     }
 
-    // Return the active scans, currentPage, totalRecords, and totalPages in the response
+    const skip = (page - 1) * rowsPerPage;
+
+    const pipeline = [
+        { $match: { organization: req.user.organization } },
+        { $project: { _id: 1 } },
+        {
+            $lookup: {
+                from: 'apicollections',
+                localField: '_id',
+                foreignField: 'orgProject',
+                as: 'apiCollections'
+            }
+        },
+        { $unwind: '$apiCollections' },
+        {
+            $replaceRoot: { newRoot: '$apiCollections' }
+        },
+        {
+            $lookup: {
+                from: 'orgprojects',
+                localField: 'orgProject',
+                foreignField: '_id',
+                as: 'orgProject'
+            }
+        },
+        { $unwind: '$orgProject' },
+        {
+            $lookup: {
+                from: 'apicollectionversions',
+                let: { apiCollectionId: '$_id' },
+                pipeline: [
+                    { $match: { $expr: { $eq: ['$apiCollection', '$$apiCollectionId'] } } },
+                    { $sort: { createdAt: -1 } },
+                    { $limit: 1 }
+                ],
+                as: 'latestVersion'
+            }
+        },
+        {
+            $addFields: {
+                versionCount: { $size: '$latestVersion' },
+                latestVersion: { $arrayElemAt: ['$latestVersion', 0] }
+            }
+        },
+        { $sort: { createdAt: -1 } },
+        {
+            $facet: {
+                metadata: [{ $count: 'totalCount' }],
+                data: [{ $skip: skip }, { $limit: rowsPerPage }]
+            }
+        }
+    ];
+
+    const result = await OrgProject.aggregate(pipeline);
+
+    const apiCollections = result[0].data;
+    const totalCount = result[0].metadata[0]?.totalCount || 0;
+
     res.status(200).json({
         apiCollections,
         totalCount,
-        //currentPage: pageNumber,
-        //totalRecords,
-        //totalPages,
     });
 });
 

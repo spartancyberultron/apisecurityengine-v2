@@ -42,6 +42,7 @@ module.exports.getAllSOAPOrGraphQLScans = asyncHandler(async (req, res) => {
     // Calculate the skip value based on the pageNumber and pageSize
     const skip = (pageNumber - 1) * pageSize;
 
+    /*
     const soapOrGraphQLScans = await SOAPOrGraphQLScan.find({ user: req.user._id }).populate('orgProject')
         .sort({ createdAt: -1 })
         .skip(skip)
@@ -53,7 +54,44 @@ module.exports.getAllSOAPOrGraphQLScans = asyncHandler(async (req, res) => {
 
         var vulnerabilities = await SOAPOrGraphQLScanVulnerability.countDocuments({ soapOrGraphQLScan: soapOrGraphQLScans[i]._id })
         soapOrGraphQLScans[i].vulnerabilities = vulnerabilities;
-    }
+    }*/
+
+        const soapOrGraphQLScans = await SOAPOrGraphQLScan.aggregate([
+            { $match: { user: req.user._id } },
+            { $sort: { createdAt: -1 } },
+            { $skip: skip },
+            { $limit: pageSize },
+            {
+                $lookup: {
+                    from: 'orgprojects',
+                    localField: 'orgProject',
+                    foreignField: '_id',
+                    as: 'orgProject'
+                }
+            },
+            { $unwind: '$orgProject' },
+            {
+                $lookup: {
+                    from: 'soaporgraphqlscanvulnerabilities',
+                    let: { scanId: '$_id' },
+                    pipeline: [
+                        { $match: { $expr: { $eq: ['$soapOrGraphQLScan', '$$scanId'] } } },
+                        { $count: 'count' }
+                    ],
+                    as: 'vulnerabilitiesCount'
+                }
+            },
+            {
+                $addFields: {
+                    vulnerabilities: { $ifNull: [{ $arrayElemAt: ['$vulnerabilitiesCount.count', 0] }, 0] }
+                }
+            },
+            {
+                $project: {
+                    vulnerabilitiesCount: 0
+                }
+            }
+        ]);
 
      // Trigger an async function that checks if all the scans have got the result files and also the results saved in database.
     // If not,  do that for the scans that do not have records

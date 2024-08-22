@@ -118,7 +118,7 @@ verticalAlign: 'middle',
 
 console.log('severityChartSeries:',severityChartSeries)
 console.log('severitychartOptions:',severitychartOptions)
-
+console.log('severityDistribution:',severityDistribution)
 
     return (
 
@@ -159,7 +159,7 @@ console.log('severitychartOptions:',severitychartOptions)
 
                 <>
 
-                  {severityDistribution && severityDistribution.length>0
+                  {severityDistribution.hasOwnProperty('CRITICAL') && severityChartSeries && severityChartSeries.length>0
                   
                     ?
 

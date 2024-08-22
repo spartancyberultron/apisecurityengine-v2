@@ -79,6 +79,7 @@ function getObjectByIndex(index) {
 }
 
 async function getVulnSeverityAndPriority(vulnId) {
+    
     try {
         // Find the organization document that contains the specified vulnId
         const organization = await Organization.findOne({
@@ -105,7 +106,7 @@ async function getVulnSeverityAndPriority(vulnId) {
 // Get all attack surface scans 
 module.exports.getAllAttackSurfaceScans = asyncHandler(async (req, res) => {
 
-    const pageNumber = parseInt(req.query.pageNumber) || 1; // Get the pageNumber from the query parameters (default to 1 if not provided)
+  /*  const pageNumber = parseInt(req.query.pageNumber) || 1; // Get the pageNumber from the query parameters (default to 1 if not provided)
     const pageSize = 10; // Number of attack surface scans per page
 
     const totalRecords = await AttackSurfaceScan.countDocuments({ user: req.user._id });
@@ -113,22 +114,65 @@ module.exports.getAllAttackSurfaceScans = asyncHandler(async (req, res) => {
 
     // Calculate the skip value based on the pageNumber and pageSize
     const skip = (pageNumber - 1) * pageSize;
+    */
 
-    const attackSurfaceScans = await AttackSurfaceScan.find({ user: req.user._id })
-        
-        .sort({ createdAt: -1 })
-        .skip(skip)
-        .limit(pageSize)
-        .lean()
-        .populate('orgProject');
-        
+    const user = await User.findById(req.user._id);
+    const organization = await Organization.findById(user.organization);
+
+    const page = req.params.page ? parseInt(req.params.page, 10) : 1;
+    const rowsPerPage = req.params.rowsPerPage ? parseInt(req.params.rowsPerPage, 10) : 10;
+
+    console.log('page:', page)
+    console.log('rowsPerPage:', rowsPerPage)
+
+    // Validate and parse page and rowsPerPage
+    const pageNumber = parseInt(page, 10) + 1;
+    const rowsPerPageNumber = parseInt(rowsPerPage, 10);
+    console.log('pageNumber:', pageNumber)
+
+
+    if (isNaN(pageNumber) || isNaN(rowsPerPageNumber) || pageNumber < 1 || rowsPerPageNumber < 1) {
+        return res.status(400).json({ success: false, message: "Invalid pagination parameters" });
+    }
+
+    const skip = (pageNumber - 1) * rowsPerPageNumber;
+    const limit = rowsPerPageNumber;
+
+    console.log('skip:',skip)
+    console.log('limit:',limit)
+
+
+
+    const attackSurfaceScans = await AttackSurfaceScan.find()
+    .populate({
+        path: 'orgProject',
+        match: { organization: organization._id } // Filter by organization
+    })
+    .sort({ createdAt: -1 })
+    .skip(skip)
+    .limit(limit)
+    .lean()
+    .exec();
+
+    const totalCount = await AttackSurfaceScan.countDocuments()
+    .populate({
+        path: 'orgProject',
+        match: { organization: organization._id } // Filter by organization
+    })    
+    .exec();
+
+// Filter out any AttackSurfaceScan where the orgProject does not match the organization
+const filteredScans = attackSurfaceScans.filter(scan => scan.orgProject != null);
+
+
 
     // Return the sttack surface scans, currentPage, totalRecords, and totalPages in the response
     res.status(200).json({
-        attackSurfaceScans,
-        currentPage: pageNumber,
-        totalRecords,
-        totalPages,
+        attackSurfaceScans:filteredScans,
+        totalCount
+      //  currentPage: pageNumber,
+        //totalRecords,
+        //totalPages,
     });
 });
 
@@ -140,7 +184,36 @@ module.exports.getAttackSurfaceScanDetails = asyncHandler(async (req, res) => {
 
     const attackSurfaceScan = await AttackSurfaceScan.findById(scanId).populate('user').lean();
 
-    const vulnerabilities = await AttackSurfaceScanVulnerability.find({ attackSurfaceScan: scanId }).populate('vulnerability endpoint').lean();
+    const page = req.params.page ? parseInt(req.params.page, 10) : 1;
+    const rowsPerPage = req.params.rowsPerPage ? parseInt(req.params.rowsPerPage, 10) : 10;
+
+    console.log('page:', page)
+    console.log('rowsPerPage:', rowsPerPage)
+
+    // Validate and parse page and rowsPerPage
+    const pageNumber = parseInt(page, 10) + 1;
+    const rowsPerPageNumber = parseInt(rowsPerPage, 10);
+    console.log('pageNumber:', pageNumber)
+
+
+    if (isNaN(pageNumber) || isNaN(rowsPerPageNumber) || pageNumber < 1 || rowsPerPageNumber < 1) {
+        return res.status(400).json({ success: false, message: "Invalid pagination parameters" });
+    }
+
+    const skip = (pageNumber - 1) * rowsPerPageNumber;
+    const limit = rowsPerPageNumber;
+
+    console.log('skip:',skip)
+    console.log('limit:',limit)
+
+
+    const vulnerabilities = await AttackSurfaceScanVulnerability.find({ attackSurfaceScan: scanId }).populate('vulnerability endpoint')
+    .skip(skip)
+    .limit(limit)
+    .lean();
+
+    const totalCount = await AttackSurfaceScanVulnerability.countDocuments({ attackSurfaceScan: scanId })
+    
 
     attackSurfaceScan.vulnerabilities = vulnerabilities;
 
@@ -149,7 +222,7 @@ module.exports.getAttackSurfaceScanDetails = asyncHandler(async (req, res) => {
 
     // Return the scans
     res.status(200);
-    res.json({ attackSurfaceScan })
+    res.json({ attackSurfaceScan, totalCount })
 });
 
 

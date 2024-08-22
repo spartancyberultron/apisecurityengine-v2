@@ -206,7 +206,7 @@ const Tickets = () => {
 
   useEffect(() => {    
 
-      fetchTickets(1, rowsPerPage);  
+      fetchTickets(0, rowsPerPage);  
 
   }, []);
 

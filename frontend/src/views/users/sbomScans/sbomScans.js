@@ -438,7 +438,7 @@ const SBOMScans = () => {
       dataItem.push('---');
     }
 
-    dataItem.push((sbomScans[i].vulnerabilities).length);     
+    dataItem.push(sbomScans[i].vulnerabilities);     
 
     if(sbomScans[i].status){
       dataItem.push(sbomScans[i].status.toUpperCase());

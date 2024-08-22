@@ -57,6 +57,10 @@ const ViewQuickScanReport = () => {
 
   const [costOfBreachModalIsOpen, setCostOfBreachModalIsOpen] = React.useState(false);
 
+  const [page, setPage] = useState(0);
+  const [count, setCount] = useState(0);
+  const [rowsPerPage, setRowsPerPage] = useState(10);
+
   const toaster = useRef()
   const exampleToast = (
     <CToast>
@@ -336,7 +340,7 @@ const closeCostOfBreachModal = async () => {
 
     setScanId(theScanId);
 
-    loadScanDetails(theScanId);
+    loadScanDetails(theScanId, 0, rowsPerPage);
 
   }, []);
 
@@ -345,18 +349,21 @@ const closeCostOfBreachModal = async () => {
   }, [onLoading]);
 
 
-  const loadScanDetails = async (theScanId) => {
+  const loadScanDetails = async (theScanId, page, rowsPerPage) => {
+
+    setOnLoading(true);
 
     const data = {
       scanId: theScanId,
     };
 
     const token = localStorage.getItem('ASIToken');
-    const response = await axios.post('api/v1/activeScans/getActiveScanDetails', data, {
+    const response = await axios.post(`api/v1/activeScans/getActiveScanDetails/${page}/${rowsPerPage}`, data, {
       headers: { Authorization: `Bearer ${token}` },
     });
 
     setActiveScan(response.data.activeScan);
+    setCount(response.data.totalCount);   
 
     setOnLoading(false);
   };
@@ -774,9 +781,9 @@ value.vulnerability.vulnerabilityCode == 6) &&
     search: true,
     searchOpen: false,
     viewColumns: true,
+    pagination:true,
     selectableRows: false, // <===== will turn off checkboxes in rows
-    rowsPerPage: 20,
-    rowsPerPageOptions: [],
+    rowsPerPageOptions: [10, 20, 60, 100, 150],
     textLabels: {
       body: {
         noMatch: 'No vulnerabilities found',
@@ -790,6 +797,18 @@ value.vulnerability.vulnerabilityCode == 6) &&
           backgroundColor: row[13] === 'Yes' ? "#FFCCCC" : "#ffffff" // Alternate row colors
         }
       };
+    },
+    serverSide: true,
+    count: count,
+    page: page,
+    rowsPerPage: rowsPerPage,
+    onTableChange: (action, tableState) => {
+      if (action === 'changePage' || action === 'changeRowsPerPage') {
+        const { page, rowsPerPage } = tableState;
+        setPage(page);
+        setRowsPerPage(rowsPerPage);
+        loadScanDetails(scanId, page, rowsPerPage);
+      }
     }
   };
 
@@ -802,7 +821,7 @@ value.vulnerability.vulnerabilityCode == 6) &&
 
       var dataItem = [];
 
-      dataItem.push(i + 1);
+      dataItem.push(((page) * 10) + (i+1));
       dataItem.push(activeScan.vulnerabilities[i].vulnerability.vulnerabilityName);
 
       var endpointObject = activeScan.vulnerabilities[i].endpoint;
@@ -1464,7 +1483,7 @@ const piiDataArray = Object.values(piiCounts);
 
 
 
-        {onLoading == true ?
+        {onLoading == true && page==0 ?
 
           <div style={{ display: 'flex', flexDirection: 'row', justifyContent: 'space-around', marginTop: 50 }}>
 

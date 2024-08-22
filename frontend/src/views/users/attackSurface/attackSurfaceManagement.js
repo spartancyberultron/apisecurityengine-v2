@@ -35,6 +35,10 @@ const AttackSurfaceManagement = () => {
 
   const [itemOffset, setItemOffset] = useState(0);
 
+  const [page, setPage] = useState(0);
+  const [count, setCount] = useState(0);
+  const [rowsPerPage, setRowsPerPage] = useState(10);
+
   const customStyles = {
     content: {
       top: '30%',
@@ -58,7 +62,7 @@ const AttackSurfaceManagement = () => {
 
     //console.log('requestedPage', requestedPage)
 
-    fetchAttackSurfaceScans(true, requestedPage);
+    fetchAttackSurfaceScans(true, 0, rowsPerPage);
 
     const newOffset = (event.selected * itemsPerPage) % totalRecords;
     //console.log(
@@ -180,20 +184,21 @@ const AttackSurfaceManagement = () => {
   const isFirstTime = useRef(true);
 
 
-  const fetchAttackSurfaceScans = async (isFirstTime, pageNumber) => {
+  const fetchAttackSurfaceScans = async (isFirstTime, page, rowsPerPage) => {
 
     if (isFirstTime) {
       setOnLoading(true);
     }
   
     const token = localStorage.getItem('ASIToken');
-    const response = await axios.get(`/api/v1/attackSurfaceScans/getAllAttackSurfaceScans?pageNumber=${pageNumber}`, {
+    const response = await axios.get(`/api/v1/attackSurfaceScans/getAllAttackSurfaceScans/${page}/${rowsPerPage}`, {
       headers: { Authorization: `Bearer ${token}` },
     });
   
     setAttackSurfaceScans(response.data.attackSurfaceScans);
-    setCurrentPage(response.data.currentPage);
-    setTotalRecords(response.data.totalRecords);
+    setCount(response.data.totalCount);
+   // setCurrentPage(response.data.currentPage);
+   // setTotalRecords(response.data.totalRecords);
   
     setOnLoading(false);
   };
@@ -203,13 +208,13 @@ const AttackSurfaceManagement = () => {
 
     const interval = setInterval(() => {
 
-      fetchAttackSurfaceScans(false, currentPage);
+      fetchAttackSurfaceScans(false, 0, rowsPerPage);
 
     }, 30000);
     
 
     // Make the initial call immediately
-    fetchAttackSurfaceScans(true, currentPage);
+    fetchAttackSurfaceScans(true, 0, rowsPerPage);
     isFirstTime.current = false;
 
     // Clean up the interval on component unmount
@@ -410,11 +415,23 @@ const AttackSurfaceManagement = () => {
     viewColumns: true,
     selectableRows: false, // <===== will turn off checkboxes in rows
     rowsPerPage: 20,
-    rowsPerPageOptions: [],
-    pagination: false,
+    rowsPerPageOptions: [10, 20, 60, 100, 150],    
+    pagination: true,
     textLabels: {
       body: {
-        noMatch: 'No scans created yet',
+        noMatch: 'No attack surface scans run yet',
+      }
+    },
+    serverSide: true,
+    count: count,
+    page: page,
+    rowsPerPage: rowsPerPage,
+    onTableChange: (action, tableState) => {
+      if (action === 'changePage' || action === 'changeRowsPerPage') {
+        const { page, rowsPerPage } = tableState;
+        setPage(page);
+        setRowsPerPage(rowsPerPage);
+        fetchAttackSurfaceScans(false, page, rowsPerPage);
       }
     }
   };
@@ -527,16 +544,7 @@ const AttackSurfaceManagement = () => {
               </ThemeProvider>
 
 
-              <ReactPaginate
-                breakLabel="..."
-                nextLabel=">"
-                onPageChange={handlePageClick}
-                pageRangeDisplayed={10}
-                pageCount={totalRecords / 10}
-                previousLabel="<"
-                forcePage={currentPage - 1}
-                renderOnZeroPageCount={null}
-              />
+             
             </>
           }
 

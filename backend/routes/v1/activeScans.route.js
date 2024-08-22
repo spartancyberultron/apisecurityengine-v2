@@ -34,13 +34,11 @@ const router = express.Router();
 
 //base route /api/v1/activeScans/
 
-router.get('/getAllActiveScans', protectUser, getAllActiveScans);
-router.get('/fetchAPICollectionVersionScans', protectUser, fetchAPICollectionVersionScans);
+router.get('/getAllActiveScans/:page/:rowsPerPage', protectUser, getAllActiveScans);
+router.get('/fetchAPICollectionVersionScans/:page/:rowsPerPage', protectUser, fetchAPICollectionVersionScans);
 
 
-
-
-router.post('/getActiveScanDetails', protectUser, getActiveScanDetails);
+router.post('/getActiveScanDetails/:page/:rowsPerPage', protectUser, getActiveScanDetails);
 
 router.post('/startActiveScan', protectUser, jsonupload.single("file"), startActiveScan);
 router.post('/runScanFromPostman', protectUser, runScanFromPostman);

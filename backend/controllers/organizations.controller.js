@@ -444,6 +444,9 @@ module.exports.getTickets = asyncHandler(async (req, res) => {
         const pageNumber = parseInt(page, 10) + 1;
         const rowsPerPageNumber = parseInt(rowsPerPage, 10);
 
+        console.log('pageNumber:', pageNumber)
+
+
         if (isNaN(pageNumber) || isNaN(rowsPerPageNumber) || pageNumber < 1 || rowsPerPageNumber < 1) {
             return res.status(400).json({ success: false, message: "Invalid pagination parameters" });
         }

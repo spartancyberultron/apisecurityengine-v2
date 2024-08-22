@@ -20,7 +20,7 @@ module.exports.getAllSBOMScans = asyncHandler(async (req, res) => {
     // Calculate the skip value based on the pageNumber and pageSize
     const skip = (pageNumber - 1) * pageSize;
 
-    const sbomScans = await SBOMScan.find({ user: req.user._id }).populate('orgProject')
+   /* const sbomScans = await SBOMScan.find({ user: req.user._id }).populate('orgProject')
         .sort({ createdAt: -1 })
         .skip(skip)
         .limit(pageSize)
@@ -29,9 +29,46 @@ module.exports.getAllSBOMScans = asyncHandler(async (req, res) => {
 
     for (var i = 0; i < sbomScans.length; i++) {
 
-        var vulnerabilities = await SBOMScanVulnerability.find({ sbomScan: sbomScans[i]._id })
+        var vulnerabilities = await SBOMScanVulnerability.countDocuments({ sbomScan: sbomScans[i]._id })
         sbomScans[i].vulnerabilities = vulnerabilities;
-    }
+    } */
+
+        const sbomScans = await SBOMScan.aggregate([
+            { $match: { user: req.user._id } },
+            { $sort: { createdAt: -1 } },
+            { $skip: skip },
+            { $limit: pageSize },
+            {
+                $lookup: {
+                    from: 'orgprojects',
+                    localField: 'orgProject',
+                    foreignField: '_id',
+                    as: 'orgProject'
+                }
+            },
+            { $unwind: '$orgProject' },
+            {
+                $lookup: {
+                    from: 'sbomscanvulnerabilities',
+                    let: { scanId: '$_id' },
+                    pipeline: [
+                        { $match: { $expr: { $eq: ['$sbomScan', '$$scanId'] } } },
+                        { $count: 'count' }
+                    ],
+                    as: 'vulnerabilitiesCount'
+                }
+            },
+            {
+                $addFields: {
+                    vulnerabilities: { $ifNull: [{ $arrayElemAt: ['$vulnerabilitiesCount.count', 0] }, 0] }
+                }
+            },
+            {
+                $project: {
+                    vulnerabilitiesCount: 0
+                }
+            }
+        ]);
 
 
     // Return the sbom scans, currentPage, totalRecords, and totalPages in the response

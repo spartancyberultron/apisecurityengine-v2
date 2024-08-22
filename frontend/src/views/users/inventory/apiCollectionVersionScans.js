@@ -542,7 +542,7 @@ const APICollectionVersionScans = () => {
       dataItem.push('---');
     }
 
-    dataItem.push((activeScans[i].vulnerabilities).length);
+    dataItem.push(activeScans[i].vulnCount);
 
     
     /*if(activeScans[i].scanCompletedAt){

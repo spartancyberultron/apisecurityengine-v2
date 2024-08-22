@@ -36,6 +36,11 @@ const QuickScans = () => {
 
   const [itemOffset, setItemOffset] = useState(0);
 
+  const [page, setPage] = useState(0);
+  const [count, setCount] = useState(0);
+  const [rowsPerPage, setRowsPerPage] = useState(10);
+
+
   const customStyles = {
     content: {
       top: '30%',
@@ -52,23 +57,7 @@ const QuickScans = () => {
 
   const itemsPerPage = 10;
 
-  // Invoke when user click to request another page.
-  const handlePageClick = (event) => {
-
-    var requestedPage = event.selected + 1;
-
-    //console.log('requestedPage', requestedPage)
-
-    fetchActiveScans(true, requestedPage);
-
-    const newOffset = (event.selected * itemsPerPage) % totalRecords;
-    //console.log(
-    //  `User requested page number ${event.selected}, which is offset ${newOffset}`
-    //);
-    setItemOffset(newOffset);
-
-  };
-
+  
 
   // Function to handle the button click and show the confirm dialog
   const handleClick = (user) => {
@@ -181,20 +170,21 @@ const QuickScans = () => {
   const isFirstTime = useRef(true);
 
 
-  const fetchActiveScans = async (isFirstTime, pageNumber) => {
+  const fetchActiveScans = async (isFirstTime, page, rowsPerPage) => {
 
     if (isFirstTime) {
       setOnLoading(true);
     }
   
     const token = localStorage.getItem('ASIToken');
-    const response = await axios.get(`/api/v1/activeScans/getAllActiveScans?pageNumber=${pageNumber}`, {
+    const response = await axios.get(`/api/v1/activeScans/getAllActiveScans/${page}/${rowsPerPage}`, {
       headers: { Authorization: `Bearer ${token}` },
     });
   
     setActiveScans(response.data.activeScans);
-    setCurrentPage(response.data.currentPage);
-    setTotalRecords(response.data.totalRecords);
+    //setCurrentPage(response.data.currentPage);
+    //setTotalRecords(response.data.totalRecords);
+    setCount(response.data.totalCount);   
   
     setOnLoading(false);
   };
@@ -204,13 +194,13 @@ const QuickScans = () => {
 
     const interval = setInterval(() => {
 
-      fetchActiveScans(false, currentPage);
+      fetchActiveScans(false, 0, rowsPerPage);
 
     }, 30000);
     
 
     // Make the initial call immediately
-    fetchActiveScans(true, currentPage);
+    fetchActiveScans(true, 0, rowsPerPage);
     isFirstTime.current = false;
 
     // Clean up the interval on component unmount
@@ -473,11 +463,23 @@ const QuickScans = () => {
     viewColumns: true,
     selectableRows: false, // <===== will turn off checkboxes in rows
     rowsPerPage: 20,
-    rowsPerPageOptions: [],
-    pagination: false,
+    rowsPerPageOptions: [10, 20, 60, 100, 150],
+    pagination: true,
     textLabels: {
       body: {
         noMatch: 'No scans created yet',
+      }
+    },
+    serverSide: true,
+    count: count,
+    page: page,
+    rowsPerPage: rowsPerPage,
+    onTableChange: (action, tableState) => {
+      if (action === 'changePage' || action === 'changeRowsPerPage') {
+        const { page, rowsPerPage } = tableState;
+        setPage(page);
+        setRowsPerPage(rowsPerPage);
+        fetchActiveScans(page, rowsPerPage);
       }
     }
   };
@@ -492,7 +494,7 @@ const QuickScans = () => {
 
     var dataItem = [];
 
-    dataItem.push(i+1);
+    dataItem.push(((page) * 10) + (i+1));
     dataItem.push(activeScans[i].theCollectionVersion && activeScans[i].theCollectionVersion.apiCollection.orgProject?activeScans[i].theCollectionVersion.apiCollection.orgProject.name:'---');
 
     dataItem.push(activeScans[i].theCollectionVersion && activeScans[i].theCollectionVersion.apiCollection.collectionName?activeScans[i].theCollectionVersion.apiCollection.collectionName:'<Name not found>');
@@ -511,11 +513,7 @@ const QuickScans = () => {
     dataItem.push(activeScans[i].vulnCount);
 
     
-    /*if(activeScans[i].scanCompletedAt){
-      dataItem.push("COMPLETED"); 
-    }else{
-      dataItem.push("PROCESSING"); 
-    }*/
+   
 
     dataItem.push((activeScans[i].status).toUpperCase());
 
@@ -610,16 +608,7 @@ const QuickScans = () => {
               </ThemeProvider>
 
 
-              <ReactPaginate
-                breakLabel="..."
-                nextLabel=">"
-                onPageChange={handlePageClick}
-                pageRangeDisplayed={10}
-                pageCount={totalRecords / 10}
-                previousLabel="<"
-                forcePage={currentPage - 1}
-                renderOnZeroPageCount={null}
-              />
+              
             </>
           }
 

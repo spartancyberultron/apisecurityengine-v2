@@ -13,8 +13,8 @@ const router = express.Router();
 
 //base route /api/v1/activeScans/
 
-router.get('/getAllAttackSurfaceScans', protectUser, getAllAttackSurfaceScans);
-router.post('/getAttackSurfaceScanDetails', protectUser, getAttackSurfaceScanDetails);
+router.get('/getAllAttackSurfaceScans/:page/:rowsPerPage', protectUser, getAllAttackSurfaceScans);
+router.post('/getAttackSurfaceScanDetails/:page/:rowsPerPage', protectUser, getAttackSurfaceScanDetails);
 router.post('/startAttackSurfaceScan', protectUser, startAttackSurfaceScan);
 router.post('/deleteAttackSurfaceScan', protectUser, deleteAttackSurfaceScan);
 

@@ -14,6 +14,7 @@ import 'react-toastify/dist/ReactToastify.css';
 import { MdStart } from "react-icons/md";
 import { AiOutlineSecurityScan } from "react-icons/ai";
 import { MdOutlineDelete } from "react-icons/md";
+import { FaStopCircle } from "react-icons/fa";
 
 import { FaEye } from "react-icons/fa";
 
@@ -35,6 +36,11 @@ const ThreatModelling = () => {
 
   const [itemOffset, setItemOffset] = useState(0);
 
+  const [page, setPage] = useState(0);
+  const [count, setCount] = useState(0);
+  const [rowsPerPage, setRowsPerPage] = useState(10);
+
+
   const customStyles = {
     content: {
       top: '30%',
@@ -42,6 +48,7 @@ const ThreatModelling = () => {
       width: '50%',
       right: 'auto',
       bottom: 'auto',
+      height: '15%',
       backgroundColor: '#ffffff',
       borderRadius: 15,
       borderColor: 'ffffff'
@@ -179,20 +186,21 @@ const ThreatModelling = () => {
   const isFirstTime = useRef(true);
 
 
-  const fetchActiveScans = async (isFirstTime, pageNumber) => {
+  const fetchActiveScans = async (isFirstTime, page, rowsPerPage) => {
 
     if (isFirstTime) {
       setOnLoading(true);
     }
   
     const token = localStorage.getItem('ASIToken');
-    const response = await axios.get(`/api/v1/activeScans/getAllActiveScans?pageNumber=${pageNumber}`, {
+    const response = await axios.get(`/api/v1/activeScans/getAllActiveScans/${page}/${rowsPerPage}`, {
       headers: { Authorization: `Bearer ${token}` },
     });
   
     setActiveScans(response.data.activeScans);
-    setCurrentPage(response.data.currentPage);
-    setTotalRecords(response.data.totalRecords);
+    //setCurrentPage(response.data.currentPage);
+    //setTotalRecords(response.data.totalRecords);
+    setCount(response.data.totalCount);   
   
     setOnLoading(false);
   };
@@ -202,19 +210,21 @@ const ThreatModelling = () => {
 
     const interval = setInterval(() => {
 
-      fetchActiveScans(false, currentPage);
+      fetchActiveScans(false, 0, rowsPerPage);
 
     }, 30000);
     
 
     // Make the initial call immediately
-    fetchActiveScans(true, currentPage);
+    fetchActiveScans(true, 0, rowsPerPage);
     isFirstTime.current = false;
 
     // Clean up the interval on component unmount
     return () => clearInterval(interval);
 
   }, []);
+
+
 
   const goToViewReport = async (scanId) => {
 
@@ -238,7 +248,7 @@ const ThreatModelling = () => {
     {
       label: "Collection",
       options: {
-          filter: false,           
+          filter: true,           
       }
     },
     {
@@ -268,42 +278,72 @@ const ThreatModelling = () => {
     {
       label: "Status",
       options: {
-        filter: true,
+          filter: true,   
+          display:false        
+      }
+    },
+    {
+      label: "Status",
+      options: {
+        filter: false,
         download: true,
         customBodyRender: (value, tableMeta, updateValue) => {
 
           let bgColor;
           let theColor;
 
-          if (value == 'COMPLETED') {
+          if (value.status == 'COMPLETED') {
 
             bgColor = '#28C76F';
             theColor = '#fff';
 
-          } else if (value == 'FAILED') {
+          } else if (value.status == 'FAILED') {
 
             bgColor = '#A6001B';
             theColor = '#fff';
 
 
-          } else if (value == 'IN PROGRESS') {
+          } else if (value.status == 'IN PROGRESS') {
 
             bgColor = '#FFC300';
             theColor = 'black';
 
-          } 
+          } else if (value.status == 'SCHEDULED') {
 
+            bgColor = 'cyan';
+            theColor = 'black';
+
+          } 
 
           return (
             <div style={{
               display: "flex",
-              alignItems: "center"
+              alignContent: "center",
+              flexDirection:'column',
+              justifyContent:'center'
             }} >
 
               <div style={{
                 padding: 5, backgroundColor: bgColor, color: theColor, width: 120,
                 textAlign: 'center', borderRadius: 10, fontSize: 12, fontWeight:'normal'
-              }}>{value}</div>
+              }}>
+                {value.status}
+              </div>
+
+              {value.scanScheduleType == 'specificTime' && value.status!=='COMPLETED' &&
+
+                <span style={{marginTop:5,}}>{'At ' + (new Date(value.specificDateTime)).toLocaleDateString() + '-' + (new Date(value.specificDateTime)).toLocaleTimeString()}</span>
+
+              }
+
+              {value.scanScheduleType == 'recurring' && 
+
+                <span style={{marginTop:5}}>{'Recurring ' + value.recurringSchedule}</span>
+
+              }
+
+
+
 
             </div>
           )
@@ -334,12 +374,70 @@ const ThreatModelling = () => {
                 <span style={{ fontSize: 15, color: '#fff', fontWeight: 'bold' }}>---</span>
               }
 
+
+         
+
             </div>
           )
         }
       }
     },
-    
+    {
+      label: "",
+      options: {
+        filter: false,
+        download: false,
+        customBodyRender: (value, tableMeta, updateValue) => {
+          return (
+            <div style={{
+              display: "flex",
+              alignItems: "center"
+            }} >            
+
+
+          {value.status == 'in progress' &&
+        <CButton color="danger"
+              onClick={() => handleClick(value)}
+              variant="outline"
+              className="m-1"
+              style={{ width: '100%', fontSize: 12, fontWeight: 'bold', color:'red', borderColor:'red', display:'flex', flexDirection:'row', 
+              alignItems:'center', justifyContent:'center' }}>
+              <FaStopCircle size={20} style={{ color: 'red' }}/>
+              <span style={{marginLeft:5}}>Stop Scan</span>
+              </CButton>
+        }
+
+            </div>
+          )
+        }
+      }
+    },
+    {
+      label: "Actions",
+      options: {
+        filter: false,
+        download: false,
+        customBodyRender: (value, tableMeta, updateValue) => {
+          return (<
+            div style={{
+              display: "flex",
+              alignItems: "center"
+            }
+            } >
+            <CButton color="danger"
+              onClick={() => handleClick(value)}
+              variant="outline"
+              className="m-1"
+              style={{ width: '100%', fontSize: 12, fontWeight: 'bold', color:'red', borderColor:'red', display:'flex', flexDirection:'row', 
+              alignItems:'center', justifyContent:'center' }}>
+              <MdOutlineDelete size={20} style={{ color: 'red' }}/>
+              <span style={{marginLeft:5}}>Delete</span>
+              </CButton>
+          </div>
+          )
+        }
+      }
+    },
 
   ];
 
@@ -365,7 +463,6 @@ const ThreatModelling = () => {
           }
         }
       },
-
     }
   })
 
@@ -382,16 +479,30 @@ const ThreatModelling = () => {
     viewColumns: true,
     selectableRows: false, // <===== will turn off checkboxes in rows
     rowsPerPage: 20,
-    rowsPerPageOptions: [],
-    pagination: false,
+    rowsPerPageOptions: [10, 20, 60, 100, 150],
+    pagination: true,
     textLabels: {
       body: {
         noMatch: 'No scans created yet',
       }
+    },
+    serverSide: true,
+    count: count,
+    page: page,
+    rowsPerPage: rowsPerPage,
+    onTableChange: (action, tableState) => {
+      if (action === 'changePage' || action === 'changeRowsPerPage') {
+        const { page, rowsPerPage } = tableState;
+        setPage(page);
+        setRowsPerPage(rowsPerPage);
+        fetchActiveScans(page, rowsPerPage);
+      }
     }
   };
 
+
   var tableData = [];
+
 
   for (var i = 0; i < activeScans.length; i++) {
 
@@ -399,7 +510,7 @@ const ThreatModelling = () => {
 
     var dataItem = [];
 
-    dataItem.push(i+1);
+    dataItem.push(((page) * 10) + (i+1));
     dataItem.push(activeScans[i].theCollectionVersion && activeScans[i].theCollectionVersion.apiCollection.orgProject?activeScans[i].theCollectionVersion.apiCollection.orgProject.name:'---');
 
     dataItem.push(activeScans[i].theCollectionVersion && activeScans[i].theCollectionVersion.apiCollection.collectionName?activeScans[i].theCollectionVersion.apiCollection.collectionName:'<Name not found>');
@@ -415,36 +526,72 @@ const ThreatModelling = () => {
       dataItem.push('---');
     }
 
-    dataItem.push((activeScans[i].vulnerabilities).length); 
+    dataItem.push(activeScans[i].vulnCount);
+
+    
+   
+
+    dataItem.push((activeScans[i].status).toUpperCase());
+
+    if(activeScans[i].status){
+      dataItem.push({status:activeScans[i].status.toUpperCase(), scanScheduleType:activeScans[i].scanScheduleType, 
+        specificDateTime:activeScans[i].specificDateTime, recurringSchedule:activeScans[i].recurringSchedule} );
+    }else{
+      dataItem.push('');
+    }
+
+  
+
+    
+    dataItem.push(activeScans[i]); // for view report link
 
     if(activeScans[i].status){
       dataItem.push(activeScans[i].status.toUpperCase());
     }else{
       dataItem.push('');
     }
-
     
-    dataItem.push(activeScans[i]); // for view report link
+    dataItem.push(activeScans[i]._id); // for delete
 
     tableData.push(dataItem);
   }
   }
 
+  const goToStartQuickScan = (e) => {
 
-  
+    e.preventDefault();
+    navigate('/start-active-scan')
+  }
+
 
 
   return (
     <div className="activeScans">
 
-    
+      {setModalIsOpen && (
+        <Modal
+          isOpen={modalIsOpen}
+          onRequestClose={closeModal}
+          style={customStyles}
+          contentLabel="Remediations"
+        >
+          <text style={{ color: '#000', fontSize: 18 }}>Are you sure you want to permanently delete this scan?</text>
+          <br/><br/>
+          <button onClick={() => handleConfirmation(true)} style={{ width: 100, borderWidth: 0, backgroundColor: '#28C76F', color:'white', padding: 10 }}>Yes</button>
+          <button onClick={() => handleConfirmation(false)} style={{ marginLeft: 30, borderWidth: 0, width: 100, backgroundColor: 'red', color:'white', padding: 10 }}>No</button>
+        </Modal>
+      )}
+
 
       <div style={{ width: '100%' }}>
         <div>
           <div style={{ marginBottom: '2rem', display: 'flex', flexDirection: 'row', justifyContent: 'space-between' }}>
 
 
-            
+            <div style={{display:'none'}}>
+           
+            </div>
+
           </div>
 
 
@@ -467,16 +614,7 @@ const ThreatModelling = () => {
               </ThemeProvider>
 
 
-              <ReactPaginate
-                breakLabel="..."
-                nextLabel=">"
-                onPageChange={handlePageClick}
-                pageRangeDisplayed={10}
-                pageCount={totalRecords / 10}
-                previousLabel="<"
-                forcePage={currentPage - 1}
-                renderOnZeroPageCount={null}
-              />
+              
             </>
           }
 
@@ -487,3 +625,6 @@ const ThreatModelling = () => {
 }
 
 export default ThreatModelling
+
+
+

@@ -104,54 +104,95 @@ module.exports.getAllActiveScans = asyncHandler(async (req, res) => {
     const user = await User.findById(req.user._id);
     const organization = await Organization.findById(user.organization);
     
-//calculateDashboard(organization)
+    //calculateDashboard(organization)
 
-    const pageNumber = parseInt(req.query.pageNumber) || 1; // Get the pageNumber from the query parameters (default to 1 if not provided)
-    const pageSize = 10; // Number of active scans per page
+  
+    const page = req.params.page ? parseInt(req.params.page, 10) : 1;
+    const rowsPerPage = req.params.rowsPerPage ? parseInt(req.params.rowsPerPage, 10) : 10;
 
-    //console.log('req.user', req.user)
+    console.log('page:', page)
+    console.log('rowsPerPage:', rowsPerPage)
 
-    const totalRecords = await ActiveScan.countDocuments({ user: req.user._id });
-    const totalPages = Math.ceil(totalRecords / pageSize);
-
-    // Calculate the skip value based on the pageNumber and pageSize
-    const skip = (pageNumber - 1) * pageSize;
-
-    const activeScans = await ActiveScan.find({ user: req.user._id })
-        .populate({
-            path: 'theCollectionVersion',
-            populate: {
-                path: 'apiCollection',
-                model: 'APICollection',
-                populate: {
-                    path: 'orgProject',  // Add this line to populate orgProject
-                    model: 'OrgProject'  // Ensure you use the correct model name for orgProject
-                }
-            }
-        })
-        .sort({ createdAt: -1 })
-        .skip(skip)
-        .limit(pageSize)
-        .lean();
-
-    //console.log('activeScans-', activeScans)
+    // Validate and parse page and rowsPerPage
+    const pageNumber = parseInt(page, 10) + 1;
+    const rowsPerPageNumber = parseInt(rowsPerPage, 10);
+    console.log('pageNumber:', pageNumber)
 
 
-   /* for (var i = 0; i < activeScans.length; i++) {
+    if (isNaN(pageNumber) || isNaN(rowsPerPageNumber) || pageNumber < 1 || rowsPerPageNumber < 1) {
+        return res.status(400).json({ success: false, message: "Invalid pagination parameters" });
+    }
 
-        var vulnerabilities = await ActiveScanVulnerability.countDocuments({ activeScan: activeScans[i]._id })
+    const skip = (pageNumber - 1) * rowsPerPageNumber;
+    const limit = rowsPerPageNumber;
 
-        //console.log('vulnerabilities:',vulnerabilities)
+    console.log('skip:',skip)
+    console.log('limit:',limit)
 
-        activeScans[i].vulnerabilities = vulnerabilities;
-    }*/
+    const totalCount = await ActiveScan.aggregate([
+        {
+          $lookup: {
+            from: 'apicollectionversions',
+            localField: 'theCollectionVersion',
+            foreignField: '_id',
+            as: 'collectionVersion'
+          }
+        },
+        { $unwind: '$collectionVersion' },
+        {
+          $lookup: {
+            from: 'apicollections',
+            localField: 'collectionVersion.apiCollection',
+            foreignField: '_id',
+            as: 'apiCollection'
+          }
+        },
+        { $unwind: '$apiCollection' },
+        {
+          $lookup: {
+            from: 'orgprojects',
+            localField: 'apiCollection.orgProject',
+            foreignField: '_id',
+            as: 'orgProject'
+          }
+        },
+        { $unwind: '$orgProject' },
+        {
+          $match: {
+            'orgProject.organization': user.organization._id
+          }
+        },
+        {
+          $count: 'totalCount'
+        }
+      ]).then(result => result[0]?.totalCount || 0);
+
+      
+      const activeScans = await ActiveScan.find()
+      .populate({
+          path: 'theCollectionVersion',
+          populate: {
+              path: 'apiCollection',
+              populate: {
+                  path: 'orgProject',
+                  populate: {
+                      path: 'organization',
+                      match: { _id: organization._id }
+                  }
+              }
+          }
+      })
+      .skip(skip)
+      .limit(limit)
+      .exec();
+
+   
 
     // Return the active scans, currentPage, totalRecords, and totalPages in the response
     res.status(200).json({
         activeScans,
-        currentPage: pageNumber,
-        totalRecords,
-        totalPages,
+        totalCount,
+        
     });
 });
 
@@ -163,7 +204,6 @@ module.exports.fetchAPICollectionVersionScans = asyncHandler(async (req, res) =>
 
     const pageNumber = parseInt(req.query.pageNumber) || 1; // Get the pageNumber from the query parameters (default to 1 if not provided)
     const theCollectionVersionId = req.query.theCollectionVersionId;
-    console.log('theCollectionVersionId:',theCollectionVersionId)
     const pageSize = 10; // Number of active scans per page
 
     //console.log('req.user', req.user)
@@ -192,18 +232,7 @@ module.exports.fetchAPICollectionVersionScans = asyncHandler(async (req, res) =>
     .sort({ createdAt: -1 })
     .skip(skip)
     .limit(pageSize)
-    .lean();
-
-
-
-    for (var i = 0; i < activeScans.length; i++) {
-
-        var vulnerabilities = await ActiveScanVulnerability.find({ activeScan: activeScans[i]._id })
-
-        //console.log('vulnerabilities:',vulnerabilities)
-
-        activeScans[i].vulnerabilities = vulnerabilities;
-    }
+    .lean();  
 
     // Return the active scans, currentPage, totalRecords, and totalPages in the response
     res.status(200).json({
@@ -220,6 +249,29 @@ module.exports.getActiveScanDetails = asyncHandler(async (req, res) => {
 
     const { scanId } = req.body;
 
+    const page = req.params.page ? parseInt(req.params.page, 10) : 1;
+    const rowsPerPage = req.params.rowsPerPage ? parseInt(req.params.rowsPerPage, 10) : 10;
+
+    console.log('page:', page)
+    console.log('rowsPerPage:', rowsPerPage)
+
+    // Validate and parse page and rowsPerPage
+    const pageNumber = parseInt(page, 10) + 1;
+    const rowsPerPageNumber = parseInt(rowsPerPage, 10);
+    console.log('pageNumber:', pageNumber)
+
+
+    if (isNaN(pageNumber) || isNaN(rowsPerPageNumber) || pageNumber < 1 || rowsPerPageNumber < 1) {
+        return res.status(400).json({ success: false, message: "Invalid pagination parameters" });
+    }
+
+    const skip = (pageNumber - 1) * rowsPerPageNumber;
+    const limit = rowsPerPageNumber;
+
+    console.log('skip:',skip)
+    console.log('limit:',limit)
+
+
     const activeScan = await ActiveScan.findById(scanId)
         .populate({
             path: 'user', // Populate user field
@@ -230,9 +282,16 @@ module.exports.getActiveScanDetails = asyncHandler(async (req, res) => {
                 path: 'apiCollection', // Further nested populate: apiCollection field within theCollectionVersion
             }
         })
+       
         .lean();
 
-    const vulnerabilities = await ActiveScanVulnerability.find({ activeScan: scanId }).populate('vulnerability endpoint').lean();
+        
+
+    const vulnerabilities = await ActiveScanVulnerability.find({ activeScan: scanId }).populate('vulnerability endpoint')
+    .skip(skip)
+    .limit(limit).lean();
+
+    const totalCount = await ActiveScanVulnerability.countDocuments({ activeScan: scanId })
 
     activeScan.vulnerabilities = vulnerabilities;
 
@@ -241,7 +300,7 @@ module.exports.getActiveScanDetails = asyncHandler(async (req, res) => {
 
     // Return the scans
     res.status(200);
-    res.json({ activeScan })
+    res.json({ activeScan, totalCount })
 });
 
 

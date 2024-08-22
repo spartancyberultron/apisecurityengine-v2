@@ -476,6 +476,8 @@ const handleCheckboxChange = (event) => {
 
 
   const fetchAPICollectionVersions = async ( pageNumber, collectionId) => {
+
+    setOnLoading(true)
   
     const token = localStorage.getItem('ASIToken');
    
@@ -487,6 +489,8 @@ const handleCheckboxChange = (event) => {
     setApiCollectionVersions(response.data.apiCollectionVersions);
     setApiCollection(response.data.apiCollection);
     setTotalRecords(response.data.totalRecords);
+
+    setOnLoading(false)
   
   };
 
