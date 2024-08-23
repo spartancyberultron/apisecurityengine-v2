@@ -24,7 +24,7 @@ function generateClientSecret() {
 // Controller function to add a new user
 module.exports.addUser = asyncHandler(async (req, res) => {
 
-    const { firstName, lastName, userName, email, phoneNumber, password, organizationName, logoURL } = req.body;
+    const { firstName, lastName, userName, email, phoneNumber, password, organizationName, logoURL,companyURL } = req.body;
 
     const userWithEmail = await User.findOne({ email });
 
@@ -48,6 +48,7 @@ module.exports.addUser = asyncHandler(async (req, res) => {
         name: organizationName,
         primaryUser: user._id,
         logoURL: logoURL,  // Set the logo URL
+        companyURL: companyURL,  // Set the logo URL
     });
     
     // Check if clientId and clientSecret are present
@@ -72,7 +73,7 @@ module.exports.addUser = asyncHandler(async (req, res) => {
 // Controller function to update a user
 module.exports.updateUser = asyncHandler(async (req, res) => {
 
-    const { id, firstName, lastName, email, password, organizationName, logoURL } = req.body;
+    const { id, firstName, lastName, email, password, organizationName, logoURL, companyURL } = req.body;
 
     let user = await User.findById(id);
     if (!user) {
@@ -97,6 +98,7 @@ module.exports.updateUser = asyncHandler(async (req, res) => {
     if (organization) {
         organization.name = organizationName;
         organization.logoURL = logoURL;
+        organization.companyURL = companyURL;
 
         // Check if clientId and clientSecret are present
         if (!organization.clientId || !organization.clientSecret) {

@@ -108,7 +108,7 @@ docker-compose up
 
 
 
-## REST API Scans - Test Cases, Associated CWEs and Respective Test Executing Services
+## REST API Scans - Test Cases, Applicable OWASP Categories and Applicable CWEs
 
 ### 1. Broken Object Level Authorization
 
@@ -519,7 +519,7 @@ The "Lack of Resource and Rate Limiting" vulnerability refers to a situation whe
 
 
 
-## SOAP/GraphQL API Scans - Test Cases, Associated CWEs and Respective Test Executing Services
+## SOAP/GraphQL API Scans - Test Cases, Applicable OWASP Categories and Applicable CWEs
 
 
 | S. No. | Test Cases Category                             | Test Cases Name                                                        | Severity | OWASP TOP 10 API                     | CWE References                                                                                                                                             |

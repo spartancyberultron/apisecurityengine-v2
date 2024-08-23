@@ -35,7 +35,7 @@ const router = express.Router();
 //base route /api/v1/activeScans/
 
 router.get('/getAllActiveScans/:page/:rowsPerPage', protectUser, getAllActiveScans);
-router.get('/fetchAPICollectionVersionScans/:page/:rowsPerPage', protectUser, fetchAPICollectionVersionScans);
+router.get('/fetchAPICollectionVersionScans/:theCollectionVersionId/:page/:rowsPerPage', protectUser, fetchAPICollectionVersionScans);
 
 
 router.post('/getActiveScanDetails/:page/:rowsPerPage', protectUser, getActiveScanDetails);

@@ -167,7 +167,6 @@ module.exports.getAllActiveScans = asyncHandler(async (req, res) => {
         }
       ]).then(result => result[0]?.totalCount || 0);
 
-console.log('break1');      
       const activeScans = await ActiveScan.find()
       .populate({
           path: 'theCollectionVersion',
@@ -187,7 +186,6 @@ console.log('break1');
       .exec();
 
    
-console.log('break2');
 
     // Return the active scans, currentPage, totalRecords, and totalPages in the response
     res.status(200).json({
@@ -202,18 +200,32 @@ console.log('break2');
 // Get all scans of an api collection version
 module.exports.fetchAPICollectionVersionScans = asyncHandler(async (req, res) => {
 
+    const user = await User.findById(req.user._id);  
 
-    const pageNumber = parseInt(req.query.pageNumber) || 1; // Get the pageNumber from the query parameters (default to 1 if not provided)
-    const theCollectionVersionId = req.query.theCollectionVersionId;
-    const pageSize = 10; // Number of active scans per page
 
-    //console.log('req.user', req.user)
+    const theCollectionVersionId = req.params.theCollectionVersionId;
+    const page = req.params.page ? parseInt(req.params.page, 10) : 1;
+    const rowsPerPage = req.params.rowsPerPage ? parseInt(req.params.rowsPerPage, 10) : 10;
 
-    const totalRecords = await ActiveScan.countDocuments({ user: req.user._id });
-    const totalPages = Math.ceil(totalRecords / pageSize);
+    console.log('page:', page)
+    console.log('rowsPerPage:', rowsPerPage)
 
-    // Calculate the skip value based on the pageNumber and pageSize
-    const skip = (pageNumber - 1) * pageSize;
+    // Validate and parse page and rowsPerPage
+    const pageNumber = parseInt(page, 10) + 1;
+    const rowsPerPageNumber = parseInt(rowsPerPage, 10);
+    console.log('pageNumber:', pageNumber)
+
+
+    if (isNaN(pageNumber) || isNaN(rowsPerPageNumber) || pageNumber < 1 || rowsPerPageNumber < 1) {
+        return res.status(400).json({ success: false, message: "Invalid pagination parameters" });
+    }
+
+    const skip = (pageNumber - 1) * rowsPerPageNumber;
+    const limit = rowsPerPageNumber;
+
+    console.log('skip:',skip)
+    console.log('limit:',limit)
+
 
     const activeScans = await ActiveScan.find({ 
         //user: req.user._id, 
@@ -232,15 +244,30 @@ module.exports.fetchAPICollectionVersionScans = asyncHandler(async (req, res) =>
     })
     .sort({ createdAt: -1 })
     .skip(skip)
-    .limit(pageSize)
+    .limit(limit)
     .lean();  
+
+
+    const totalCount = await ActiveScan.countDocuments({ 
+        theCollectionVersion: theCollectionVersionId // Filter by theCollectionVersionId
+    })
+    .populate({
+        path: 'theCollectionVersion',
+        populate: {
+            path: 'apiCollection',
+            model: 'APICollection',
+            populate: {
+                path: 'orgProject',
+                model: 'OrgProject' 
+            }
+        }
+    })
+     
 
     // Return the active scans, currentPage, totalRecords, and totalPages in the response
     res.status(200).json({
         activeScans,
-        currentPage: pageNumber,
-        totalRecords,
-        totalPages,
+        totalCount        
     });
 });
 
@@ -285,27 +312,23 @@ module.exports.getActiveScanDetails = asyncHandler(async (req, res) => {
         })
        
         .lean();
-console.log('break1');
         
 
     const vulnerabilities = await ActiveScanVulnerability.find({ activeScan: scanId }).populate('vulnerability endpoint')
     .skip(skip)
     .limit(limit).lean();
 
-	console.log('break2');
 
 
     const totalCount = await ActiveScanVulnerability.countDocuments({ activeScan: scanId })
 
     activeScan.vulnerabilities = vulnerabilities;
 
-	console.log('break3');
 
 
     const endpointsCount = await ApiEndpoint.count({ theCollection: activeScan.theCollection })
     activeScan.endpointsCount = endpointsCount;
 
-	console.log('break4');
 
 
     // Return the scans

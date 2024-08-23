@@ -150,7 +150,7 @@ const AdminAllUsers = () => {
 
       } else {
 
-      toast('User deleted', {
+      toast('Organization deleted', {
         position: "top-right",
         autoClose: 5000,
         hideProgressBar: false,
@@ -182,9 +182,9 @@ const AdminAllUsers = () => {
   const columns = [
     '',
     "Organization",
-    "First Name",
-    "Last Name",
+    "Primary Contact Name",
     "Email",    
+    "Company URL",    
     {
       label: "ACTIONS",
       options: {
@@ -300,9 +300,9 @@ const AdminAllUsers = () => {
 
     dataItem.push(i+1);
     dataItem.push(users[i].organization?users[i].organization.name:'---');
-    dataItem.push(users[i].firstName);
-    dataItem.push(users[i].lastName);
+    dataItem.push(users[i].firstName + ' ' + users[i].lastName);
     dataItem.push(users[i].email);   
+    dataItem.push(users[i].organization?users[i].organization.companyURL:'---');   
 
     dataItem.push(users[i]._id); // for edit
     dataItem.push(users[i]._id); // for delete
@@ -332,7 +332,7 @@ const AdminAllUsers = () => {
 
       <div style={{ marginBottom: '2rem', display: 'flex', flexDirection: 'row', justifyContent: 'space-between' }}>
 
-            <h2>All Users</h2>
+            <h2>Organizations</h2>
 
             <CButton
               style={{
@@ -354,7 +354,7 @@ const AdminAllUsers = () => {
               
               <BsPlusCircleFill size={25} style={{ color: '#ffffff', marginRight: 10 }} />
 
-              <span style={{marginLeft:10, fontSize:20, color:'#fff'}}>ADD USER</span>
+              <span style={{marginLeft:10, fontSize:20, color:'#fff'}}>Add New Organization</span>
             </CButton>    
 
           </div>

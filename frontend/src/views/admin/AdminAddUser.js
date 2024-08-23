@@ -15,6 +15,8 @@ const AdminAddUser = () => {
   const [password, setPassword] = useState('');
   const [organizationName, setOrganizationName] = useState('');
   const [logoURL, setLogoURL] = useState('');
+  const [companyURL, setCompanyURL] = useState('');
+
 
   const [firstNameEmpty, setFirstNameEmpty] = useState(false);
   const [lastNameEmpty, setLastNameEmpty] = useState(false);
@@ -80,6 +82,7 @@ const AdminAddUser = () => {
         password,
         organizationName,
         logoURL,
+        companyURL
       };
 
       const bearerToken = localStorage.getItem('ASIToken');
@@ -106,7 +109,7 @@ const AdminAddUser = () => {
           });
 
         } else {
-          toast('User added', {
+          toast('Organization added', {
             position: "top-right",
             autoClose: 5000,
             hideProgressBar: false,
@@ -141,27 +144,27 @@ const AdminAddUser = () => {
     <div style={{ overflow: "scroll", position: 'relative', overflowY: 'hidden' }}>
       <div>
         <div style={{ marginBottom: '2rem' }}>
-          <h2>Adding User</h2>
+          <h2>Adding Organization</h2>
         </div>
 
         <CInputGroup className="mb-3 mt-3" style={{ flexDirection: 'column', marginTop: 30 }}>
           <CFormInput
             className="blackText"
-            placeholder="First Name"
+            placeholder="Primary contact's First Name"
             onChange={(e) => setFirstName(e.target.value)}
             style={{ width: '30%' }}
           />
-          {firstNameEmpty && <span style={{ color: 'red', fontSize: 12, marginTop: 5 }}>Please enter first name</span>}
+          {firstNameEmpty && <span style={{ color: 'red', fontSize: 12, marginTop: 5 }}>Please enter primary contact's first name</span>}
         </CInputGroup>
 
         <CInputGroup className="mb-3 mt-3" style={{ flexDirection: 'column', marginTop: 30 }}>
           <CFormInput
             className="blackText"
-            placeholder="Last Name"
+            placeholder="Primary contact's Last Name"
             onChange={(e) => setLastName(e.target.value)}
             style={{ width: '30%' }}
           />
-          {lastNameEmpty && <span style={{ color: 'red', fontSize: 12, marginTop: 5 }}>Please enter last name</span>}
+          {lastNameEmpty && <span style={{ color: 'red', fontSize: 12, marginTop: 5 }}>Please enter primary contact's last name</span>}
         </CInputGroup>
 
         <CInputGroup className="mb-3 mt-3" style={{ flexDirection: 'column', marginTop: 30 }}>
@@ -202,6 +205,16 @@ const AdminAddUser = () => {
         <CInputGroup className="mb-3 mt-3" style={{ flexDirection: 'column', marginTop: 30 }}>
           <CFormInput
             className="blackText"
+            placeholder="Company Website URL"
+            onChange={(e) => setCompanyURL(e.target.value)}
+            style={{ width: '30%' }}
+          />
+        </CInputGroup>
+
+
+        <CInputGroup className="mb-3 mt-3" style={{ flexDirection: 'column', marginTop: 30 }}>
+          <CFormInput
+            className="blackText"
             placeholder="Logo URL"
             onChange={(e) => setLogoURL(e.target.value)}
             style={{ width: '30%' }}
@@ -217,7 +230,7 @@ const AdminAddUser = () => {
           className="px-3"
           onClick={addUser}
         >
-          {onSubmitting ? <CircularProgress color="primary" size={24} style={{ marginTop: 10, color: '#fff' }} /> : 'SAVE USER'}
+          {onSubmitting ? <CircularProgress color="primary" size={24} style={{ marginTop: 10, color: '#fff' }} /> : 'Save Organization'}
         </CButton>
       </div>
     </div>

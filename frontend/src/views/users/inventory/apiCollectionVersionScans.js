@@ -40,6 +40,10 @@ const APICollectionVersionScans = () => {
   const [collectionId, setCollectionId] = React.useState('');
 
 
+  const [page, setPage] = useState(0);
+  const [count, setCount] = useState(0);
+  const [rowsPerPage, setRowsPerPage] = useState(10);
+
   const [itemOffset, setItemOffset] = useState(0);
 
   const customStyles = {
@@ -56,26 +60,6 @@ const APICollectionVersionScans = () => {
     },
   };
 
-  const itemsPerPage = 10;
-
-  // Invoke when user click to request another page.
-  const handlePageClick = (event) => {
-
-    var requestedPage = event.selected + 1;
-
-    //console.log('requestedPage', requestedPage)
-
-   // fetchActiveScans(true, requestedPage);
-    loadData(true, collectionVersionId, requestedPage);
-    
-
-    const newOffset = (event.selected * itemsPerPage) % totalRecords;
-    //console.log(
-    //  `User requested page number ${event.selected}, which is offset ${newOffset}`
-    //);
-    setItemOffset(newOffset);
-
-  };
 
   useEffect(() => {
 
@@ -83,17 +67,26 @@ const APICollectionVersionScans = () => {
 
     setOnLoading(true);
 
-    var arr = location.search.split('=');
+    // Get the query string from the URL
+var queryString = location.search;
 
-    var theCollectionVersionId = arr[1];
-    var theCollectionId = arr[2];
+// Create a URLSearchParams object to parse the query string
+var params = new URLSearchParams(queryString);
 
-    setCollectionVersionId(theCollectionVersionId);
-    setCollectionId(theCollectionId);
+// Extract the values for versionId and collectionId
+var theCollectionVersionId = params.get('versionId');
+var theCollectionId = params.get('collectionId');
 
-    loadData(true, theCollectionVersionId, 1);
+// Set the values
+setCollectionVersionId(theCollectionVersionId);
+setCollectionId(theCollectionId);
+
+
+    loadData(true, theCollectionVersionId, 0, rowsPerPage);
 
   }, []);
+
+  
 
 
   // Function to handle the button click and show the confirm dialog
@@ -207,7 +200,7 @@ const APICollectionVersionScans = () => {
   const isFirstTime = useRef(true);
 
 
-  const loadData = async (isFirstTime, theCollectionVersionId, pageNumber) => {
+  const loadData = async (isFirstTime, theCollectionVersionId, page, rowsPerPage) => {
 
     if(theCollectionVersionId){
 
@@ -217,13 +210,12 @@ const APICollectionVersionScans = () => {
     
   
     const token = localStorage.getItem('ASIToken');
-    const response = await axios.get(`/api/v1/activeScans/fetchAPICollectionVersionScans?theCollectionVersionId=${theCollectionVersionId}&pageNumber=${pageNumber}`, {
+    const response = await axios.get(`/api/v1/activeScans/fetchAPICollectionVersionScans/${theCollectionVersionId}/${page}/${rowsPerPage}`, {
       headers: { Authorization: `Bearer ${token}` },
     });
   
-    setActiveScans(response.data.activeScans);
-    setCurrentPage(response.data.currentPage);
-    setTotalRecords(response.data.totalRecords);
+    setActiveScans(response.data.activeScans);    
+    setCount(response.data.totalCount)
   
     setOnLoading(false);
   }
@@ -236,14 +228,14 @@ const APICollectionVersionScans = () => {
     const interval = setInterval(() => {
 
      // fetchActiveScans(false, currentPage);
-      loadData(true, collectionVersionId, 1);
+      loadData(true, collectionVersionId, 0, rowsPerPage);
 
     }, 30000);
     
 
     // Make the initial call immediately
    // fetchActiveScans(true, currentPage);
-    loadData(true, collectionVersionId, currentPage);
+    loadData(true, collectionVersionId, page, rowsPerPage);
     isFirstTime.current = false;
 
     // Clean up the interval on component unmount
@@ -507,12 +499,23 @@ const APICollectionVersionScans = () => {
     searchOpen: true,
     viewColumns: true,
     selectableRows: false, // <===== will turn off checkboxes in rows
-    rowsPerPage: 20,
-    rowsPerPageOptions: [],
-    pagination: false,
+    rowsPerPageOptions: [10, 20, 60, 100, 150],
+    pagination: true,
     textLabels: {
       body: {
         noMatch: 'No scans created yet',
+      }
+    },
+    serverSide: true,
+    count: count,
+    page: page,
+    rowsPerPage: rowsPerPage,
+    onTableChange: (action, tableState) => {
+      if (action === 'changePage' || action === 'changeRowsPerPage') {
+        const { page, rowsPerPage } = tableState;
+        setPage(page);
+        setRowsPerPage(rowsPerPage);
+        loadData(true, collectionVersionId, page, rowsPerPage);
       }
     }
   };
@@ -653,16 +656,7 @@ const APICollectionVersionScans = () => {
               </ThemeProvider>
 
 
-              <ReactPaginate
-                breakLabel="..."
-                nextLabel=">"
-                onPageChange={handlePageClick}
-                pageRangeDisplayed={10}
-                pageCount={totalRecords / 10}
-                previousLabel="<"
-                forcePage={currentPage - 1}
-                renderOnZeroPageCount={null}
-              />
+             
             </>
           }
 

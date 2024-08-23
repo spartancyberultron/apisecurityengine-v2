@@ -105,74 +105,43 @@ async function getVulnSeverityAndPriority(vulnId) {
 
 // Get all attack surface scans 
 module.exports.getAllAttackSurfaceScans = asyncHandler(async (req, res) => {
+    
+    const user = await User.findById(req.user._id, 'organization');
+    const organization = user.organization;
 
-  /*  const pageNumber = parseInt(req.query.pageNumber) || 1; // Get the pageNumber from the query parameters (default to 1 if not provided)
-    const pageSize = 10; // Number of attack surface scans per page
+    const page = parseInt(req.params.page, 10) || 1;
+    const rowsPerPage = parseInt(req.params.rowsPerPage, 10) || 10;
 
-    const totalRecords = await AttackSurfaceScan.countDocuments({ user: req.user._id });
-    const totalPages = Math.ceil(totalRecords / pageSize);
-
-    // Calculate the skip value based on the pageNumber and pageSize
-    const skip = (pageNumber - 1) * pageSize;
-    */
-
-    const user = await User.findById(req.user._id);
-    const organization = await Organization.findById(user.organization);
-
-    const page = req.params.page ? parseInt(req.params.page, 10) : 1;
-    const rowsPerPage = req.params.rowsPerPage ? parseInt(req.params.rowsPerPage, 10) : 10;
-
-    console.log('page:', page)
-    console.log('rowsPerPage:', rowsPerPage)
-
-    // Validate and parse page and rowsPerPage
-    const pageNumber = parseInt(page, 10) + 1;
-    const rowsPerPageNumber = parseInt(rowsPerPage, 10);
-    console.log('pageNumber:', pageNumber)
-
-
-    if (isNaN(pageNumber) || isNaN(rowsPerPageNumber) || pageNumber < 1 || rowsPerPageNumber < 1) {
+    if (isNaN(page) || isNaN(rowsPerPage) || page < 1 || rowsPerPage < 1) {
         return res.status(400).json({ success: false, message: "Invalid pagination parameters" });
     }
 
-    const skip = (pageNumber - 1) * rowsPerPageNumber;
-    const limit = rowsPerPageNumber;
+    const skip = (page - 1) * rowsPerPage;
 
-    console.log('skip:',skip)
-    console.log('limit:',limit)
+    const [attackSurfaceScans, totalCount] = await Promise.all([
+        AttackSurfaceScan.find()
+            .populate({
+                path: 'orgProject',
+                match: { organization },
+                // Include all fields from orgProject, or specify the ones you need
+                select: '-__v'
+            })
+            .sort({ createdAt: -1 })
+            .skip(skip)
+            .limit(rowsPerPage)
+            .lean(),
+        AttackSurfaceScan.countDocuments()
+            .populate({
+                path: 'orgProject',
+                match: { organization }
+            })
+    ]);
 
+    const filteredScans = attackSurfaceScans.filter(scan => scan.orgProject);
 
-
-    const attackSurfaceScans = await AttackSurfaceScan.find()
-    .populate({
-        path: 'orgProject',
-        match: { organization: organization._id } // Filter by organization
-    })
-    .sort({ createdAt: -1 })
-    .skip(skip)
-    .limit(limit)
-    .lean()
-    .exec();
-
-    const totalCount = await AttackSurfaceScan.countDocuments()
-    .populate({
-        path: 'orgProject',
-        match: { organization: organization._id } // Filter by organization
-    })    
-    .exec();
-
-// Filter out any AttackSurfaceScan where the orgProject does not match the organization
-const filteredScans = attackSurfaceScans.filter(scan => scan.orgProject != null);
-
-
-
-    // Return the sttack surface scans, currentPage, totalRecords, and totalPages in the response
     res.status(200).json({
-        attackSurfaceScans:filteredScans,
+        attackSurfaceScans: filteredScans,
         totalCount
-      //  currentPage: pageNumber,
-        //totalRecords,
-        //totalPages,
     });
 });
 
@@ -291,7 +260,6 @@ module.exports.startAttackSurfaceScan = asyncHandler(async (req, res) => {
 
     const attackSurfaceScan = new AttackSurfaceScan;
     attackSurfaceScan.user = req.user._id;
-    attackSurfaceScan.projectName = '';
     attackSurfaceScan.orgProject = projectId;
     attackSurfaceScan.domain = domain;
     attackSurfaceScan.status = 'in progress';
@@ -704,17 +672,14 @@ async function runAttackSurfaceScan(user, theAttackSurfaceScan, theEndpoints) {
             }
 
 
+            theAttackSurfaceScan.vulnCount = theVulns.length;
+            await theAttackSurfaceScan.save();
 
         } catch (error) {
 
             console.log('error:', error)
             console.log('execption occured in check for SSL issues')
-        }
-       
-        
-
-
-        
+        }        
        
 
 
@@ -774,6 +739,10 @@ async function runAttackSurfaceScan(user, theAttackSurfaceScan, theEndpoints) {
                     theEndpoints[i].save();
                 }
             }
+
+            theAttackSurfaceScan.vulnCount = theVulns.length;
+            await theAttackSurfaceScan.save();
+
         } catch (error) {
             console.log('execption occured in check for SENSITIVE DATA IN PATH PARAMS')
         }       
@@ -828,6 +797,9 @@ async function runAttackSurfaceScan(user, theAttackSurfaceScan, theEndpoints) {
                     }
                 }
             }
+
+            theAttackSurfaceScan.vulnCount = theVulns.length;
+            await theAttackSurfaceScan.save();
         } catch (error) {
             console.log('Exception occurred in check for HTTP VERB TAMPERING POSSIBLE:', error);
             // Handle the error condition here, log the error, and continue or take appropriate actions.
@@ -947,6 +919,9 @@ async function runAttackSurfaceScan(user, theAttackSurfaceScan, theEndpoints) {
 
         }             
 
+
+        theAttackSurfaceScan.vulnCount = theVulns.length;
+        await theAttackSurfaceScan.save();
 
         } catch (error) {
 

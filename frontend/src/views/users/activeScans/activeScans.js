@@ -462,7 +462,6 @@ const QuickScans = () => {
     searchOpen: true,
     viewColumns: true,
     selectableRows: false, // <===== will turn off checkboxes in rows
-    rowsPerPage: 20,
     rowsPerPageOptions: [10, 20, 60, 100, 150],
     pagination: true,
     textLabels: {

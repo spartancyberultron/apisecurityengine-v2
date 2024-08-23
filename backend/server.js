@@ -49,11 +49,19 @@ app.use(express.json());
 
 app.use(limiter)
 
+/*
 app.use(cors({
   origin: 'https://appnew.apisecurityengine.com',
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization']
 }));
+*/
+
+app.use(cors({
+	origin: ['https://appnew.apisecurityengine.com', 'http://localhost:3000', 'https://reports.apisecurityengine.com/'], 
+	methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+	allowedHeaders: ['Content-Type', 'Authorization']
+  }));
 
 //app.use(cors());
 //app.options('*', cors());
