@@ -49,8 +49,7 @@ app.use(express.json());
 
 app.use(limiter)
 
-/*
-app.use(cors({
+/*app.use(cors({
   origin: 'https://appnew.apisecurityengine.com',
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization']
