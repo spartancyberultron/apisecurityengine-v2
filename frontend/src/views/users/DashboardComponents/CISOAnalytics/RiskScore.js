@@ -123,7 +123,7 @@ const RiskScore = () => {
                             <div style={{ flex: 1, minWidth: 0, marginTop: 10, width:'100%' }}>
 
 
-{riskScore && riskScore>0?
+{riskScore && riskScore>0 && riskScore !== 99999 ?
                             <GaugeChart id="gauge-chart3"
                         nrOfLevels={3}
                         colors={['#28c76f','#fd7e14', '#ea5455', ]}
@@ -142,7 +142,7 @@ const RiskScore = () => {
 }
                             </div>
 
-                            {riskScore && riskScore>0 &&
+                            {riskScore && riskScore>0 && riskScore !== 99999 && 
 
                                 <span style={{fontSize:30}}>{riskScore}%</span>
                             }

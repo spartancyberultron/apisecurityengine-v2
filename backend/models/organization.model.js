@@ -55,11 +55,11 @@ const organizationSchema = mongoose.Schema({
   },
   topEndpoints: {
     type: mongoose.Schema.Types.Mixed, 
-    default: {} 
+    default: []
   },
   vulnerabilityTrends: {
     type: mongoose.Schema.Types.Mixed, 
-    default: {} 
+    default: [] 
   },
   
   severityDistribution: {
@@ -108,7 +108,15 @@ const organizationSchema = mongoose.Schema({
   },
   dashboardCardData:{
     type: mongoose.Schema.Types.Mixed, 
-    default: {} 
+    default: {
+      collectionsCount: 0,
+      endPointsCount: 0,
+      agentsCount: 0,
+      vulnerabilitiesCount: 0,
+      alertsCount: 0,
+      piiDataFieldsCount: 0,
+      falsePositivesCount: 0
+  } 
   },
 }, {
   timestamps: true,

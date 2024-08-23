@@ -142,7 +142,7 @@ const ComplianceStatus = () => {
                             <div style={{ flex: 1, minWidth: 0, marginTop: 10 }}>
 
 
-{threatAlerts && threatAlerts.categories.length>0 ?
+{threatAlerts && threatAlerts.categories && threatAlerts.categories.length>0 ?
                                 <table style={{width:'100%'}}>
 
                                     <thead>

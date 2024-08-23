@@ -38,13 +38,13 @@ This will generate a build folder. Set the docroot of your frontend domain to th
 
 Install the required helper tools. You can find instructions on the below links:-  
   
-
+`
 https://github.com/projectdiscovery/katana
 https://github.com/devops-kung-fu/bomber
 https://hub.docker.com/r/zaproxy/zap-stable
 https://github.com/nabla-c0d3/sslyze
 https://github.com/koenbuyens/securityheaders  
-  
+`
 
 Note- The process of setting up the frontend doc root and the reverse proxy for the backend, will vary as per the environment/platform you are using.
 

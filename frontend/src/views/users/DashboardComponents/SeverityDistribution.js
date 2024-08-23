@@ -160,6 +160,8 @@ console.log('severityDistribution:',severityDistribution)
                 <>
 
                   {severityDistribution.hasOwnProperty('CRITICAL') && severityChartSeries && severityChartSeries.length>0
+                  && (severityDistribution.CRITICAL>0 && severityDistribution.HIGH>0 && severityDistribution.MEDIUM>0
+                     && severityDistribution.LOW>0  )
                   
                     ?
 

@@ -1064,9 +1064,11 @@ module.exports.getMonthlyVulnerabilityTrends = asyncHandler(async (req, res) => 
 
     const user = await User.findById(req.user._id);
     const organization = await Organization.findById(user.organization);
+
+    console.log('organization:',organization)
     
     
-    res.status(200).json({ activeScansByMonth:organization.vulnerabilityTrends });
+    res.status(200).json({ activeScansByMonth:organization.vulnerabilityTrends});
 });
 
 

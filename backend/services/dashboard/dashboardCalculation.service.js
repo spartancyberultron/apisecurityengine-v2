@@ -29,6 +29,7 @@ const Ticket = require("../../models/ticket.model");
 
 async function calculateDashboard(organization) {
 
+
     /*** Calculate dashboard data of all organizations **/
 
     // const orgs = await Organization.find({});
@@ -114,6 +115,8 @@ const countVulnerabilitiesBySeverity = (vulnerabilities) => {
 };
 
 async function calculateSeverityDistribution(organization) {
+
+    console.log('LN:',organization)
    // console.log('Starting severity distribution calculation...');
 
     // Initialize counters for each severity level
@@ -145,20 +148,26 @@ async function calculateSeverityDistribution(organization) {
     }
 
     // Process ActiveScanVulnerabilities
-    const activeScans = await ActiveScan.find({})
-        .populate({
-            path: 'theCollectionVersion',
+    const activeScans = await ActiveScan.find({
+        'theCollectionVersion.apiCollection.orgProject.organization': organization._id
+    })
+    .populate({
+        path: 'theCollectionVersion',
+        populate: {
+            path: 'apiCollection',
             populate: {
-                path: 'apiCollection',
+                path: 'orgProject',
                 populate: {
-                    path: 'orgProject',
-                    match: { organization: organization._id } // Filter by organization ID
+                    path: 'organization'
                 }
             }
-        })
-        .lean();
+        }
+    })
+    .lean();
 
     const activeScanIds = activeScans.map(scan => scan._id);
+
+    console.log('activeScanIds:',activeScanIds)
 
     const activeScanVulnerabilities = await ActiveScanVulnerability.find({ activeScan: { $in: activeScanIds } })
         .populate({
@@ -173,16 +182,24 @@ async function calculateSeverityDistribution(organization) {
 
     // Process ProjectVulnerabilities
     const projectVulnerabilities = await ProjectVulnerability.find({})
-        .populate({
-            path: 'project',
+    .populate({
+        path: 'project',
+        populate: {
+            path: 'orgProject',
             populate: {
-                path: 'orgProject',
-                match: { organization: organization._id }
+                path: 'organization'
             }
-        })
-        .lean();
+        }
+    })
+    .lean();
 
-    projectVulnerabilities.forEach(vuln => {
+// Filter out the ones that match the organization ID
+const filteredProjectVulnerabilities = projectVulnerabilities.filter(vulnerability => {
+    const orgProject = vulnerability.project.orgProject;
+    return orgProject && orgProject.organization._id.toString() === organization._id.toString();
+});
+
+filteredProjectVulnerabilities.forEach(vuln => {
         if (vuln.project?.orgProject?.organization.toString() === organization._id.toString()) {
             incrementSeverityCount(vuln.severity);
         }
@@ -190,31 +207,47 @@ async function calculateSeverityDistribution(organization) {
 
     // Process SOAPOrGraphQLScanVulnerabilities
     const soapOrGraphQLScanVulnerabilities = await SOAPOrGraphQLScanVulnerability.find({})
-        .populate({
-            path: 'soapOrGraphQLScan',
+    .populate({
+        path: 'soapOrGraphQLScan',
+        populate: {
+            path: 'orgProject',
             populate: {
-                path: 'orgProject',
-                match: { organization: organization._id }
+                path: 'organization'
             }
-        })
-        .lean();
+        }
+    })
+    .lean();
 
-    soapOrGraphQLScanVulnerabilities.forEach(vuln => {
+// Filter out the ones that match the organization ID
+const filteredVulnerabilities = soapOrGraphQLScanVulnerabilities.filter(vulnerability => {
+    const orgProject = vulnerability.soapOrGraphQLScan.orgProject;
+    return orgProject && orgProject.organization._id.toString() === organization._id.toString();
+});
+
+filteredVulnerabilities.forEach(vuln => {
         incrementSeverityCount(vuln.severity);
     });
 
     // Process SBOMScanVulnerabilities
     const sbomScanVulnerabilities = await SBOMScanVulnerability.find({})
-        .populate({
-            path: 'sbomScan',
+    .populate({
+        path: 'sbomScan',
+        populate: {
+            path: 'orgProject',
             populate: {
-                path: 'orgProject',
-                match: { organization: organization._id }
+                path: 'organization'
             }
-        })
-        .lean();
+        }
+    })
+    .lean();
 
-    sbomScanVulnerabilities.forEach(vuln => {
+// Filter out the ones that match the organization ID
+const filteredSbomScanVulnerabilities = sbomScanVulnerabilities.filter(vulnerability => {
+    const orgProject = vulnerability.sbomScan?.orgProject;
+    return orgProject && orgProject.organization._id.toString() === organization._id.toString();
+});
+
+filteredSbomScanVulnerabilities.forEach(vuln => {
         incrementSeverityCount(vuln.severity);
     });
 
@@ -534,8 +567,12 @@ async function calculateTopEndpoints(organization) {
 
 
         if (apiEndpoints && apiEndpoints.length > 0) {
-            topEndpoints = apiEndpoints.map(endpoint => endpoint);
+            //topEndpoints = apiEndpoints.map(endpoint => endpoint);
+            topEndpoints = apiEndpoints.filter(endpoint => endpoint.vulnCount > 0);
+
         }
+
+     
 
 
         const org1 = await Organization.findById(organization._id);
@@ -745,16 +782,21 @@ async function calculateTimeToResolveVulnerabilities(organization) {
         }
     ]);
 
-    if (averageResolutionTimeMs.length === 0) {
-        return res.status(200).json({
+    let averageResolutionTimeMinutes;
+
+    if (averageResolutionTimeMs.length > 0) {
+       /* return res.status(200).json({
             success: true,
             averageResolutionTime: 0,
             unit: 'minutes'
         });
-    }
+        */
+       
+    
 
     // Convert milliseconds to minutes
-    const averageResolutionTimeMinutes = averageResolutionTimeMs[0].averageTime / (1000 * 60);
+     averageResolutionTimeMinutes = averageResolutionTimeMs[0].averageTime / (1000 * 60);
+    }
 
        
     const org1 = await Organization.findById(organization._id);
@@ -774,6 +816,8 @@ async function calculateComplianceStatus(organization) {
 
 
 async function calculateSSDLCScore(organization) {
+
+    console.log('guys1')
 
    var organizationId = organization._id;
 
@@ -814,6 +858,9 @@ async function calculateSSDLCScore(organization) {
     }
   });
 
+  console.log('activeScanVulnerabilities:',activeScanVulnerabilities)
+
+
 // Filter based on the organizationId
 const filteredVulnerabilities = activeScanVulnerabilities.filter(vulnerability => {
   const activeScan = vulnerability.activeScan;
@@ -827,6 +874,7 @@ const filteredVulnerabilities = activeScanVulnerabilities.filter(vulnerability =
   return false;
 });
 
+console.log('guys2')
 
 filteredVulnerabilities.forEach(vuln => {
 
@@ -850,6 +898,7 @@ filteredVulnerabilities.forEach(vuln => {
 
   // Fetch SOAPOrGraphQLScanVulnerabilities and count by projectPhase
  
+  console.log('guys3')
 
     const soapOrGraphQLScanVulnerabilities = await SOAPOrGraphQLScanVulnerability.find({})
       .populate({
@@ -873,6 +922,7 @@ filteredVulnerabilities.forEach(vuln => {
     });
 
 
+    console.log('guys4')
 
     filteredVulnerabilities1.forEach(vuln => {
 
@@ -888,7 +938,7 @@ filteredVulnerabilities.forEach(vuln => {
 
   // Fetch SBOMScanVulnerabilities and count by projectPhase
  
-
+  console.log('guys5')
     const sbomScanVulnerabilities = await SBOMScanVulnerability.find({})
     .populate({
       path: 'sbomScan',  // Populate sbomScan field
@@ -910,8 +960,11 @@ filteredVulnerabilities.forEach(vuln => {
     return false;
   });
 
+  console.log('filteredVulnerabilities2:',filteredVulnerabilities2)
 
-  sbomScanVulnerabilities.forEach(vuln => {
+  console.log('guys6')
+
+  filteredVulnerabilities2.forEach(vuln => {
     const phase = vuln.sbomScan?.projectPhase; // Use 'Development' if projectPhase is not present
     if (projectPhases.includes(phase)) {
       counts.SBOMScanVulnerability[phase]++;
@@ -1986,14 +2039,14 @@ async function calculateDashboardCardData(organization) {
     // Step 2: Get the IDs of these OrgProjects
     const orgProjectIds = orgProjects.map(project => project._id);
 
+    console.log('orgProjectIds:',orgProjectIds)
+
     const dashboardData = {};
 
     //const collectionsCount = await APICollection.countDocuments({user:user._id})
     const collectionsCount = await APICollection.countDocuments({
         orgProject: { $in: orgProjectIds }
     });
-
-
 
 
     //const endpointsCount = await ApiEndpoint.countDocuments({user:user._id})
@@ -2029,85 +2082,32 @@ async function calculateDashboardCardData(organization) {
     //const agentsCount = await Project.countDocuments({user:user._id})
     const agentsCount = await Project.countDocuments({
         orgProject: { $in: orgProjectIds }
-    });
+    });   
 
 
-    //const collectionsPromise = APICollection.find({ user: user._id }).select('_id').lean().exec();
-
-   /* const collectionsPromise = OrgProject.aggregate([
-        { $match: { organization: organization } },
-        {
-            $lookup: {
-                from: 'apicollections',  // Adjust if your collection name is different
-                localField: '_id',
-                foreignField: 'orgProject',
-                as: 'collections'
-            }
-        },
-        { $unwind: '$collections' },
-        {
-            $replaceRoot: { newRoot: '$collections' }
-        },
-        {
-            $project: { _id: 1 }
-        }
-    ]).exec();
-    */
-
-    //const activeScansPromise = ActiveScan.find({ user: user._id }).select('_id').lean().exec();
-    const activeScansPromise = OrgProject.aggregate([
-        { $match: { organization: organization } },
-        {
-            $lookup: {
-                from: 'apicollections',  // Adjust if your collection name is different
-                localField: '_id',
-                foreignField: 'orgProject',
-                as: 'collections'
-            }
-        },
-        { $unwind: '$collections' },
-        {
-            $lookup: {
-                from: 'apicollectionversions',  // Adjust if your collection name is different
-                localField: 'collections._id',
-                foreignField: 'apiCollection',
-                as: 'versions'
-            }
-        },
-        { $unwind: '$versions' },
-        {
-            $lookup: {
-                from: 'activescans',  // Adjust if your collection name is different
-                localField: 'versions._id',
-                foreignField: 'theCollectionVersion',
-                as: 'scans'
-            }
-        },
-        { $unwind: '$scans' },
-        {
-            $replaceRoot: { newRoot: '$scans' }
-        },
-        {
-            $project: { _id: 1 }
-        }
-    ]).exec();
-
-    //const [ activeScans] = await Promise.all([activeScansPromise]);
-
-    const activeScans = await ActiveScan.find({})
-  .populate({
-    path: 'theCollectionVersion',
-    populate: {
-      path: 'apiCollection',
+    const activeScans1 = await ActiveScan.find({})
+    .populate({
+      path: 'theCollectionVersion',
       populate: {
-        path: 'orgProject',
-        match: { organization: organization._id } // Filter by organization ID
+        path: 'apiCollection',
+        populate: {
+          path: 'orgProject',
+          populate: {
+            path: 'organization'
+          }
+        }
       }
-    }
-  })
-  .lean(); // Use lean() to get plain JavaScript objects
+    })
+    .lean(); // Use lean() to get plain JavaScript objects
+  
+  // Filter the results based on the organization ID
+  const activeScans = activeScans1.filter(scan => {
+    const organization = scan.theCollectionVersion?.apiCollection?.orgProject?.organization;
+    return organization && organization._id.toString() === organization._id;
+  });
+  
+  console.log('nna:activeScans',activeScans)
 
-  //  console.log('activeScans:',activeScans)
 
     const collectionVersionIds = await APICollectionVersion.find(
         { apiCollection: { $in: apiCollections.map(collection => collection._id) } }
@@ -2117,7 +2117,6 @@ async function calculateDashboardCardData(organization) {
         .then(versions => versions.map(v => v._id));
 
 
-  //  console.log('collectionVersionIds:',collectionVersionIds)    
 
     const endpointsArray = await ApiEndpoint.find({
         theCollectionVersion: { $in: collectionVersionIds }

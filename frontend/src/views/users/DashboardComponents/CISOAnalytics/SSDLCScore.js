@@ -207,7 +207,28 @@ console.log('ssdlcScore:',ssdlcScore)
 
 <>
 
-{ssdlcScore.ActiveScanVulnerability  ?
+{ssdlcScore.ActiveScanVulnerability  
+
+&&
+  (  ssdlcScore.ActiveScanVulnerability && ssdlcScore.ActiveScanVulnerability.Development > 0 &&
+    ssdlcScore.ActiveScanVulnerability && ssdlcScore.ActiveScanVulnerability.Design> 0 &&
+    ssdlcScore.ActiveScanVulnerability && ssdlcScore.ActiveScanVulnerability.Testing>0 &&
+    ssdlcScore.ActiveScanVulnerability && ssdlcScore.ActiveScanVulnerability.Maintenance>0 && 
+    ssdlcScore.SOAPOrGraphQLScanVulnerability && ssdlcScore.SOAPOrGraphQLScanVulnerability.Development>0 &&
+    ssdlcScore.SOAPOrGraphQLScanVulnerability && ssdlcScore.SOAPOrGraphQLScanVulnerability.Design>0 &&
+    ssdlcScore.SOAPOrGraphQLScanVulnerability && ssdlcScore.SOAPOrGraphQLScanVulnerability.Testing>0 &&
+    ssdlcScore.SOAPOrGraphQLScanVulnerability && ssdlcScore.SOAPOrGraphQLScanVulnerability.Maintenance>0 &&
+    ssdlcScore.SBOMScanVulnerability && ssdlcScore.SBOMScanVulnerability.Development>0 &&
+    ssdlcScore.SBOMScanVulnerability && ssdlcScore.SBOMScanVulnerability.Design>0 &&
+    ssdlcScore.SBOMScanVulnerability && ssdlcScore.SBOMScanVulnerability.Testing>0 &&
+    ssdlcScore.SBOMScanVulnerability && ssdlcScore.SBOMScanVulnerability.Maintenance>0 &&
+    ssdlcScore.LLMScan && ssdlcScore.LLMScan.Development>0 &&
+    ssdlcScore.LLMScan && ssdlcScore.LLMScan.Design>0 &&
+    ssdlcScore.LLMScan && ssdlcScore.LLMScan.Testing>0 &&
+    ssdlcScore.LLMScan && ssdlcScore.LLMScan.Maintenance>0  
+  )
+
+?
 
 
                         <Chart

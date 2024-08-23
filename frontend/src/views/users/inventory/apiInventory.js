@@ -358,12 +358,10 @@ const APIInventory = () => {
     rowsPerPageOptions: [20,40,60,100],
     rowsPerPage: rowsPerPage,
     onTableChange: (action, tableState) => {
-      if (action === 'changePage' || action === 'changeRowsPerPage') {
+      if (action === 'changePage' || action === 'changeRowsPerPage' || action === 'search' || action === 'filterChange') {
 
         console.log('tableState:',tableState)
-        const { page, rowsPerPage } = tableState;
-
-        console.log('pageee:',page)
+        const { page, rowsPerPage, searchText, filterList  } = tableState;
         
         fetchAPICollections(true, page+1, rowsPerPage);
         setPage(page+1);

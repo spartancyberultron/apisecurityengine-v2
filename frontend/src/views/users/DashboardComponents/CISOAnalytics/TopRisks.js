@@ -53,7 +53,7 @@ const TopRisks = () => {
             }
         })
         .then(response => {
-            setTopRisks((response.data)[0]);
+            setTopRisks(response.data.length>0 ?(response.data)[0]:null);
             localStorage.setItem('topRisks', JSON.stringify(response.data));
             setLoading(false);
         })
@@ -130,6 +130,9 @@ const TopRisks = () => {
                     {loading ? (
                         <CSpinner color="primary" />
                     ) : (
+
+                        <>
+                        {topRisks &&
                         <Tabs selectedIndex={activeTab} onSelect={index => setActiveTab(index)}>
                             <TabList>
                                 <Tab>REST API Collections Scans</Tab>
@@ -159,6 +162,8 @@ const TopRisks = () => {
                                 {renderTable(topRisks.topLLMVulnerabilities)}
                             </TabPanel>
                         </Tabs>
+}
+                        </>
                     )}
                 </CCardBody>
             </CCard>

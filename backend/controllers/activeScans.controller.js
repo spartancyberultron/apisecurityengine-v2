@@ -27,6 +27,7 @@ const axios = require('axios');
 const { URL } = require('url');
 const crypto = require('crypto');
 const { v4: uuidv4 } = require('uuid');
+const mongoose = require('mongoose');
 
 const remediations = require('./remediations/rest-remediations.json');
 
@@ -104,7 +105,7 @@ module.exports.getAllActiveScans = asyncHandler(async (req, res) => {
     const user = await User.findById(req.user._id);
     const organization = await Organization.findById(user.organization);
     
-    //calculateDashboard(organization)
+   // calculateDashboard(organization)
 
   
     const page = req.params.page ? parseInt(req.params.page, 10) : 1;
@@ -167,24 +168,59 @@ module.exports.getAllActiveScans = asyncHandler(async (req, res) => {
         }
       ]).then(result => result[0]?.totalCount || 0);
 
-      const activeScans = await ActiveScan.find()
-      .populate({
-          path: 'theCollectionVersion',
-          populate: {
-              path: 'apiCollection',
-              populate: {
-                  path: 'orgProject',
-                  populate: {
-                      path: 'organization',
-                      match: { _id: organization._id }
-                  }
-              }
-          }
-      })
-      .skip(skip)
-      .limit(limit)
-      .exec();
+      console.log('totalCount:',totalCount)
 
+      const activeScans = await ActiveScan.aggregate([
+        {
+            $lookup: {
+                from: 'apicollectionversions',
+                localField: 'theCollectionVersion',
+                foreignField: '_id',
+                as: 'theCollectionVersion'
+            }
+        },
+        { $unwind: { path: '$theCollectionVersion', preserveNullAndEmptyArrays: true } },
+        
+        {
+            $lookup: {
+                from: 'apicollections',
+                localField: 'theCollectionVersion.apiCollection',
+                foreignField: '_id',
+                as: 'theCollectionVersion.apiCollection'
+            }
+        },
+        { $unwind: { path: '$theCollectionVersion.apiCollection', preserveNullAndEmptyArrays: true } },
+        
+        {
+            $lookup: {
+                from: 'orgprojects',
+                localField: 'theCollectionVersion.apiCollection.orgProject',
+                foreignField: '_id',
+                as: 'theCollectionVersion.apiCollection.orgProject'
+            }
+        },
+        { $unwind: { path: '$theCollectionVersion.apiCollection.orgProject', preserveNullAndEmptyArrays: true } },
+        
+        {
+            $match: {
+                'theCollectionVersion.apiCollection.orgProject.organization': organization._id
+            }
+        },
+        
+        {
+            $addFields: {
+                'theCollectionVersion.apiCollection.orgProject': {
+                    $ifNull: ['$theCollectionVersion.apiCollection.orgProject', null]
+                }
+            }
+        },
+        
+        { $sort: { createdAt: -1 } },
+        { $skip: skip },
+        { $limit: limit }
+    ]).exec();
+
+    console.log('activeScans:',activeScans)
    
 
     // Return the active scans, currentPage, totalRecords, and totalPages in the response

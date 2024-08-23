@@ -29,6 +29,8 @@ const axios = require('axios');
 const { URL } = require('url');
 const crypto = require('crypto');
 const { v4: uuidv4 } = require('uuid');
+const { calculateDashboard } = require("../services/dashboard/dashboardCalculation.service");
+const Organization = require('../models/organization.model');
 
 
 // Get all api collections
@@ -106,6 +108,7 @@ module.exports.fetchAPICollections = asyncHandler(async (req, res) => {
 
 
 // Fetch versions of an API collection
+
 module.exports.fetchAPICollectionVersions = asyncHandler(async (req, res) => {
 
     const { collectionId, pageNumber } = req.query;
@@ -139,6 +142,8 @@ module.exports.fetchAPICollectionVersions = asyncHandler(async (req, res) => {
     res.json({ apiCollection, apiCollectionVersions, totalRecords, currentPage: pageNumber,
         totalPages, })
 });
+
+
 
 
 
@@ -1264,6 +1269,8 @@ const parseOpenAPIYAML = async (openAPIData, user, collectionFilePath, theCollec
 }
 
 
+// OLDER FUNCTion - This was working perfectly. If newer one causes issue, revert back to this.
+/*
 const replaceVariablesInJSON = (jsonString, variables) => {
     const replaceVariable = (text) => {
         return text.replace(/{{(.*?)}}/g, (match, variableName) => {
@@ -1273,7 +1280,38 @@ const replaceVariablesInJSON = (jsonString, variables) => {
     };
 
     return replaceVariable(jsonString);
+};*/
+
+const replaceVariablesInJSON = (jsonString, variables) => {
+    // Function to escape quotes within the replacement values
+    const escapeQuotesInValue = (value) => {
+        if (typeof value === 'string') {
+            return value.replace(/\\/g, '\\\\')  // Escape backslashes
+                        .replace(/"/g, '\\"')    // Escape double quotes
+                        .replace(/'/g, "\\'");   // Escape single quotes
+        }
+        return value;
+    };
+
+    // Function to replace variables in the JSON string
+    const replaceVariable = (text) => {
+        return text.replace(/{{(.*?)}}/g, (match, variableName) => {
+            const variable = variables.find((v) => v.key === variableName.trim());
+            return variable ? escapeQuotesInValue(variable.value) : match;
+        });
+    };
+
+    try {
+        // Replace variables and return the final string
+        return replaceVariable(jsonString);
+    } catch (error) {
+        console.error('Error processing JSON string:', error);
+        return null;
+    }
 };
+
+
+
 
 const extractVariablesFromJSON = (jsonString) => {
     const collection = JSON.parse(jsonString);
@@ -1314,6 +1352,7 @@ function createNextVersionName(currentVersion) {
 module.exports.addAPICollectionVersion = asyncHandler(async (req, res) => {
 
     const user = await User.findById(req.user._id);
+    const organization = await Organization.findById(user.organization);
 
     const { collectionName, collectionUrl, version, collectionId, projectId } = req.body;
 
@@ -1324,6 +1363,8 @@ module.exports.addAPICollectionVersion = asyncHandler(async (req, res) => {
     if (collectionUrl !== '') {
 
         const result = await fetchAndCheckContentType(collectionUrl);
+
+        console.log('result:',result)
 
         if (result.contentType == 'application/yaml') {
 
@@ -1356,6 +1397,7 @@ module.exports.addAPICollectionVersion = asyncHandler(async (req, res) => {
                 var theScan = await parseSwaggerYAML(collectionData, user, collectionFilePath, theCollection, theVersion);
 
                 if (theScan) {
+                    calculateDashboard(organization);
                     return res.send({ message: "Collection added" })
                 } else {
                     return res.send({ error: "Collection saving for some reason. Please try again." })
@@ -1393,6 +1435,7 @@ module.exports.addAPICollectionVersion = asyncHandler(async (req, res) => {
                 var theScan = await parsePostmanYAML(collectionData, user, collectionFilePath, theCollection, theVersion);
 
                 if (theScan) {
+                    calculateDashboard(organization);
                     return res.send({ message: "Collection added" })
                 } else {
                     return res.send({ error: "Collection saving failed for some reason. Please try again." })
@@ -1427,6 +1470,7 @@ module.exports.addAPICollectionVersion = asyncHandler(async (req, res) => {
                 var theScan = await parseOpenAPIYAML(collectionData, user, collectionFilePath, theCollection, theVersion);
 
                 if (theScan) {
+                    calculateDashboard(organization);
                     return res.send({ message: "Collection added" })
                 } else {
                     return res.send({ error: "Collection saving failed for some reason. Please try again." })
@@ -1441,18 +1485,23 @@ module.exports.addAPICollectionVersion = asyncHandler(async (req, res) => {
             var collectionJson = result.content;
 
             const variables = extractVariablesFromJSON(JSON.stringify(collectionJson));
+
+            console.log('variables:',variables)
+
             collectionJson = replaceVariablesInJSON(JSON.stringify(collectionJson), variables);
+
+            console.log('collectionJson:',collectionJson)
 
             // console.log('collectionJson:',collectionJson)
             const collection = new Collection(JSON.parse(collectionJson));
+
+            console.log('collection:',collection)
 
             const collectiondata = JSON.parse(collectionJson);
 
             if (collection && collectiondata.info._postman_id && collectiondata.item && Array.isArray(collectiondata.item)) {
 
-                if (version == '1') {
-
-                  
+                if (version == '1') {                  
 
                     theCollection = await APICollection.create({
                         user: user,
@@ -1481,6 +1530,7 @@ module.exports.addAPICollectionVersion = asyncHandler(async (req, res) => {
                 var theScan = await parsePostmanJSON(collectiondata, user, collectionFilePath, theCollection, theVersion);
 
                 if (theScan) {
+                    calculateDashboard(organization);
                     return res.send({ message: "Collection added" });
                 } else {
                     return res.send({ error: "Collection saving failed for some reason. Please try again." });
@@ -1531,6 +1581,7 @@ module.exports.addAPICollectionVersion = asyncHandler(async (req, res) => {
                 var theScan = await parseSwaggerJSON(collectiondata, user, collectionFilePath, theCollection, theVersion);
 
                 if (theScan) {
+                    calculateDashboard(organization);
                     return res.send({ message: "Collection added" });
                 } else {
                     return res.send({ error: "Collection saving failed for some reason. Please try again." });
@@ -1576,6 +1627,7 @@ module.exports.addAPICollectionVersion = asyncHandler(async (req, res) => {
                 var theScan = await parseOpenAPIJSON(collectiondata, user, collectionFilePath, theCollection, theVersion);
 
                 if (theScan) {
+                    calculateDashboard(organization);
                     return res.send({ message: "Collection added" });
                 } else {
                     return res.send({ error: "Collection saving failed for some reason. Please try again." });
@@ -1642,6 +1694,7 @@ module.exports.addAPICollectionVersion = asyncHandler(async (req, res) => {
                     var theScan = await parsePostmanJSON(collectiondata, user, collectionFilePath, theCollection, theVersion);
 
                     if (theScan) {
+                        calculateDashboard(organization);
                         return res.send({ message: "Collection added" });
                     } else {
                         return res.send({ error: "Collection saving failed for some reason. Please try again." });
@@ -1688,6 +1741,7 @@ module.exports.addAPICollectionVersion = asyncHandler(async (req, res) => {
                     var theScan = await parseSwaggerJSON(collectiondata, user, collectionFilePath, theCollection, theVersion);
 
                     if (theScan) {
+                        calculateDashboard(organization);
                         return res.send({ message: "Collection added" });
                     } else {
                         return res.send({ error: "Collection saving failed for some reason. Please try again." });
@@ -1734,6 +1788,7 @@ module.exports.addAPICollectionVersion = asyncHandler(async (req, res) => {
                     var theScan = await parseOpenAPIJSON(collectiondata, user, collectionFilePath, theCollection, theVersion);
 
                     if (theScan) {
+                        calculateDashboard(organization);
                         return res.send({ message: "Collection added" });
                     } else {
                         return res.send({ error: "Collection saving failed for some reason. Please try again." });
@@ -1775,6 +1830,7 @@ module.exports.addAPICollectionVersion = asyncHandler(async (req, res) => {
                     var theScan = await parseSwaggerYAML(collectionData, user, collectionFilePath, theCollection, theVersion);
 
                     if (theScan) {
+                        calculateDashboard(organization);
                         return res.send({ message: "Collection added" })
                     } else {
                         return res.send({ error: "Collection saving failed for some reason. Please try again." })
@@ -1811,6 +1867,7 @@ module.exports.addAPICollectionVersion = asyncHandler(async (req, res) => {
                     var theScan = await parsePostmanYAML(collectionData, user, collectionFilePath, theCollection, theVersion);
 
                     if (theScan) {
+                        calculateDashboard(organization);
                         return res.send({ message: "Collection added" })
                     } else {
                         return res.send({ error: "Collection saving failed for some reason. Please try again." })
@@ -1843,6 +1900,7 @@ module.exports.addAPICollectionVersion = asyncHandler(async (req, res) => {
                     var theScan = await parseOpenAPIYAML(collectionData, user, collectionFilePath, theCollection, theVersion);
 
                     if (theScan) {
+                        calculateDashboard(organization);
                         return res.send({ message: "Collection added" })
                     } else {
                         return res.send({ error: "Collection saving failed for some reason. Please try again." })
@@ -1851,12 +1909,16 @@ module.exports.addAPICollectionVersion = asyncHandler(async (req, res) => {
             }
 
         }
+
+
         catch (err) {
             console.log('err1', err)
             return res.send({ err: err })
         }
 
     }
+
+    
 
 });
 
