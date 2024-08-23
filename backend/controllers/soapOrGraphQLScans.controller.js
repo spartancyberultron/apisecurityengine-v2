@@ -79,7 +79,7 @@ module.exports.getAllSOAPOrGraphQLScans = asyncHandler(async (req, res) => {
 
      // Trigger an async function that checks if all the scans have got the result files and also the results saved in database.
     // If not,  do that for the scans that do not have records
-    checkAndPopulateScans(organization);
+//    checkAndPopulateScans(organization);
 
     // Return the SOAP/GraphQL scans, currentPage, totalRecords, and totalPages in the response
     res.status(200).json({
