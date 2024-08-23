@@ -148,9 +148,7 @@ async function calculateSeverityDistribution(organization) {
     }
 
     // Process ActiveScanVulnerabilities
-    const activeScans = await ActiveScan.find({
-        'theCollectionVersion.apiCollection.orgProject.organization': organization._id
-    })
+    const activeScans = await ActiveScan.find()
     .populate({
         path: 'theCollectionVersion',
         populate: {
@@ -163,11 +161,15 @@ async function calculateSeverityDistribution(organization) {
             }
         }
     })
-    .lean();
+    .lean(); // Convert to plain JavaScript objects for easier manipulation
 
-    const activeScanIds = activeScans.map(scan => scan._id);
+// Filter the results to match the organization ID
+const filteredScans = activeScans.filter(scan => {
+    return scan.theCollectionVersion.apiCollection.orgProject.organization._id.toString() === organization._id.toString();
+});
+    const activeScanIds = filteredScans.map(scan => scan._id);
 
-    console.log('activeScanIds:',activeScanIds)
+    console.log('activeScanIds###################3:',activeScanIds)
 
     const activeScanVulnerabilities = await ActiveScanVulnerability.find({ activeScan: { $in: activeScanIds } })
         .populate({

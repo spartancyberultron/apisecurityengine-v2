@@ -21,6 +21,7 @@ const ComplianceStatus = () => {
     const [loading, setLoading] = useState(false)
 
     const [threatAlerts, setThreatAlerts] = useState(null)
+    const [totalCount, setTotalCount] = useState(0)
 
     useEffect(() => {
       getResponse();
@@ -57,13 +58,7 @@ const ComplianceStatus = () => {
     const getResponse = () => {
 
         setLoading(true);
-        
-      // Set from localStorage cache
-    /*  if (localStorage.getItem('threatAlerts')) {
-        setThreatAlerts(JSON.parse(localStorage.getItem('threatAlerts')));
-      } else {
-        setThreatAlerts(true);
-      }*/
+    
 
       const endpoint = 'api/v1/users/getThreatAlerts';
       const token = localStorage.getItem('ASIToken');
@@ -76,6 +71,7 @@ const ComplianceStatus = () => {
         .then(response => {
 
           setThreatAlerts(response.data.response);
+          setTotalCount(response.data.totalCount)
 
           // Save into local storage to show from cache while it loads next time
           localStorage.setItem('threatAlerts', JSON.stringify(response.data));
@@ -142,7 +138,7 @@ const ComplianceStatus = () => {
                             <div style={{ flex: 1, minWidth: 0, marginTop: 10 }}>
 
 
-{threatAlerts && threatAlerts.categories && threatAlerts.categories.length>0 ?
+{threatAlerts && threatAlerts.categories && threatAlerts.categories.length>0 && totalCount>0?
                                 <table style={{width:'100%'}}>
 
                                     <thead>

@@ -21,6 +21,7 @@ const Organization = require('../models/organization.model');
 const Ticket = require('../models/ticket.model');
 
 const SOAPOrGraphQLScanVulnerability = require('../models/soapOrGraphQLScanVulnerability.model');
+const SOAPOrGraphQLScan = require('../models/soapOrGraphQLScan.model');
 
 const SBOMScanVulnerability = require('../models/sbomScanVulnerability.model');
 const LLMScanVulnerability = require('../models/llmScanVulnerability.model');
@@ -1203,11 +1204,71 @@ module.exports.getThreatAlerts = asyncHandler(async (req, res) => {
 
     const user = await User.findById(req.user._id);
     const organization = await Organization.findById(user.organization);
-   
+
+
+    const activeScanCount = await ActiveScan.aggregate([
+        {
+            $lookup: {
+                from: 'apicollectionversions',
+                localField: 'theCollectionVersion',
+                foreignField: '_id',
+                as: 'theCollectionVersion'
+            }
+        },
+        { $unwind: '$theCollectionVersion' },
+        
+        {
+            $lookup: {
+                from: 'apicollections',
+                localField: 'theCollectionVersion.apiCollection',
+                foreignField: '_id',
+                as: 'theCollectionVersion.apiCollection'
+            }
+        },
+        { $unwind: '$theCollectionVersion.apiCollection' },
+        
+        {
+            $lookup: {
+                from: 'orgprojects',
+                localField: 'theCollectionVersion.apiCollection.orgProject',
+                foreignField: '_id',
+                as: 'theCollectionVersion.apiCollection.orgProject'
+            }
+        },
+        { $unwind: '$theCollectionVersion.apiCollection.orgProject' },
+        
+        {
+            $match: {
+                'theCollectionVersion.apiCollection.orgProject.organization': organization._id
+            }
+        },
+        
+        {
+            $count: 'total'
+        }
+    ]).exec();
+    
+    const count = activeScanCount[0] ? activeScanCount[0].total : 0;
+    
+
+        // Check SOAPOrGraphQLScan count
+        const soapOrGraphQLScanCount = await SOAPOrGraphQLScan.countDocuments({
+            orgProject: organization._id
+        });
+
+        // Check LLMScan count
+        const llmScanCount = await LLMScan.countDocuments({
+            orgProject: organization._id
+        });
+
+        // Total count
+        const totalCount = count + soapOrGraphQLScanCount + llmScanCount;
+
+        console.log('totalCount:',totalCount)
 
 
 
-    res.json({response:organization.threatAlerts});
+    res.json({response:organization.threatAlerts, totalCount});
 });
 
 

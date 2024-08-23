@@ -105,7 +105,7 @@ module.exports.getAllActiveScans = asyncHandler(async (req, res) => {
     const user = await User.findById(req.user._id);
     const organization = await Organization.findById(user.organization);
     
-   // calculateDashboard(organization)
+    calculateDashboard(organization)
 
   
     const page = req.params.page ? parseInt(req.params.page, 10) : 1;
