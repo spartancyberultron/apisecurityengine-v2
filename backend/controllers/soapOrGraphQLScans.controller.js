@@ -26,10 +26,7 @@ function getObjectByName(name) {
 module.exports.getAllSOAPOrGraphQLScans = asyncHandler(async (req, res) => {
 
     const user = await User.findById(req.user._id)
-    const organization = await Organization.findById(user.organization)
-
-
-   
+    const organization = await Organization.findById(user.organization)   
 
     // Now proceed
 
@@ -41,20 +38,7 @@ module.exports.getAllSOAPOrGraphQLScans = asyncHandler(async (req, res) => {
 
     // Calculate the skip value based on the pageNumber and pageSize
     const skip = (pageNumber - 1) * pageSize;
-
-    /*
-    const soapOrGraphQLScans = await SOAPOrGraphQLScan.find({ user: req.user._id }).populate('orgProject')
-        .sort({ createdAt: -1 })
-        .skip(skip)
-        .limit(pageSize)
-        .lean();
-
-
-    for (var i = 0; i < soapOrGraphQLScans.length; i++) {
-
-        var vulnerabilities = await SOAPOrGraphQLScanVulnerability.countDocuments({ soapOrGraphQLScan: soapOrGraphQLScans[i]._id })
-        soapOrGraphQLScans[i].vulnerabilities = vulnerabilities;
-    }*/
+   
 
         const soapOrGraphQLScans = await SOAPOrGraphQLScan.aggregate([
             { $match: { user: req.user._id } },
@@ -153,7 +137,6 @@ async function checkAndPopulateScans(organization) {
                 }
                 
                
-                // Continue with the successful case
             }
             
 

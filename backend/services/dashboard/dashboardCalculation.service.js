@@ -116,7 +116,7 @@ const countVulnerabilitiesBySeverity = (vulnerabilities) => {
 
 async function calculateSeverityDistribution(organization) {
 
-    console.log('LN:',organization)
+   // console.log('LN:',organization)
    // console.log('Starting severity distribution calculation...');
 
     // Initialize counters for each severity level
@@ -169,7 +169,7 @@ const filteredScans = activeScans.filter(scan => {
 });
     const activeScanIds = filteredScans.map(scan => scan._id);
 
-    console.log('activeScanIds###################3:',activeScanIds)
+   // console.log('activeScanIds###################3:',activeScanIds)
 
     const activeScanVulnerabilities = await ActiveScanVulnerability.find({ activeScan: { $in: activeScanIds } })
         .populate({
@@ -819,7 +819,6 @@ async function calculateComplianceStatus(organization) {
 
 async function calculateSSDLCScore(organization) {
 
-    console.log('guys1')
 
    var organizationId = organization._id;
 
@@ -860,7 +859,7 @@ async function calculateSSDLCScore(organization) {
     }
   });
 
-  console.log('activeScanVulnerabilities:',activeScanVulnerabilities)
+ // console.log('activeScanVulnerabilities:',activeScanVulnerabilities)
 
 
 // Filter based on the organizationId
@@ -876,7 +875,6 @@ const filteredVulnerabilities = activeScanVulnerabilities.filter(vulnerability =
   return false;
 });
 
-console.log('guys2')
 
 filteredVulnerabilities.forEach(vuln => {
 
@@ -900,7 +898,6 @@ filteredVulnerabilities.forEach(vuln => {
 
   // Fetch SOAPOrGraphQLScanVulnerabilities and count by projectPhase
  
-  console.log('guys3')
 
     const soapOrGraphQLScanVulnerabilities = await SOAPOrGraphQLScanVulnerability.find({})
       .populate({
@@ -924,7 +921,6 @@ filteredVulnerabilities.forEach(vuln => {
     });
 
 
-    console.log('guys4')
 
     filteredVulnerabilities1.forEach(vuln => {
 
@@ -940,7 +936,6 @@ filteredVulnerabilities.forEach(vuln => {
 
   // Fetch SBOMScanVulnerabilities and count by projectPhase
  
-  console.log('guys5')
     const sbomScanVulnerabilities = await SBOMScanVulnerability.find({})
     .populate({
       path: 'sbomScan',  // Populate sbomScan field
@@ -962,9 +957,7 @@ filteredVulnerabilities.forEach(vuln => {
     return false;
   });
 
-  console.log('filteredVulnerabilities2:',filteredVulnerabilities2)
 
-  console.log('guys6')
 
   filteredVulnerabilities2.forEach(vuln => {
     const phase = vuln.sbomScan?.projectPhase; // Use 'Development' if projectPhase is not present
@@ -992,7 +985,6 @@ filteredVulnerabilities.forEach(vuln => {
     }
   });
 
-  //console.log('counts:',counts)
 
   const org1 = await Organization.findById(organization._id);
 org1.ssdlcScore = counts;
@@ -1028,7 +1020,6 @@ async function calculateAuditFindings(organization) {
         };
     }));
 
-//    console.log('auditFindings:',auditFindings)
 
     const org1 = await Organization.findById(organization._id);
     org1.auditFindings = auditFindings;
@@ -1037,10 +1028,6 @@ async function calculateAuditFindings(organization) {
 }
 
 async function calculateThreatAlerts(organization) {
-   
-
-// const org = await Organization.findById(user.organization);
-
    
 
     // Initialize counters for each compliance standard
@@ -1446,7 +1433,6 @@ async function calculateThreatTrends(organization) {
       sbom: formatData(sbomThreats)
     };
 
-  //  console.log('data:',data)
 
     const org1 = await Organization.findById(organization._id);
     org1.threatTrends = data;
@@ -1563,13 +1549,10 @@ async function calculateRiskScore(organization) {
     let totalWeight = 0;
     let weightedSum = 0;
 
-  //  console.log('activeScanVulns:',activeScanVulns)
-    //console.log('sbomScanVulns:',sbomScanVulns)
-
+  
 
     activeScanVulns.forEach(vuln => {
         const riskScore = vuln.severity;
-       // console.log('riskScore:',riskScore)
         if (riskScore && severityWeights[riskScore.toUpperCase()]) {
             weightedSum += severityWeights[riskScore.toUpperCase()];
             totalWeight += 1;
@@ -1584,13 +1567,8 @@ async function calculateRiskScore(organization) {
         }
     });
 
-    //console.log('severityWeights:',severityWeights)
-
-  //  console.log('totalWeight:',totalWeight)
-
+    
     const averageRiskScore = totalWeight > 0 ? (weightedSum / totalWeight) : 0;
-    //console.log('averageRiskScore:',averageRiskScore)
-
 
     const riskScorePercentage = Math.round(averageRiskScore * 100);
 
@@ -1691,7 +1669,6 @@ async function calculateRiskScore(organization) {
             }
         ]);
     
-      //  console.log('activescantopVulnerabilities:', topVulnerabilities)
     
     
         // AttackSurfaceScanVulnerability
@@ -1751,7 +1728,6 @@ async function calculateRiskScore(organization) {
             }
         ]);
     
-  //      console.log('topAttackSurfaceScanVulnerabilities:', topAttackSurfaceScanVulnerabilities)
     
     
         // ProjectVulnerability
@@ -1811,7 +1787,6 @@ async function calculateRiskScore(organization) {
             }
         ]);
     
-       // console.log('topProjectVulnerabilities:', topProjectVulnerabilities)
     
     
         // SBOMScanVulnerability
@@ -1868,7 +1843,6 @@ async function calculateRiskScore(organization) {
             }
         ]);
     
-      //  console.log('topSBOMScanVulnerabilities:', topSBOMScanVulnerabilities)
     
     
         // SOAPOrGraphQLScanVulnerability
@@ -1925,7 +1899,6 @@ async function calculateRiskScore(organization) {
             }
         ]);
     
-     //   console.log('topSOAPOrGraphQLScanVulnerabilities:', topSOAPOrGraphQLScanVulnerabilities)
     
     
        
@@ -1979,7 +1952,6 @@ for (const scan of llmScans) {
             if (contentString.includes(keyword)) {
                 const vulnerabilityInfo = await getLLMVulnerability(keyword);
 
-             //   console.log('vulnerabilityInfo:',vulnerabilityInfo)
                 const vulnerabilityName = vulnerabilityInfo.vulnerability;
                 const impact = vulnerabilityInfo.severity;
 
@@ -2006,13 +1978,11 @@ for (const scan of llmScans) {
     }
 }
 
-//console.log('vulnerabilityData:',vulnerabilityData);
 
 const topLLMVulnerabilities = vulnerabilityData
     .sort((a, b) => b.count - a.count) // Sort by count in descending order
     .slice(0, 10); // Limit to top 10
 
-    //console.log('topLLMVulnerabilities:', topLLMVulnerabilities)
 
     const org1 = await Organization.findById(org._id);
 
@@ -2041,7 +2011,6 @@ async function calculateDashboardCardData(organization) {
     // Step 2: Get the IDs of these OrgProjects
     const orgProjectIds = orgProjects.map(project => project._id);
 
-    console.log('orgProjectIds:',orgProjectIds)
 
     const dashboardData = {};
 
@@ -2063,7 +2032,6 @@ async function calculateDashboardCardData(organization) {
     // Step 4: Get the IDs of these APICollections
     const apiCollectionIds = apiCollections.map(collection => collection._id);
 
-  //  console.log('apiCollectionIds:',apiCollectionIds)
 
     // Step 5: Find all APICollectionVersions for these APICollections
     const apiCollectionVersions = await APICollectionVersion.find({
@@ -2087,26 +2055,54 @@ async function calculateDashboardCardData(organization) {
     });   
 
 
-    const activeScans1 = await ActiveScan.find({})
-    .populate({
-      path: 'theCollectionVersion',
-      populate: {
-        path: 'apiCollection',
-        populate: {
-          path: 'orgProject',
-          populate: {
-            path: 'organization'
-          }
-        }
-      }
-    })
-    .lean(); // Use lean() to get plain JavaScript objects
+    const activeScans = await ActiveScan.aggregate([
+        {
+            $lookup: {
+                from: 'apicollectionversions',
+                localField: 'theCollectionVersion',
+                foreignField: '_id',
+                as: 'theCollectionVersion'
+            }
+        },
+        { $unwind: { path: '$theCollectionVersion', preserveNullAndEmptyArrays: true } },
+        
+        {
+            $lookup: {
+                from: 'apicollections',
+                localField: 'theCollectionVersion.apiCollection',
+                foreignField: '_id',
+                as: 'theCollectionVersion.apiCollection'
+            }
+        },
+        { $unwind: { path: '$theCollectionVersion.apiCollection', preserveNullAndEmptyArrays: true } },
+        
+        {
+            $lookup: {
+                from: 'orgprojects',
+                localField: 'theCollectionVersion.apiCollection.orgProject',
+                foreignField: '_id',
+                as: 'theCollectionVersion.apiCollection.orgProject'
+            }
+        },
+        { $unwind: { path: '$theCollectionVersion.apiCollection.orgProject', preserveNullAndEmptyArrays: true } },
+        
+        {
+            $match: {
+                'theCollectionVersion.apiCollection.orgProject.organization': organization._id
+            }
+        },
+        
+        {
+            $addFields: {
+                'theCollectionVersion.apiCollection.orgProject': {
+                    $ifNull: ['$theCollectionVersion.apiCollection.orgProject', null]
+                }
+            }
+        },
+        
+        
+    ]).exec();
   
-  // Filter the results based on the organization ID
-  const activeScans = activeScans1.filter(scan => {
-    const organization = scan.theCollectionVersion?.apiCollection?.orgProject?.organization;
-    return organization && organization._id.toString() === organization._id;
-  });
   
   console.log('nna:activeScans',activeScans)
 
@@ -2129,6 +2125,7 @@ async function calculateDashboardCardData(organization) {
 
     const activeScansVulnsCount = await ActiveScanVulnerability.countDocuments({ activeScan: { $in: activeScans.map(activeScan => activeScan._id) } });
 
+    console.log('activeScansVulnsCount:',activeScansVulnsCount)
     const attackSurfaceVulns = await AttackSurfaceScanVulnerability.aggregate([
         {
             $lookup: {

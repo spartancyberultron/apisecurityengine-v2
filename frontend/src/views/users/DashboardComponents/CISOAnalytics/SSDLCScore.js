@@ -203,8 +203,6 @@ console.log('ssdlcScore:',ssdlcScore)
                         }}
                     >
                         {ssdlcScore &&
-
-
 <>
 
 {ssdlcScore.ActiveScanVulnerability  

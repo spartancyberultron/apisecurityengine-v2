@@ -20,6 +20,7 @@ const SBOMScan = require("../models/sbomScan.model");
 const SOAPOrGraphQLScan = require("../models/soapOrGraphQLScan.model");
 const AttackSurfaceScan = require("../models/attacksurfacescan.model");
 
+const { calculateDashboard } = require("../services/dashboard/dashboardCalculation.service");
 
 const path = require('path');
 const AttackSurfaceScanVulnerability = require('../models/attacksurfacescanvulnerability.model');
@@ -655,6 +656,8 @@ module.exports.addTicketUpdate = asyncHandler(async (req, res) => {
         // Save the new record to the database
         await newTicketUpdate.save();
 
+        calculateDashboard(organization)
+
         const updatedTicket = await Ticket.findById(ticketId).lean();
         const ticketUpdates = await TicketUpdate.find({ ticket: ticketId }).lean();
         updatedTicket.ticketUpdates = ticketUpdates;
@@ -683,15 +686,7 @@ module.exports.editTicket = asyncHandler(async (req, res) => {
         const currentUser = await User.findById(req.user._id);
 
         const user = await User.findById(req.user._id).populate('organization');
-        const organization = await Organization.findById(user.organization._id)
-
-        // const highestTicket = await Ticket.findOne().sort({ ticketId: -1 }).exec();
-        //var highestTicketId = highestTicket.ticketId;
-        // var newTicketId = highestTicketId + 1;
-
-        //   console.log('highestTicket:', highestTicket);
-        //  console.log('highestTicketId:', highestTicketId);
-        // console.log('newTicketId:', newTicketId);
+        const organization = await Organization.findById(user.organization._id)        
 
         const ticket = await Ticket.findById(id);
 
@@ -702,25 +697,11 @@ module.exports.editTicket = asyncHandler(async (req, res) => {
         ticket.category = category;
         ticket.priority = priority;
         ticket.note = note;
-        //         ticket.save();
-
-        // Create a new ticket record
-        /*      const newTicket = new Ticket({
-                  title: title,
-                  description: description,
-                  assignedTo: assignedTo,
-                  openedBy:currentUser._id,
-                  status: status,
-                  category:category,
-                  priority:priority,
-                  note:note,
-                 // ticketId:newTicketId,
-                  organization: organization._id,
-                  attachments: req.files.map(file => path.join('./ticket-attachments/', file.filename)),
-              });  */
-
+        
         // Save the new record to the database
         await ticket.save();
+
+        calculateDashboard(organization)
 
 
         res.status(200).json({ success: true, ticket });

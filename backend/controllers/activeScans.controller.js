@@ -105,19 +105,19 @@ module.exports.getAllActiveScans = asyncHandler(async (req, res) => {
     const user = await User.findById(req.user._id);
     const organization = await Organization.findById(user.organization);
     
-    calculateDashboard(organization)
+  //  calculateDashboard(organization)
 
   
     const page = req.params.page ? parseInt(req.params.page, 10) : 1;
     const rowsPerPage = req.params.rowsPerPage ? parseInt(req.params.rowsPerPage, 10) : 10;
 
-    console.log('page:', page)
-    console.log('rowsPerPage:', rowsPerPage)
+   // console.log('page:', page)
+  //  console.log('rowsPerPage:', rowsPerPage)
 
     // Validate and parse page and rowsPerPage
     const pageNumber = parseInt(page, 10) + 1;
     const rowsPerPageNumber = parseInt(rowsPerPage, 10);
-    console.log('pageNumber:', pageNumber)
+  //  console.log('pageNumber:', pageNumber)
 
 
     if (isNaN(pageNumber) || isNaN(rowsPerPageNumber) || pageNumber < 1 || rowsPerPageNumber < 1) {
@@ -127,8 +127,8 @@ module.exports.getAllActiveScans = asyncHandler(async (req, res) => {
     const skip = (pageNumber - 1) * rowsPerPageNumber;
     const limit = rowsPerPageNumber;
 
-    console.log('skip:',skip)
-    console.log('limit:',limit)
+    //console.log('skip:',skip)
+   // console.log('limit:',limit)
 
     const totalCount = await ActiveScan.aggregate([
         {
@@ -168,7 +168,7 @@ module.exports.getAllActiveScans = asyncHandler(async (req, res) => {
         }
       ]).then(result => result[0]?.totalCount || 0);
 
-      console.log('totalCount:',totalCount)
+   //   console.log('totalCount:',totalCount)
 
       const activeScans = await ActiveScan.aggregate([
         {
@@ -220,7 +220,7 @@ module.exports.getAllActiveScans = asyncHandler(async (req, res) => {
         { $limit: limit }
     ]).exec();
 
-    console.log('activeScans:',activeScans)
+    //console.log('activeScans:',activeScans)
    
 
     // Return the active scans, currentPage, totalRecords, and totalPages in the response
