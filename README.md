@@ -153,7 +153,7 @@ A ticket can also be opened manually.
 You can follow up to a ticket by adding an update.
 
 
-![View Ticket and Follow Up](docs/docs-screenshots/view-ticket-and-follow-up.png)
+![View Ticket and Follow Up](docs/docs-screenshots/view-ticket-and-followup.png)
 
 
 Tickets can be closed as RESOLVED. They can bs set into IN PROGRESS and ON HOLD statuses as well.
@@ -353,7 +353,7 @@ All the scan results will be sent to these channels on completion of a scan.
   
 Under SOAP/GraphQL Scans , you can view the list if all scans performed.
 
-![SOAP/GraphQL Scans](docs/docs-screenshots/soap-graphql.scans)
+![SOAP/GraphQL Scans](docs/docs-screenshots/soap-graphql-scans.png)
 
 
 You can also start a new scan.
@@ -404,7 +404,7 @@ You can view the result of a scan in detail, by clicking the View Report button 
   
 Under Attack Surface Scans , you can view the list if all scans performed.
 
-![Attack Surface Scans](docs/docs-screenshots/attack-surface-scans.png)
+![Attack Surface Scans](docs/docs-screenshots/attack-surface-management.png)
 
 
 You can also start a new scan on a domain.
@@ -451,9 +451,10 @@ Under threat modlling, you can view threat modelling of all REST API Scans and L
 
 Under compliance monitoring, you can view all compliance statuses for major compliance standards and the projects that are affected.
 
-![Compliance Monitoring](docs/docs-screenshots/compliance-monitoring.png)
+![Compliance Monitoring- API](docs/docs-screenshots/compliance-monitoring-api.png)
 
-  
+![Compliance Monitoring - LLM](docs/docs-screenshots/compliance-monitoring-llm.png)
+
   
 ## Integrations
 
