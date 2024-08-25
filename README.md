@@ -75,7 +75,7 @@ You can add, edit or delete teams under your organization.
   
 While editing a team, you can add on or more users into the team.  
 
-![Edit Team](relative/docs/docs-screenshots/edit-team.png)
+![Edit Team](docs/docs-screenshots/edit-team.png)
   
   
 ### Workspaces Management  
