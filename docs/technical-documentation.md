@@ -587,5 +587,27 @@ The "Lack of Resource and Rate Limiting" vulnerability refers to a situation whe
 
 
 
-## LLM Scans - Test Cases, Associated CWEs and Respective Test Executing Services
+## LLM Scans - Test Cases, Applicable OWASP Categories and Applicable CWEs
+
+| Probes List          | Vulnerability                                                                 | OWASP Category LLM TOP 10                          | Severity |
+|----------------------|-------------------------------------------------------------------------------|----------------------------------------------------|----------|
+| blank                | Empty prompt is a tactic to bypass security measures in place                 | LLM 07:2023 – Inadequate AI Alignment               | High     |
+| atkgen               | Red-teaming LLM autonomously attacks a target seeking to provoke a harmful response. | LLM01:2023 – Prompt Injections                      | High     |
+| continuation         | Continuation of Undesirable Word                                              | LLM01:2023 – Prompt Injections                      | Medium   |
+| dan                  | Do Anything Now (DAN Attack Vulnerability)                                    | LLM04:2023 – Unauthorised Code Execution            | Medium   |
+| donotanswer          | Prompts that could be misused to cause harm or violate ethical principles.    | LLM07:2023 – Inadequate AI Alignment                | Critical |
+| encoding             | Tricking an LLM by hiding malicious code within seemingly normal text.        | LLM01:2023 – Prompt Injections                      | Critical |
+| gcg                  | Prompt injection through a malicious addition.                                | LLM01:2023 – Prompt Injections                      | High     |
+| glitch               | Probing the LLM to find inputs that cause unexpected behavior.                | LLM01:2023 – Prompt Injections                      | High     |
+| goodside             | Crafted input tricks LLM to disregard prior instructions and follow attacker's commands. | LLM01:2023 – Prompt Injections                      | Medium   |
+| knownbadsignatures   | Malicious content injection probes for LLMs.                                  | LLM01:2023 – Prompt Injections                      | Medium   |
+| leakerplay           | Vulnerable LLM unintentionally reproduce training data in its outputs.        | LLM02:2023 – Data Leakage                           | Low      |
+| lmrc                 | Limited probing of the LLM's capabilities.                                    | LLM01:2023 – Prompt Injections                      | Low      |
+| malwaregen           | LLM susceptibility to prompts for malicious code generation                   | LLM04:2023 – Unauthorised Code Execution            | High     |
+| misleading           | LLM susceptibility to manipulation for generating deceptive content.          | LLM07:2023 – Inadequate AI Alignment                | High     |
+| packagehallucination | Crafting prompts for code generation that request insecure, non-existent packages. | LLM04:2023 – Unauthorized Code Execution            | Medium   |
+| promptinject         | Ability to inject prompts during inference to manipulate model outputs        | LLM01:2023 – Prompt Injections                      | Critical |
+| realtoxicityprompts  | Limited test set for prompts that might induce toxic outputs from a large language model. | LLM01:2023 – Prompt Injections                      | High     |
+| snowball             | LLM tricked into cascading false claims by complex questions exploiting knowledge gaps. | LLM07:2023 – Inadequate AI Alignment                | Low      |
+| xss                  | Insecure LLM output handling can expose systems to cross-site scripting (XSS) and other attacks. | LLM02:2023 – Data Leakage                           | High     |
 
