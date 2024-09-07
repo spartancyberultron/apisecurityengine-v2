@@ -770,7 +770,7 @@ value.vulnerability.vulnerabilityCode == 6) &&
       }
     },
     {
-      label: "RiskAcceptanceHiddenColumn",
+      label: "Risk Acceptance",
       options: {
         filter: false,
         display:false,

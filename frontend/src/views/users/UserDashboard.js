@@ -64,10 +64,14 @@ const UserDashboard = () => {
 
   const random = () => Math.round(Math.random() * 100)
   const [dashboardData, setDashboardData] = useState({})
-  
+
  
   const [loadingStats, setLoadingStats] = useState(false) 
   
+
+  const reloadNewPage = (location) => {
+    window.location.href = location;
+  }
 
   const ref = useRef(null); 
 
@@ -126,14 +130,14 @@ const UserDashboard = () => {
             borderRadius: 10, padding: 20, 
           }}>
 
-            <Link to="/active-scans" 
+            <Link onClick={() => reloadNewPage( "/api-inventory")}
                style={{ textDecoration: 'none', background:'transparent', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
 
               <BsCollection size={40} style={{ color: '#7367f0', backgroundColor:'#eae8fd', padding:'0.5rem', borderRadius:'50rem' }} />
 
             </Link>
 
-            <Link to="/api-inventory" style={{ textDecoration: 'none' }}>
+            <Link style={{ textDecoration: 'none' }} onClick={() => reloadNewPage( "/api-inventory")}>
 
               <div className="dashboardLinkDiv">
 
@@ -156,11 +160,12 @@ const UserDashboard = () => {
 
           <div className="theCards" style={{ display: 'flex', flexDirection: 'row', borderRadius: 10, padding: 20,  }}>
 
-            <Link to="/api-inventory" style={{ textDecoration: 'none', background:'transparent', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+            <Link onClick={() => reloadNewPage( "/api-inventory")}
+             style={{ textDecoration: 'none', background:'transparent', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
               <TbApi size={40} style={{ color: '#00cfe8', backgroundColor:'#d9f8fc', padding:'0.5rem', borderRadius:'50rem' }} />
             </Link>
 
-            <Link to="/api-inventory" style={{ textDecoration: 'none' }}>
+            <Link style={{ textDecoration: 'none' }} onClick={() => reloadNewPage( "/api-inventory")}>
               <div className="dashboardLinkDiv">
                 {loadingStats ?
                   <div style={{display:'flex', flexDirection:'column', height:35, justifyContent:'space-between'}}>
@@ -182,11 +187,12 @@ const UserDashboard = () => {
             display: 'flex', flexDirection: 'row', borderRadius: 10, padding: 20,           
           }}>
 
-            <Link to="/agents" style={{ textDecoration: 'none', background:'transparent', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+            <Link  onClick={() => reloadNewPage( "/agents")}
+             style={{ textDecoration: 'none', background:'transparent', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
               <HiOutlineDesktopComputer size={40} style={{ color: '#7367f0', backgroundColor:'#eae8fd', padding:'0.5rem', borderRadius:'50rem' }} />
             </Link>
 
-            <Link to="/agents" style={{ textDecoration: 'none', width: '50%', }}>
+            <Link  style={{ textDecoration: 'none', width: '50%', }} onClick={() => reloadNewPage( "/agents")}>
               <div className="dashboardLinkDiv">
                 {loadingStats ?
                   <div style={{display:'flex', flexDirection:'column', height:35, justifyContent:'space-between'}}>
@@ -206,11 +212,13 @@ const UserDashboard = () => {
 
           <div className="theCards secondRow" style={{ display: 'flex', flexDirection: 'row', borderRadius: 10, padding: 20, }}>
 
-            <Link to="/alerts" style={{ textDecoration: 'none', background:'transparent', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+            <Link 
+            onClick={() => reloadNewPage( "/alerts")} 
+            style={{ textDecoration: 'none', background:'transparent', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
               <AiOutlineIssuesClose size={40} style={{ color: '#ea5455', backgroundColor:'#fce5e6', padding:'0.5rem', borderRadius:'50rem' }} />
             </Link>
 
-            <Link to="/alerts" style={{ textDecoration: 'none' }}>
+            <Link  style={{ textDecoration: 'none' }} onClick={() => reloadNewPage( "/alerts")} >
               <div className="dashboardLinkDiv">
                 {loadingStats ?
                   <div style={{display:'flex', flexDirection:'column', height:35, justifyContent:'space-between'}}>
@@ -228,13 +236,14 @@ const UserDashboard = () => {
 
        
 
-          <div className="theCards secondRow" style={{ display: 'flex', flexDirection: 'row', borderRadius: 10, padding: 20,  }}>
+          <div className="theCards secondRow"  style={{ display: 'flex', flexDirection: 'row', borderRadius: 10, padding: 20,  }}>
 
-            <Link to="/pii-data" style={{ textDecoration: 'none', background:'transparent', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+            <Link  onClick={() => reloadNewPage( "/pii-data")}
+            style={{ textDecoration: 'none', background:'transparent', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
               <MdOutlinePersonalInjury size={40} style={{ color: '#28c76f', backgroundColor:'#dff7e9', padding:'0.5rem', borderRadius:'50rem' }} />
             </Link>
 
-            <Link to="/pii-data" style={{ textDecoration: 'none' }}>
+            <Link  style={{ textDecoration: 'none' }} onClick={() => reloadNewPage( "/pii-data")}>
               <div className="dashboardLinkDiv">
                 {loadingStats ?
                   <div style={{display:'flex', flexDirection:'column', height:35, justifyContent:'space-between'}}>
@@ -253,11 +262,11 @@ const UserDashboard = () => {
           <div className="theCards secondRow" 
           style={{ display: 'none', flexDirection: 'row', borderRadius: 10, padding: 20, }}>
 
-            <Link to="/protection" style={{ textDecoration: 'none', background:'transparent', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+            <Link style={{ textDecoration: 'none', background:'transparent', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
               <AiOutlineCloudServer size={40} style={{ color: '#7367f0', backgroundColor:'#eae8fd', padding:'0.5rem', borderRadius:'50rem' }} />
             </Link>
 
-            <Link to="/protection" style={{ textDecoration: 'none' }}>
+            <Link  style={{ textDecoration: 'none' }}>
               <div className="dashboardLinkDiv">
                 {loadingStats ?
                   <Breathing width={100} height={40} />

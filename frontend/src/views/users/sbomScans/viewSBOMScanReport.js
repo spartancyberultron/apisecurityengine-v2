@@ -250,7 +250,11 @@ const ViewSBOMScanReport = () => {
           } else if (value == 'LOW') {
 
             bgColor = '#B3FFB3';
-            theColor = 'fff';
+            theColor = '#000';
+          }else if (value == 'UNSPECIFIED') {
+
+            bgColor = '#000';
+            theColor = '#fff';
           }
 
           return (
@@ -330,6 +334,7 @@ const ViewSBOMScanReport = () => {
   var highCount = 0;
   var mediumCount = 0;
   var lowCount = 0;
+  var unspecifiedCount = 0;
 
   if (sbomScan && sbomScan.vulnerabilities) {
 
@@ -356,6 +361,8 @@ const ViewSBOMScanReport = () => {
         mediumCount++;
       }else if(sbomScan.vulnerabilities[i].severity == 'LOW'){
         lowCount++;
+      }else if(sbomScan.vulnerabilities[i].severity == 'UNSPECIFIED'){
+        unspecifiedCount++;
       }
 
       tableData.push(dataItem);
@@ -568,6 +575,7 @@ const ViewSBOMScanReport = () => {
                 <th style={{ padding: 20, borderWidth: 2, color: '#A6001B', borderColor: '#fff' }}>HIGH</th>
                 <th style={{ padding: 20, borderWidth: 2, color: '#F6BE00', borderColor: '#fff' }}>MEDIUM</th>
                 <th style={{ padding: 20, borderWidth: 2, color: '#green', borderColor: '#fff' }}>LOW</th>
+                <th style={{ padding: 20, borderWidth: 2, color: '#green', borderColor: '#fff' }}>UNSPECIFIED</th>
               </thead>
 
               <tbody>
@@ -577,6 +585,7 @@ const ViewSBOMScanReport = () => {
                 <th style={{ padding: 20, borderWidth: 2, borderColor: '#fff' }}>{highCount}</th>
                 <th style={{ padding: 20, borderWidth: 2, borderColor: '#fff' }}>{mediumCount}</th>
                 <th style={{ padding: 20, borderWidth: 2, borderColor: '#fff' }}>{lowCount}</th>
+                <th style={{ padding: 20, borderWidth: 2, borderColor: '#fff' }}>{unspecifiedCount}</th>
 
               </tbody>
             </table>

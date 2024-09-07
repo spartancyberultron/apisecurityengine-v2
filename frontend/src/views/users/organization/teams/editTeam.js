@@ -109,10 +109,13 @@ setSelectedUsers(selectedUsers);
       headers: { Authorization: `Bearer ${token}` },
     });
 
-    setUsers(response.data.users.map(user => ({
-      value: user._id,
-      label: `${user.firstName} ${user.lastName} (${user.email})`
-    })));
+    setUsers(response.data.users
+      .filter(user => user.status !== 'Suspended')
+      .map(user => ({
+        value: user._id,
+        label: `${user.firstName} ${user.lastName} (${user.email})`
+      }))
+    );
 
     setLoading(false);
   };

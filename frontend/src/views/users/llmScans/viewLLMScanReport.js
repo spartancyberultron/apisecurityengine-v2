@@ -648,7 +648,7 @@ console.log('currentVulnerability:', currentVulnerability)
     {
       label: "Risk Acceptance",
       options: {
-        filter: true,
+        filter: false,
         download: true,
         customBodyRender: (value, tableMeta, updateValue) => {
           return (
@@ -685,9 +685,9 @@ console.log('currentVulnerability:', currentVulnerability)
       }
     },
     {
-      label: "RiskAcceptanceHiddenColumn",
+      label: "Risk Acceptance",
       options: {
-        filter: false,
+        filter: true,
         display:false,
         filterType: 'dropdown', // Adjust based on your filter type
         filterList: [],        
@@ -798,6 +798,16 @@ console.log('currentVulnerability:', currentVulnerability)
     <div style={{ overflow: "scroll", position: 'relative', overflowY: 'hidden', overflowX: 'hidden', }}>
 
       <>
+
+      <CButton
+    onClick={goBack}
+    className="darkButton"                
+    color="primary"
+  >
+    <IoMdArrowRoundBack size={25} style={{ color: '#fff', marginRight:10 }} />
+    Back to LLM Scans
+  </CButton>
+  
 
         {onLoading ?
 

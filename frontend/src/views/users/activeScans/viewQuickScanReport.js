@@ -463,7 +463,7 @@ const closeCostOfBreachModal = async () => {
     {
       label: "",
       options: {
-        filter: true,
+        filter: false,
         download: true,
         customBodyRender: (value, tableMeta, updateValue) => {
           return (
@@ -675,7 +675,7 @@ value.vulnerability.vulnerabilityCode == 6) &&
     {
       label: "Risk Acceptance",
       options: {
-        filter: true,
+        filter: false,
         filterType: 'dropdown', // Adjust based on your filter type
         filterList: [],
         customBodyRender: (value, tableMeta, updateValue) => {
@@ -732,9 +732,9 @@ value.vulnerability.vulnerabilityCode == 6) &&
       }
     },
     {
-      label: "RiskAcceptanceHiddenColumn",
+      label: "Risk Acceptance",
       options: {
-        filter: false,
+        filter: true,
         display:false,
         filterType: 'dropdown', // Adjust based on your filter type
         filterList: [],

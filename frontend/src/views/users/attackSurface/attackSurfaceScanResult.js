@@ -692,7 +692,7 @@ const closeCostOfBreachModal = async () => {
     {
       label: "Risk Acceptance",
       options: {
-        filter: true,
+        filter: false,
         download: true,
         customBodyRender: (value, tableMeta, updateValue) => {
           return (
@@ -729,9 +729,9 @@ const closeCostOfBreachModal = async () => {
       }
     },
     {
-      label: "RiskAcceptanceHiddenColumn",
+      label: "Risk Acceptance",
       options: {
-        filter: false,
+        filter: true,
         display:false,
         filterType: 'dropdown', // Adjust based on your filter type
         filterList: [],

@@ -73,6 +73,8 @@ export const AppSidebarNav = ({ items }) => {
   }
 
 
+  console.log('comes:',currentRoute)
+
   return (
 
     <div>
@@ -99,18 +101,18 @@ export const AppSidebarNav = ({ items }) => {
               className="menuLink"
               style={{
                 padding: 15, display: 'flex', flexDirection: 'row', textDecoration: 'none',
-                background: (currentRoute == '/api-inventory'
+                background: (currentRoute.includes('api-inventory')
                   || currentRoute.includes('-collection')
                  
                 ) ? '#7367f0' : 'transparent', justifyContent: 'center'
               }}>
 
-              <BsFillLightningChargeFill size={22} color={(currentRoute == '/api-inventory'
+              <BsFillLightningChargeFill size={22} color={(currentRoute.includes('api-inventory')
                 || currentRoute.includes('-collection')
                 ) ? '#fff' : '#b6bee3'} />
 
               <span className="headerText" style={{
-                marginLeft: 10, color: currentRoute == '/api-inventory'
+                marginLeft: 10, color: currentRoute.includes('api-inventory')
                 || currentRoute.includes('-collection')
                   ? '#fff' : '#5D596C'
               }}>

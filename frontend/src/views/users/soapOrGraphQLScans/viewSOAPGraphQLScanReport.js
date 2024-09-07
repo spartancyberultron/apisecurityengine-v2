@@ -484,7 +484,7 @@ const ViewSOAPGraphQLScanReport = () => {
     {
       label: "Risk Acceptance",
       options: {
-        filter: true,
+        filter: false,
         download: true,
         customBodyRender: (value, tableMeta, updateValue) => {
           return (
@@ -521,9 +521,9 @@ const ViewSOAPGraphQLScanReport = () => {
       }
     },
     {
-      label: "RiskAcceptanceHiddenColumn",
+      label: "Risk Acceptance",
       options: {
-        filter: false,
+        filter: true,
         display:false,
         filterType: 'dropdown', // Adjust based on your filter type
         filterList: [],        
@@ -648,6 +648,15 @@ const getRemediation = (testCaseName) => {
     <div style={{ overflow: "scroll", position: 'relative', overflowY: 'hidden', }}>
 
       <>
+
+      <CButton
+    onClick={goBack}
+    className="darkButton"                
+    color="primary"
+  >
+    <IoMdArrowRoundBack size={25} style={{ color: '#fff', marginRight:10 }} />
+    Back to SOAP/GraphQL Scans
+  </CButton>
 
         {onLoading ?
 
