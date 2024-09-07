@@ -710,10 +710,9 @@ module.exports.getScanDetailsForReport = asyncHandler(async (req, res) => {
         return res.status(404).json({ success: false, error: 'User not found' });
       }
   
-      const activeScan = await ActiveScan.findOne({
-        _id: scanId,
-        user: userId,
-      })
+      const activeScan = await ActiveScan.findById(
+        scanId
+      )
         .populate({
           path: 'theCollectionVersion', // Populate 'theCollectionVersion' field
           populate: {
@@ -726,31 +725,41 @@ module.exports.getScanDetailsForReport = asyncHandler(async (req, res) => {
             },
           },
         })
-        .populate({
-          path: 'vulnerabilities',
-          model: 'ActiveScanVulnerability',
-          populate: [
-            {
-              path: 'vulnerability',
-              model: 'Vulnerability',
-              select: 'vulnerabilityName riskScore vulnerabilityCode', // Include only the desired fields
-            },
-            {
-              path: 'endpoint',
-              model: 'ApiEndpoint',
+        //.populate({
+        //  path: 'vulnerabilities',
+         // model: 'ActiveScanVulnerability',
+         // populate: [
+         //   {
+          //    path: 'vulnerability',
+          //    model: 'Vulnerability',
+           //   select: 'vulnerabilityName riskScore vulnerabilityCode', // Include only the desired fields
+           // },
+           // {
+            //  path: 'endpoint',
+            //  model: 'ApiEndpoint',
               // You can select specific fields from 'ApiEndpoint' if needed
-            },
-          ],
-        })
-        .lean();
+          //  },
+          //],
+       // })
+       .lean();
+
+console.log('activeScan._id:',activeScan._id)
+
+	     const vulnerabilities = await ActiveScanVulnerability.find({ activeScan: activeScan._id }).populate('vulnerability endpoint')
+  //  .skip(skip)
+   // .limit(limit).lean();
+activeScan.vulnerabilities = vulnerabilities;
+
       
-        const endpointsCount = await ApiEndpoint.count({ theCollection: activeScan.theCollection })
-        activeScan.endpointsCount = endpointsCount;
+      //  const endpointsCount = await ApiEndpoint.count({ theCollection: activeScan.theCollection })
+        activeScan.endpointsCount = activeScan.endpointsScanned;
         
   
       if (!activeScan) {
         return res.status(404).json({ success: false, error: 'Scan not found' });
       }
+
+	    console.log('activeScan:', activeScan);
   
       // Send the activeScan object as a response
       res.status(200).json({ success: true, data: activeScan });
