@@ -161,7 +161,8 @@ const AddAPICollectionVersion = () => {
     
 
            // Move to active scans window in 1 second
-           navigate('/active-scans')
+           //navigate('/active-scans')
+           window.location.href = '/active-scans'
         }
 
       })

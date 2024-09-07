@@ -106,11 +106,14 @@ module.exports.getProjectVulnerabilities = asyncHandler(async (req, res) => {
 
     const project = await Project.findById(req.query.projectId);
 
+    console.log('project.capturingStatus:',project.capturingStatus)
+
     const result = {
         vulnerabilities: projectVulnerabilities,
         projectName: project.projectName,
         piiFields: project.piiFields,
-        projectId:project._id
+        projectId:project._id,
+        capturingStatus:project.capturingStatus
     };
 
     res.status(200).json(result);

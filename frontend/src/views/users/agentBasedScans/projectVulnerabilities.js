@@ -1273,6 +1273,36 @@ const piiDataArray = Object.values(piiCounts);
 </tr>  
 
 
+<tr>
+
+<td style={{padding:10, borderWidth:0, borderColor:'#000', background:'transparent'}}>
+
+  <span style={{ fontWeight: 'bold',  }}>Application Name</span>
+
+</td>
+<td style={{padding:10, borderWidth:1, borderColor:'#ffffff'}}>
+
+{result.projectName}
+
+</td>
+</tr>  
+
+
+<tr>
+
+<td style={{padding:10, borderWidth:0, borderColor:'#000', background:'transparent'}}>
+
+  <span style={{ fontWeight: 'bold',  }}>Traffic Capturing Status</span>
+
+</td>
+<td style={{padding:10, borderWidth:1, borderColor:'#ffffff'}}>
+
+{result.capturingStatus}
+
+</td>
+</tr>  
+
+
 
               <tr>
 

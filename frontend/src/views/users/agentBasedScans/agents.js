@@ -439,7 +439,7 @@ const Agents = () => {
         <hr />
 
         <span style={{ paddingBottom: 20 }}>After adding a project, please setup the traffic mirroring agent in your project.&nbsp;
-          <a target="_blank" href="/add-agent" style={{ textDecoration: 'underline', background: 'transparent', color: 'blue', fontWeight: 'bold' }}>
+          <a target="_blank" href="/integrations" style={{ textDecoration: 'underline', background: 'transparent', color: 'blue', fontWeight: 'bold' }}>
             Click here</a> to see how to add the agents.</span>
 
         <h5>&nbsp;</h5>

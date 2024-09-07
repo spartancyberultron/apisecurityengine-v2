@@ -75,8 +75,7 @@ const UserDashboard = () => {
 
     fetchDashboardData();
     
-  }, []);     
-
+  }, []); 
 
 
 

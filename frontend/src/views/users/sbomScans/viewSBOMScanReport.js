@@ -311,6 +311,11 @@ const ViewSBOMScanReport = () => {
     selectableRows: false, // <===== will turn off checkboxes in rows
     rowsPerPage: 20,
     rowsPerPageOptions: [],
+    sort: true,
+    sortOrder: {
+      name: '0', // Sort by the first column
+      direction: 'asc', // Ascending order
+    },
     textLabels: {
       body: {
         noMatch: 'No vulnerabilities found',
@@ -357,6 +362,8 @@ const ViewSBOMScanReport = () => {
     }
   }
 
+ 
+  
 
 
 
