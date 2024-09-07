@@ -26,7 +26,7 @@ module.exports.getAllLLMScans = asyncHandler(async (req, res) => {
     const user = await User.findById(req.user._id)
     const organization = await Organization.findById(user.organization)
   
-
+/*
     // The user is attempting to fetch the scans list, so we will see all scans that have a task id, but the status as "in progress".
     // And check whether their scans are complete, by running get_llm_security_scan_results API.
     // If they are completed, save the status and then fetch the results and save the results, then proceed to the rest of the logic for this
@@ -113,7 +113,7 @@ module.exports.getAllLLMScans = asyncHandler(async (req, res) => {
     }
 
     calculateDashboard(organization);
-
+*/
     // Logic to fetch the scans
     const pageNumber = parseInt(req.query.pageNumber) || 1; // Get the pageNumber from the query parameters (default to 1 if not provided)
     const pageSize = 10; // Number of active scans per page
