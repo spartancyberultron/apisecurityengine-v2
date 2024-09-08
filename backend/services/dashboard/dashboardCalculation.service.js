@@ -994,6 +994,7 @@ await org1.save();
 
 async function calculateAuditFindings(organization) {
 
+    console.log('comes in audit findings')
     
     const categories = ['REST API Scan', 'Attack Surface Scan', 'API Traffic Scan', 'SOAP Scan', 'GraphQL Scan', 'SBOM Scan','LLM Scan' ];
     
@@ -1010,6 +1011,11 @@ async function calculateAuditFindings(organization) {
             source: sourceRegex,
             status: 'RESOLVED'
         });
+
+
+        console.log('reportedIssues:',reportedIssues)
+        console.log('remediatedIssues:',remediatedIssues)
+
 
       
 

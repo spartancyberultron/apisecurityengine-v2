@@ -30,7 +30,8 @@ module.exports.protectUser = asyncHandler(async (req, res, next) => {
       next();
     } catch (error) {
       res.status(401);
-      throw new Error('Not authorized2');
+      console.log('error',error)
+      throw new Error('Not authorized2:');
     }
   }
 

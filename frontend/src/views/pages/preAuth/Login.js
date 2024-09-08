@@ -93,6 +93,12 @@ const VendorLogin = () => {
 
       console.log('parsedUser:', parsedUser);
 
+      const token =  localStorage.getItem('ASIToken')
+
+      console.log('token:', token);
+
+
+
       if (parsedUser.userType === 'user') {
         //window.location.replace('/user-dashboard');
         setChecking(false);

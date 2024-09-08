@@ -14,7 +14,7 @@ const router = express.Router();
 
 //base route /api/v1/sbomScans/
 
-router.get('/getAllSBOMScans', protectUser, getAllSBOMScans);
+router.get('/getAllSBOMScans/:page/:rowsPerPage', protectUser, getAllSBOMScans);
 router.post('/getSBOMScanDetails', protectUser, getSBOMScanDetails);
 router.post('/startSBOMScan', protectUser, sbomUpload.single("file"), startSBOMScan);
 

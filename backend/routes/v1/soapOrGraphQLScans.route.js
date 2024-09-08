@@ -14,7 +14,7 @@ const router = express.Router();
 
 //base route /api/v1/SOAPOrGraphQLScans/
 
-router.get('/getAllSOAPOrGraphQLScans', protectUser, getAllSOAPOrGraphQLScans);
+router.get('/getAllSOAPOrGraphQLScans/:page/:rowsPerPage', protectUser, getAllSOAPOrGraphQLScans);
 router.post('/getSOAPOrGraphQLScanDetails', protectUser, getSOAPOrGraphQLScanDetails);
 router.post('/startSOAPOrGraphQLScan', protectUser, soapGraphQLUpload.single("file"), startSOAPOrGraphQLScan);
 router.post('/deleteSOAPOrGraphQLScan', protectUser, deleteSOAPOrGraphQLScan);

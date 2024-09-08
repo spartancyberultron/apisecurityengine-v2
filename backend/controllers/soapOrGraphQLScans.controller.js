@@ -30,21 +30,31 @@ module.exports.getAllSOAPOrGraphQLScans = asyncHandler(async (req, res) => {
 
     // Now proceed
 
-    const pageNumber = parseInt(req.query.pageNumber) || 1; // Get the pageNumber from the query parameters (default to 1 if not provided)
-    const pageSize = 10; // Number of active scans per page
+    const page = req.params.page ? parseInt(req.params.page, 10) : 1;
+    const rowsPerPage = req.params.rowsPerPage ? parseInt(req.params.rowsPerPage, 10) : 10;
 
-    const totalRecords = await SOAPOrGraphQLScan.countDocuments({ user: req.user._id });
-    const totalPages = Math.ceil(totalRecords / pageSize);
+   // console.log('page:', page)
+  //  console.log('rowsPerPage:', rowsPerPage)
 
-    // Calculate the skip value based on the pageNumber and pageSize
-    const skip = (pageNumber - 1) * pageSize;
-   
+    // Validate and parse page and rowsPerPage
+    const pageNumber = parseInt(page, 10) + 1;
+    const rowsPerPageNumber = parseInt(rowsPerPage, 10);
+  //  console.log('pageNumber:', pageNumber)
+
+
+    if (isNaN(pageNumber) || isNaN(rowsPerPageNumber) || pageNumber < 1 || rowsPerPageNumber < 1) {
+        return res.status(400).json({ success: false, message: "Invalid pagination parameters" });
+    }
+
+    const skip = (pageNumber - 1) * rowsPerPageNumber;
+    const limit = rowsPerPageNumber;
+
 
         const soapOrGraphQLScans = await SOAPOrGraphQLScan.aggregate([
             { $match: { user: req.user._id } },
             { $sort: { createdAt: -1 } },
             { $skip: skip },
-            { $limit: pageSize },
+            { $limit: limit },
             {
                 $lookup: {
                     from: 'orgprojects',
@@ -77,16 +87,21 @@ module.exports.getAllSOAPOrGraphQLScans = asyncHandler(async (req, res) => {
             }
         ]);
 
-     // Trigger an async function that checks if all the scans have got the result files and also the results saved in database.
-    // If not,  do that for the scans that do not have records
-//    checkAndPopulateScans(organization);
+        const countQuery = await SOAPOrGraphQLScan.aggregate([
+            { $match: { user: req.user._id } },
+            { $count: 'total' }
+        ]);
+        
+        const totalCount = countQuery.length > 0 ? countQuery[0].total : 0;
 
-    // Return the SOAP/GraphQL scans, currentPage, totalRecords, and totalPages in the response
+        // Trigger an async function that checks if all the scans have got the result files and also the results saved in database.
+        // If not,  do that for the scans that do not have records
+        // checkAndPopulateScans(organization);
+
+        // Return the SOAP/GraphQL scans, currentPage, totalRecords, and totalPages in the response
     res.status(200).json({
         soapOrGraphQLScans,
-        currentPage: pageNumber,
-        totalRecords,
-        totalPages,
+        totalCount
     });
 
 

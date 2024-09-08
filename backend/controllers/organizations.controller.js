@@ -453,25 +453,36 @@ module.exports.getTickets = asyncHandler(async (req, res) => {
         }
 
         const skip = (pageNumber - 1) * rowsPerPageNumber;
+
+        console.log('skip:',skip)
         const limit = rowsPerPageNumber;
 
         const totalCount = await Ticket.countDocuments({ organization: user.organization._id });
 
+        const openTickets = await Ticket.find({ organization: user.organization._id, 'status':'OPEN' });
+        const closedTickets = await Ticket.find({ organization: user.organization._id, 'status':'RESOLVED' });
+
+        console.log('openTickets:',openTickets.length)
+        console.log('closedTickets:',closedTickets.length)
 
         // Fetch the latest 100 tickets for the user's organization
         const tickets = await Ticket.find({ organization: user.organization._id })
-            .populate('openedBy')
-            .populate('assignedTo')
-            .sort({ createdAt: -1 }) // Sort by createdAt in descending order
-            //.limit(100); // Limit to 100 tickets
-            .skip(skip)
-            .limit(limit)
-            .lean();
+        .populate('openedBy')
+        .populate('assignedTo')
+        .sort({
+            updatedAt: -1,  // Sort by updatedAt first
+            createdAt: -1   // If updatedAt is not available, fallback to createdAt
+        })
+        .skip(skip)
+        .limit(limit)
+        .lean();
 
             console.log('tickets:',tickets.length)
             console.log('totalCount:',totalCount)
 
         for (var i = 0; i < tickets.length; i++) {
+
+            console.log('tickets:',tickets[i].status)
 
 
             if (tickets[i].source == 'REST API Scan') {

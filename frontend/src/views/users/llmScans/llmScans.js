@@ -35,6 +35,11 @@ const LLMScans = () => {
 
   const [itemOffset, setItemOffset] = useState(0);
 
+  const [page, setPage] = useState(0);
+  const [count, setCount] = useState(0);
+  const [rowsPerPage, setRowsPerPage] = useState(10);
+
+
   const customStyles = {
     content: {
       top: '30%',
@@ -179,20 +184,22 @@ const LLMScans = () => {
   const isFirstTime = useRef(true);
 
 
-  const fetchLLMScans = async (isFirstTime, pageNumber) => {
+  const fetchLLMScans = async (isFirstTime, page, rowsPerPage) => {
 
     if (isFirstTime) {
       setOnLoading(true);
     }
   
     const token = localStorage.getItem('ASIToken');
-    const response = await axios.get(`/api/v1/llmScans/getAllLLMScans?pageNumber=${pageNumber}`, {
+    const response = await axios.get(`/api/v1/llmScans/getAllLLMScans/${page}/${rowsPerPage}`, {
       headers: { Authorization: `Bearer ${token}` },
     });
   
     setLLMScans(response.data.llmScans);
-    setCurrentPage(response.data.currentPage);
-    setTotalRecords(response.data.totalRecords);
+    //setCurrentPage(response.data.currentPage);
+    //setTotalRecords(response.data.totalRecords);
+
+    setCount(response.data.totalCount);   
   
     setOnLoading(false);
   };
@@ -203,13 +210,13 @@ const LLMScans = () => {
 
     const interval = setInterval(() => {
 
-      fetchLLMScans(false, currentPage);
+      fetchLLMScans(false, page, rowsPerPage);
 
     }, 30000);
     
 
     // Make the initial call immediately
-    fetchLLMScans(true, currentPage);
+    fetchLLMScans(true, 0, rowsPerPage);
     isFirstTime.current = false;
 
     // Clean up the interval on component unmount
@@ -401,11 +408,25 @@ const LLMScans = () => {
     viewColumns: true,
     selectableRows: false, // <===== will turn off checkboxes in rows
     rowsPerPage: 20,
-    rowsPerPageOptions: [],
-    pagination: false,
+    rowsPerPage: 20,
+    rowsPerPageOptions: [10, 20, 60, 100, 150],
     textLabels: {
       body: {
         noMatch: 'No scans created yet',
+      }
+    },
+    serverSide: true,
+    count: count,
+    page: page,
+    rowsPerPage: rowsPerPage,
+    onTableChange: (action, tableState) => {
+      if (action === 'changePage' || action === 'changeRowsPerPage') {
+        const { page, rowsPerPage } = tableState;
+
+
+        setPage(page);
+        setRowsPerPage(rowsPerPage);
+        fetchLLMScans(true, page, rowsPerPage);
       }
     }
   };
@@ -418,7 +439,7 @@ const LLMScans = () => {
 
     var dataItem = [];
 
-    dataItem.push(i+1);
+    dataItem.push(((page) * 10) + (i+1));
     dataItem.push(llmScans[i].scanName);
     dataItem.push(llmScans[i].orgProject?llmScans[i].orgProject.name:'---');
 
@@ -508,18 +529,7 @@ const LLMScans = () => {
                   options={options}
                 />
               </ThemeProvider>
-
-
-              <ReactPaginate
-                breakLabel="..."
-                nextLabel=">"
-                onPageChange={handlePageClick}
-                pageRangeDisplayed={10}
-                pageCount={totalRecords / 10}
-                previousLabel="<"
-                forcePage={currentPage - 1}
-                renderOnZeroPageCount={null}
-              />
+              
             </>
           }
 

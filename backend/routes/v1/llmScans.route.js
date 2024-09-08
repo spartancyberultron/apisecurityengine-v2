@@ -13,7 +13,7 @@ const router = express.Router();
 
 //base route /api/v1/llmScans/
 
-router.get('/getAllLLMScans', protectUser, getAllLLMScans);
+router.get('/getAllLLMScans/:page/:rowsPerPage', protectUser, getAllLLMScans);
 router.post('/getLLMScanDetails', protectUser, getLLMScanDetails);
 router.post('/startLLMScan', protectUser, startLLMScan);
 router.post('/deleteLLMScan', protectUser, deleteLLMScan);

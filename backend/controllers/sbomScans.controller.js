@@ -11,33 +11,30 @@ const Organization = require('../models/organization.model');
 
 module.exports.getAllSBOMScans = asyncHandler(async (req, res) => {
 
-    const pageNumber = parseInt(req.query.pageNumber) || 1; // Get the pageNumber from the query parameters (default to 1 if not provided)
-    const pageSize = 10; // Number of active scans per page
+    const page = req.params.page ? parseInt(req.params.page, 10) : 1;
+const rowsPerPage = req.params.rowsPerPage ? parseInt(req.params.rowsPerPage, 10) : 10;
 
-    const totalRecords = await SBOMScan.countDocuments({ user: req.user._id });
-    const totalPages = Math.ceil(totalRecords / pageSize);
+// console.log('page:', page)
+//  console.log('rowsPerPage:', rowsPerPage)
 
-    // Calculate the skip value based on the pageNumber and pageSize
-    const skip = (pageNumber - 1) * pageSize;
-
-   /* const sbomScans = await SBOMScan.find({ user: req.user._id }).populate('orgProject')
-        .sort({ createdAt: -1 })
-        .skip(skip)
-        .limit(pageSize)
-        .lean();
+// Validate and parse page and rowsPerPage
+const pageNumber = parseInt(page, 10) + 1;
+const rowsPerPageNumber = parseInt(rowsPerPage, 10);
+//  console.log('pageNumber:', pageNumber)
 
 
-    for (var i = 0; i < sbomScans.length; i++) {
+if (isNaN(pageNumber) || isNaN(rowsPerPageNumber) || pageNumber < 1 || rowsPerPageNumber < 1) {
+    return res.status(400).json({ success: false, message: "Invalid pagination parameters" });
+}
 
-        var vulnerabilities = await SBOMScanVulnerability.countDocuments({ sbomScan: sbomScans[i]._id })
-        sbomScans[i].vulnerabilities = vulnerabilities;
-    } */
+const skip = (pageNumber - 1) * rowsPerPageNumber;
+const limit = rowsPerPageNumber;
 
         const sbomScans = await SBOMScan.aggregate([
             { $match: { user: req.user._id } },
             { $sort: { createdAt: -1 } },
             { $skip: skip },
-            { $limit: pageSize },
+            { $limit: limit },
             {
                 $lookup: {
                     from: 'orgprojects',
@@ -70,13 +67,19 @@ module.exports.getAllSBOMScans = asyncHandler(async (req, res) => {
             }
         ]);
 
+        const countQuery = await SBOMScan.aggregate([
+            { $match: { user: req.user._id } },
+            { $count: 'total' }
+        ]);
+        
+        const totalCount = countQuery.length > 0 ? countQuery[0].total : 0;
+
+
 
     // Return the sbom scans, currentPage, totalRecords, and totalPages in the response
     res.status(200).json({
         sbomScans,
-        currentPage: pageNumber,
-        totalRecords,
-        totalPages,
+        totalCount
     });
 
 });

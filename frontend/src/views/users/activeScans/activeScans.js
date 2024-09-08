@@ -55,9 +55,7 @@ const QuickScans = () => {
     },
   };
 
-  const itemsPerPage = 10;
-
-  
+  const itemsPerPage = 10;  
 
   // Function to handle the button click and show the confirm dialog
   const handleClick = (user) => {
@@ -476,9 +474,11 @@ const QuickScans = () => {
     onTableChange: (action, tableState) => {
       if (action === 'changePage' || action === 'changeRowsPerPage') {
         const { page, rowsPerPage } = tableState;
+
+
         setPage(page);
         setRowsPerPage(rowsPerPage);
-        fetchActiveScans(page, rowsPerPage);
+        fetchActiveScans(true, page, rowsPerPage);
       }
     }
   };

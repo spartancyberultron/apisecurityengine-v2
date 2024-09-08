@@ -35,6 +35,10 @@ const SOAPGraphQLScans = () => {
 
   const [itemOffset, setItemOffset] = useState(0);
 
+  const [page, setPage] = useState(0);
+  const [count, setCount] = useState(0);
+  const [rowsPerPage, setRowsPerPage] = useState(10);
+
   const customStyles = {
     content: {
       top: '30%',
@@ -51,28 +55,11 @@ const SOAPGraphQLScans = () => {
 
   const itemsPerPage = 10;
 
-  // Invoke when user click to request another page.
-  const handlePageClick = (event) => {
-
-    var requestedPage = event.selected + 1;
-
-    //console.log('requestedPage', requestedPage)
-
-    fetchSOAPOrGraphQLScans(true, requestedPage);
-
-    const newOffset = (event.selected * itemsPerPage) % totalRecords;
-    //console.log(
-    //  `User requested page number ${event.selected}, which is offset ${newOffset}`
-    //);
-    setItemOffset(newOffset);
-
-  };
-
+ 
 
   // Function to handle the button click and show the confirm dialog
   const handleClick = (scan) => {
 
-    console.log('scan:',scan)
     setScanToDelete(scan);
     setModalIsOpen(true);
   };
@@ -119,7 +106,6 @@ const SOAPGraphQLScans = () => {
 
       // Handle the API response
       setOnDeleting(false);
-
 
       if (response.data.hasOwnProperty('error')) {
 
@@ -182,20 +168,22 @@ const SOAPGraphQLScans = () => {
   const isFirstTime = useRef(true);
 
 
-  const fetchSOAPOrGraphQLScans = async (isFirstTime, pageNumber) => {
+  const fetchSOAPOrGraphQLScans = async (isFirstTime, page, rowsPerPage) => {
 
     if (isFirstTime) {
       setOnLoading(true);
     }
   
     const token = localStorage.getItem('ASIToken');
-    const response = await axios.get(`/api/v1/soapOrGraphQLScans/getAllSOAPOrGraphQLScans?pageNumber=${pageNumber}`, {
+    const response = await axios.get(`/api/v1/soapOrGraphQLScans/getAllSOAPOrGraphQLScans/${page}/${rowsPerPage}`, {
       headers: { Authorization: `Bearer ${token}` },
     });
   
     setSoapOrGraphQLScans(response.data.soapOrGraphQLScans);
-    setCurrentPage(response.data.currentPage);
-    setTotalRecords(response.data.totalRecords);
+    //setCurrentPage(response.data.currentPage);
+    //setTotalRecords(response.data.totalRecords);
+
+    setCount(response.data.totalCount);   
   
     setOnLoading(false);
   };
@@ -206,13 +194,13 @@ const SOAPGraphQLScans = () => {
 
     const interval = setInterval(() => {
 
-      fetchSOAPOrGraphQLScans(false, currentPage);
+      fetchSOAPOrGraphQLScans(false, page, rowsPerPage);
 
     }, 30000);
     
 
     // Make the initial call immediately
-    fetchSOAPOrGraphQLScans(true, currentPage);
+    fetchSOAPOrGraphQLScans(true, 0, rowsPerPage);
     isFirstTime.current = false;
 
     // Clean up the interval on component unmount
@@ -414,11 +402,24 @@ const SOAPGraphQLScans = () => {
     viewColumns: true,
     selectableRows: false, // <===== will turn off checkboxes in rows
     rowsPerPage: 20,
-    rowsPerPageOptions: [],
-    pagination: false,
+    rowsPerPageOptions: [10, 20, 60, 100, 150],
     textLabels: {
       body: {
         noMatch: 'No scans created yet',
+      }
+    },
+    serverSide: true,
+    count: count,
+    page: page,
+    rowsPerPage: rowsPerPage,
+    onTableChange: (action, tableState) => {
+      if (action === 'changePage' || action === 'changeRowsPerPage') {
+        const { page, rowsPerPage } = tableState;
+
+
+        setPage(page);
+        setRowsPerPage(rowsPerPage);
+        fetchSOAPOrGraphQLScans(true, page, rowsPerPage);
       }
     }
   };
@@ -430,7 +431,7 @@ const SOAPGraphQLScans = () => {
 
     var dataItem = [];
 
-    dataItem.push(i+1);
+    dataItem.push(((page) * 10) + (i+1));
     dataItem.push(soapOrGraphQLScans[i].scanName);
     dataItem.push(soapOrGraphQLScans[i].orgProject?soapOrGraphQLScans[i].orgProject.name:'---');
     dataItem.push((soapOrGraphQLScans[i].type).toUpperCase());
@@ -532,16 +533,7 @@ const SOAPGraphQLScans = () => {
               </ThemeProvider>
 
 
-              <ReactPaginate
-                breakLabel="..."
-                nextLabel=">"
-                onPageChange={handlePageClick}
-                pageRangeDisplayed={10}
-                pageCount={totalRecords / 10}
-                previousLabel="<"
-                forcePage={currentPage - 1}
-                renderOnZeroPageCount={null}
-              />
+              
             </>
           }
 

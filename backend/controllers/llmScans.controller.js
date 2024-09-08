@@ -114,20 +114,31 @@ module.exports.getAllLLMScans = asyncHandler(async (req, res) => {
 
     calculateDashboard(organization);
 */
-    // Logic to fetch the scans
-    const pageNumber = parseInt(req.query.pageNumber) || 1; // Get the pageNumber from the query parameters (default to 1 if not provided)
-    const pageSize = 10; // Number of active scans per page
+    
+const page = req.params.page ? parseInt(req.params.page, 10) : 1;
+const rowsPerPage = req.params.rowsPerPage ? parseInt(req.params.rowsPerPage, 10) : 10;
 
-    const totalRecords = await LLMScan.countDocuments({ user: req.user._id });
-    const totalPages = Math.ceil(totalRecords / pageSize);
+// console.log('page:', page)
+//  console.log('rowsPerPage:', rowsPerPage)
 
-    // Calculate the skip value based on the pageNumber and pageSize
-    const skip = (pageNumber - 1) * pageSize;
+// Validate and parse page and rowsPerPage
+const pageNumber = parseInt(page, 10) + 1;
+const rowsPerPageNumber = parseInt(rowsPerPage, 10);
+//  console.log('pageNumber:', pageNumber)
+
+
+if (isNaN(pageNumber) || isNaN(rowsPerPageNumber) || pageNumber < 1 || rowsPerPageNumber < 1) {
+    return res.status(400).json({ success: false, message: "Invalid pagination parameters" });
+}
+
+const skip = (pageNumber - 1) * rowsPerPageNumber;
+const limit = rowsPerPageNumber;
+
 
     const llmScans = await LLMScan.find({ user: req.user._id }).populate('orgProject')
         .sort({ createdAt: -1 })
         .skip(skip)
-        .limit(pageSize)
+        .limit(limit)
         .lean();
 
 
@@ -137,13 +148,14 @@ module.exports.getAllLLMScans = asyncHandler(async (req, res) => {
         llmScans[i].vulnerabilities = vulnerabilities;
     }  
 
+    const totalCount = await LLMScan.countDocuments({ user: req.user._id });
+
+
 
     // Return the sbom scans, currentPage, totalRecords, and totalPages in the response
     res.status(200).json({
         llmScans,
-        currentPage: pageNumber,
-        totalRecords,
-        totalPages,
+        totalCount
     });    
 
 });
