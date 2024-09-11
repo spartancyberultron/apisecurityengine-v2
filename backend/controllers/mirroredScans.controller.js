@@ -171,7 +171,7 @@ module.exports.sendRequestInfo = asyncHandler(async (req, res) => {
         console.log('%%%%%%%%%%%%%%%%%%%%%%%:')
 
         // Check if a record with matching method and url exists
-        TrafficProjectEndpoint.findOne({ method, url }, (err, existingEndpoint) => {
+        TrafficProjectEndpoint.findOne({ method, url, project:project._id }, (err, existingEndpoint) => {
 
             if (err) {
                 console.error('Error checking for existing TrafficProjectEndpoint:', err);
