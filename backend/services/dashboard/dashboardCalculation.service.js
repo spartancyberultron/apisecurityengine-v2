@@ -25,8 +25,6 @@ const Ticket = require("../../models/ticket.model");
 
 
 
-
-
 async function calculateDashboard(organization) {
 
 
