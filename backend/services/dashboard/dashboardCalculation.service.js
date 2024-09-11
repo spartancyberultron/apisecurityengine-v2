@@ -162,9 +162,19 @@ async function calculateSeverityDistribution(organization) {
     .lean(); // Convert to plain JavaScript objects for easier manipulation
 
 // Filter the results to match the organization ID
-const filteredScans = activeScans.filter(scan => {
-    return scan.theCollectionVersion.apiCollection.orgProject.organization._id.toString() === organization._id.toString();
+//const filteredScans = activeScans.filter(scan => {
+  //  return scan.theCollectionVersion.apiCollection.orgProject.organization._id.toString() === organization._id.toString();
+//});
+	
+	const filteredScans = activeScans.filter(scan => {
+    return scan.theCollectionVersion &&
+           scan.theCollectionVersion.apiCollection &&
+           scan.theCollectionVersion.apiCollection.orgProject &&
+           scan.theCollectionVersion.apiCollection.orgProject.organization &&
+           scan.theCollectionVersion.apiCollection.orgProject.organization._id.toString() === organization._id.toString();
 });
+
+
     const activeScanIds = filteredScans.map(scan => scan._id);
 
    // console.log('activeScanIds###################3:',activeScanIds)
