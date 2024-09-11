@@ -190,6 +190,10 @@ module.exports.deleteAPICollection = asyncHandler(async (req, res) => {
         await ApiEndpoint.deleteMany({ theCollectionVersion: { $in: deletedCollectionVersionIds } });
 
 
+        const user = await User.findById(req.user._id)
+        const organization = await Organization.findById(user.organization)
+        calculateDashboard(organization);
+
         res.json({ message: 'Collection, related collectionVersions and their endpoints are deleted successfully' });
     } catch (error) {
         console.error(error.message);

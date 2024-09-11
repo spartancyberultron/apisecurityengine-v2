@@ -272,11 +272,14 @@ module.exports.deleteSBOMScan = asyncHandler(async (req, res) => {
         if (!deletedScan) {
             return res.status(404).json({ error: 'Failed to delete the scan.' });
         }
-
        
 
         // Delete related ActiveScanVulnerabilities
         await SBOMScan.deleteMany({ sbomScan: id });
+
+        const user = await User.findById(req.user._id)
+        const organization = await Organization.findById(user.organization)
+        calculateDashboard(organization);
 
         res.json({ message: 'Scan and related vulnerabilities deleted successfully.' });
     } catch (error) {

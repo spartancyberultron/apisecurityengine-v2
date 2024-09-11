@@ -324,6 +324,9 @@ module.exports.addProject = asyncHandler(async (req, res) => {
         // Save the new record to the database
         await newProject.save();
 
+        console.log('comes')
+
+        calculateDashboard(organization);
 
         res.status(200).json({ success: true, newProject });
 
@@ -369,6 +372,10 @@ module.exports.deleteProject = asyncHandler(async (req, res) => {
 
         const project = await OrgProject.findById(id);
         project.deleteOne();
+
+        const user = await User.findById(req.user._id)
+        const organization = await Organization.findById(user.organization)
+        calculateDashboard(organization);
 
         res.status(200).json({ success: true, message: 'deleted' });
 
@@ -735,6 +742,10 @@ module.exports.deleteTicket = asyncHandler(async (req, res) => {
 
         const ticket = await Ticket.findById(id);
         ticket.deleteOne();
+
+        const user = await User.findById(req.user._id)
+        const organization = await Organization.findById(user.organization)
+        calculateDashboard(organization);
 
         res.status(200).json({ success: true, message: 'deleted' });
 

@@ -31,15 +31,11 @@ module.exports.getAllSOAPOrGraphQLScans = asyncHandler(async (req, res) => {
     // Now proceed
 
     const page = req.params.page ? parseInt(req.params.page, 10) : 1;
-    const rowsPerPage = req.params.rowsPerPage ? parseInt(req.params.rowsPerPage, 10) : 10;
-
-   // console.log('page:', page)
-  //  console.log('rowsPerPage:', rowsPerPage)
+    const rowsPerPage = req.params.rowsPerPage ? parseInt(req.params.rowsPerPage, 10) : 10;  
 
     // Validate and parse page and rowsPerPage
     const pageNumber = parseInt(page, 10) + 1;
     const rowsPerPageNumber = parseInt(rowsPerPage, 10);
-  //  console.log('pageNumber:', pageNumber)
 
 
     if (isNaN(pageNumber) || isNaN(rowsPerPageNumber) || pageNumber < 1 || rowsPerPageNumber < 1) {
@@ -1815,6 +1811,10 @@ module.exports.deleteSOAPOrGraphQLScan = asyncHandler(async (req, res) => {
 
         // Delete related Vulnerabilities
         await SOAPOrGraphQLScanVulnerability.deleteMany({ soapOrGraphQLScan: id });
+
+        const user = await User.findById(req.user._id)
+        const organization = await Organization.findById(user.organization)
+        calculateDashboard(organization);
 
         res.json({ message: 'Scan and related vulnerabilities deleted successfully.' });
     } catch (error) {

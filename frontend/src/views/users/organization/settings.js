@@ -98,6 +98,10 @@ const Settings = () => {
   const [piiSettings, setPiiSettings] = useState([]);
   const [onLoading, setOnLoading] = useState(false);
 
+  const [clientId, setClientId] = useState('');
+  const [clientSecret, setClientSecret] = useState('');
+  const [orgName, setOrgName] = useState('');
+
   const fetchSettings = async () => {
 
     setOnLoading(true);
@@ -111,6 +115,10 @@ const Settings = () => {
         const fetchedSettings = response.data.organization;
 
         console.log('fetchedSettings:',fetchedSettings)
+
+        setClientId(fetchedSettings.clientId)
+        setClientSecret(fetchedSettings.clientSecret)
+        setOrgName(fetchedSettings.name)
 
         // Map fetched settings to the format used in `defaultSettings`
         const mappedSettings = defaultSettings;
@@ -289,8 +297,11 @@ const handleSaveSettings = async () => {
             <hr />
             <div style={{ display: 'flex', flexDirection: 'row', marginBottom: 30 }}>
               <div style={{ width: '100%' }}>
-                <span>Organization Name : <span style={{ fontWeight: 'bold' }}>Organization Name</span></span>
-              </div>
+                <span>Organization Name : <span style={{ fontWeight: 'bold' }}>{orgName}</span></span> <br/><br/>
+                <span>Client ID : <span style={{ fontWeight: 'normal', fontStyle:'italic' }}>{clientId}</span></span><br/>
+                <span>Client Secret :  <span style={{ fontWeight: 'normal', fontStyle:'italic' }}>{clientSecret}</span></span>
+              </div> <br/>
+              
             </div>
             <div style={{ display: 'flex', flexDirection: 'row', marginBottom: 30, justifyContent: 'space-between', margin: 20 }}>
               <div className="theCards" style={{ width: '49%' }}>

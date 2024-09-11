@@ -22,10 +22,10 @@ const {
       runTestForXSSVulnerabilityFound,
       runTestForWalletHijackingPossible,
       runTestForPreImageAttackPossible,
-      generatePDFForAScan,
       deleteActiveScan,
       runScanFromPostman,
-      fetchAPICollectionVersionScans
+      fetchAPICollectionVersionScans,
+      sendCollectionURLToScan
     } = require('../../controllers/activeScans.controller');
 
 const { protectUser } = require('../../middlewares/authMiddleware');
@@ -37,13 +37,14 @@ const router = express.Router();
 router.get('/getAllActiveScans/:page/:rowsPerPage', protectUser, getAllActiveScans);
 router.get('/fetchAPICollectionVersionScans/:theCollectionVersionId/:page/:rowsPerPage', protectUser, fetchAPICollectionVersionScans);
 
+router.post('/sendCollectionURLToScan', sendCollectionURLToScan);
+
 
 router.post('/getActiveScanDetails/:page/:rowsPerPage', protectUser, getActiveScanDetails);
 
 router.post('/startActiveScan', protectUser, jsonupload.single("file"), startActiveScan);
 router.post('/runScanFromPostman', protectUser, runScanFromPostman);
 
-router.post('/generatePDFForAScan', protectUser, generatePDFForAScan);
 
 
 router.post('/deleteActiveScan', protectUser, deleteActiveScan);

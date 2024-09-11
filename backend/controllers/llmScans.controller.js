@@ -264,6 +264,10 @@ module.exports.deleteLLMScan = asyncHandler(async (req, res) => {
         // Delete related LLMScanVulnerabilities
         await LLMScanVulnerability.deleteMany({ llmScan: id });
 
+        const user = await User.findById(req.user._id)
+        const organization = await Organization.findById(user.organization)
+        calculateDashboard(organization);
+
         res.json({ message: 'Scan and related vulnerabilities deleted successfully.' });
     } catch (error) {
         console.error(error.message);

@@ -53,16 +53,13 @@ async function calculateDashboard(organization) {
 
 
     await calculateTimeToResolveVulnerabilities(organization);
-    await calculateTop10Vulnerabilities(organization);
-   
-   
+    await calculateTop10Vulnerabilities(organization);  
    
   
     await calculateRiskScore(organization);
     await calculateTopRisks(organization);
 
-   /* 
-    
+   /*  
     
    
     
@@ -205,8 +202,11 @@ async function calculateSeverityDistribution(organization) {
 
 // Filter out the ones that match the organization ID
 const filteredProjectVulnerabilities = projectVulnerabilities.filter(vulnerability => {
+
+    if(vulnerability.project){
     const orgProject = vulnerability.project.orgProject;
     return orgProject && orgProject.organization._id.toString() === organization._id.toString();
+    }
 });
 
 filteredProjectVulnerabilities.forEach(vuln => {

@@ -29,6 +29,10 @@ const LLMScanVulnerability = require('../models/llmScanVulnerability.model');
 const moment = require('moment');
 const AttackSurfaceScanVulnerability = require('../models/attacksurfacescanvulnerability.model');
 
+
+const { calculateDashboard } = require("../services/dashboard/dashboardCalculation.service");
+
+
 // Sign Up 
 module.exports.signUp = asyncHandler(async (req, res) => {
 
@@ -800,6 +804,11 @@ module.exports.addProject = asyncHandler(async (req, res) => {
         projectPhase
     });
     await project.save();
+
+    const user = await User.findById(req.user._id)
+        const organization = await Organization.findById(user.organization)
+        calculateDashboard(organization);
+
     res.status(201).json(project);
 
 
@@ -849,6 +858,12 @@ module.exports.deleteProject = asyncHandler(async (req, res) => {
         if (!project) {
             return res.status(404).json({ error: 'Project not found.' });
         }
+
+        const user = await User.findById(req.user._id)
+        const organization = await Organization.findById(user.organization)
+        calculateDashboard(organization);
+
+
         res.json({ message: 'Project deleted successfully.' });
     } catch (error) {
         res.status(400).json({ error: 'Failed to delete the project.' });
