@@ -535,13 +535,16 @@ const handleCheckboxChange = (event) => {
         console.log('endpoints', endpoints);
 
 
+        const specificDateTimeUTC = new Date(specificDateTime).toUTCString();
+
+
         // Start scans on the selected endpoints and move to active scans
         // Make the API call
         const theBody = {
           theCollectionVersion:currentVersionIdToSelectEndpoints,
           //endpoints:selectedEndpointIdsToScan,
           scanScheduleType:scanScheduleType,
-          specificDateTime:specificDateTime,
+          specificDateTime:specificDateTimeUTC,
           recurringSchedule:recurringSchedule,
           selectedEndpointIdsToScan:selectedEndpointIdsToScan,
           projectPhase:projectPhase
