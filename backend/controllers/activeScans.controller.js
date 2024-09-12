@@ -1929,18 +1929,18 @@ module.exports.startActiveScan = asyncHandler(async (req, res) => {
     });
     */
 
-    const newScan = new ActiveScan({
-        user: user._id,
-        theCollectionVersion,
-        scanScheduleType,
-        specificDateTime: scanScheduleType === 'specificTime' 
-            ? new Date(specificDateTime) // This will now correctly interpret the UTC time
-            : undefined,
-        recurringSchedule: scanScheduleType === 'recurring' ? recurringSchedule : undefined,
-        status: scanScheduleType == 'now' ? 'in progress' : 'scheduled',
-        endpointsScanned: selectedEndpointIdsToScan.length,
-        projectPhase: projectPhase
-    });
+const newScan = new ActiveScan({
+    user: user._id,
+    theCollectionVersion,
+    scanScheduleType,
+    specificDateTime: scanScheduleType === 'specificTime'
+        ? new Date(specificDateTime) // This will now correctly interpret the UTC time
+        : undefined,
+    recurringSchedule: scanScheduleType === 'recurring' ? recurringSchedule : undefined,
+    status: scanScheduleType == 'now' ? 'in progress' : 'scheduled',
+    endpointsScanned: selectedEndpointIdsToScan.length,
+    projectPhase: projectPhase
+});
 
 
     await newScan.save();
