@@ -24,8 +24,7 @@ const ThreatTrends = () => {
 
       getResponse();
   
-    }, []);
-  
+    }, []); 
     
   
   
@@ -65,13 +64,6 @@ const ThreatTrends = () => {
         });
     };
 
-    const data = {
-        categories: ['2024-07-02', '2024-07-03', '2024-07-04', '2024-07-05', '2024-07-06', '2024-07-07', '2024-07-08', '2024-07-09', '2024-07-10', '2024-07-11'],
-        rest: [10, 12, 9, 14, 8, 6, 15, 10, 8, 7], // Example data for REST threats
-        soap: [8, 6, 5, 7, 9, 10, 5, 8, 6, 5], // Example data for SOAP threats
-        graphql: [5, 7, 6, 4, 5, 6, 4, 3, 6, 5], // Example data for GraphQL threats
-        sbom: [3, 4, 2, 3, 5, 6, 2, 3, 4, 3], // Example data for SBOM threats
-      };
     
       const chartOptions = {
         chart: {
@@ -133,6 +125,10 @@ const ThreatTrends = () => {
         {
           name: 'SBOM',
           data: threatTrends.sbom,
+        },
+        {
+          name: 'LLM',
+          data: threatTrends.llm?threatTrends.llm:[]
         },
       ];
 

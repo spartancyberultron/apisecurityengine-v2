@@ -28,17 +28,9 @@ const Ticket = require("../../models/ticket.model");
 async function calculateDashboard(organization) {
 
 
-    /*** Calculate dashboard data of all organizations **/
-
-    // const orgs = await Organization.find({});
-
-  //  console.log('organizationinservice:', organization)
-
-    // for(var i=0;i<orgs.length;i++){
-    //  const organization = orgs[i];
+    /*** Calculate dashboard data of all organizations **/    
 
     await calculateAuditFindings(organization);
-    //calculateComplianceStatus(organization); // Takes from threat alerts
     await calculateNumberOfOpenVulnerabilities(organization);
     await calculateSeverityDistribution(organization); 
     await calculateSSDLCScore(organization);
@@ -59,7 +51,7 @@ async function calculateDashboard(organization) {
     await calculateRiskScore(organization);
     await calculateTopRisks(organization);
 
-   /*  
+   /* 
     
    
     
@@ -1260,8 +1252,6 @@ const org1 = await Organization.findById(organization._id);
 async function calculateThreatTrends(organization) {
 
     var orgId = organization._id;
-
-
     
     const endDate = moment().endOf('day');
     const startDate = moment(endDate).subtract(9, 'days').startOf('day');
@@ -1271,7 +1261,8 @@ async function calculateThreatTrends(organization) {
       dateRange.push(m.format('YYYY-MM-DD'));
     }
   
-    const [restThreats, soapThreats, graphqlThreats, sbomThreats] = await Promise.all([
+    const [restThreats, soapThreats, graphqlThreats, sbomThreats, llmThreats] = await Promise.all([
+
         // Aggregation for ActiveScanVulnerability
         ActiveScanVulnerability.aggregate([
           {
@@ -1430,8 +1421,44 @@ async function calculateThreatTrends(organization) {
             }
           },
           { $sort: { _id: 1 } }
-        ])
-      ]);
+        ]),
+
+        // New aggregation for LLMScan
+  LLMScan.aggregate([
+    {
+      $lookup: {
+        from: 'orgprojects', // Collection name for OrgProject
+        localField: 'orgProject',
+        foreignField: '_id',
+        as: 'orgProjectDetails'
+      }
+    },
+    { $unwind: '$orgProjectDetails' },
+    {
+      $match: {
+        'orgProjectDetails.organization': mongoose.Types.ObjectId(orgId),
+        createdAt: { $gte: startDate.toDate(), $lte: endDate.toDate() }
+      }
+    },
+    {
+      $project: {
+        date: { $dateToString: { format: "%Y-%m-%d", date: "$createdAt" } },
+        vulnerabilityCount: { $size: "$resultFileContents" }
+      }
+    },
+    {
+      $group: {
+        _id: "$date",
+        count: { $sum: "$vulnerabilityCount" }
+      }
+    },
+    { $sort: { _id: 1 } }
+  ])
+]);
+      
+
+
+console.log('llmThreats:',llmThreats)
       
   
     const formatData = (threats) => {
@@ -1444,7 +1471,8 @@ async function calculateThreatTrends(organization) {
       rest: formatData(restThreats),
       soap: formatData(soapThreats),
       graphql: formatData(graphqlThreats),
-      sbom: formatData(sbomThreats)
+      sbom: formatData(sbomThreats),
+      llm: formatData(llmThreats)
     };
 
 

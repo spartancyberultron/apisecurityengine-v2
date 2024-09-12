@@ -1916,12 +1916,24 @@ module.exports.startActiveScan = asyncHandler(async (req, res) => {
         _id: { $in: selectedEndpointIdsToScan }
     });
     
-
+/*
     const newScan = new ActiveScan({
         user: user._id,
         theCollectionVersion,
         scanScheduleType,
         specificDateTime: scanScheduleType === 'specificTime' ? new Date(specificDateTime) : undefined,
+        recurringSchedule: scanScheduleType === 'recurring' ? recurringSchedule : undefined,
+        status: scanScheduleType == 'now' ? 'in progress' : 'scheduled',
+        endpointsScanned: selectedEndpointIdsToScan.length,
+        projectPhase: projectPhase
+    });
+    */
+
+    const newScan = new ActiveScan({
+        user: user._id,
+        theCollectionVersion,
+        scanScheduleType,
+        specificDateTime: scanScheduleType === 'specificTime' ? new Date(specificDateTime).toISOString() : undefined,
         recurringSchedule: scanScheduleType === 'recurring' ? recurringSchedule : undefined,
         status: scanScheduleType == 'now' ? 'in progress' : 'scheduled',
         endpointsScanned: selectedEndpointIdsToScan.length,
