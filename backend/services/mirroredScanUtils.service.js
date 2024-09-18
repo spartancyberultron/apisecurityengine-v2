@@ -12,6 +12,7 @@ module.exports.parseTcpdump = async(tcpdump) => {
               const isRequest = lines[0].startsWith("GET") || lines[0].startsWith("POST") || lines[0].startsWith("PUT") || lines[0].startsWith("DELETE");
           
               if (isRequest) {
+                
                 const [method, path, httpVersion] = lines[0].split(" ");
                 const headers = {};
                 let body = "";

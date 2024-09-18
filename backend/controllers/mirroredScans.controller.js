@@ -31,6 +31,7 @@ const { v4: uuidv4 } = require('uuid');
 
 
 const remediations = require('./remediations/rest-remediations.json');
+const { shadowAndZombieCheck } = require('../services/shadowAndZombieCheck.service');
 
 
 const { basicAuthenticationDetectedCheck } = require("../services/securityTests/agentScansTools/basicAuthenticationDetectedCheck.service");
@@ -149,9 +150,6 @@ module.exports.sendRequestInfo = asyncHandler(async (req, res) => {
 
     console.log('orgProject:',orgProject)
 
-
-
-
     // Trim the quotes around api_key, in case someone has inputted with quotes in their env file
     const trimmed_api_key = api_key.replace(/^['"](.*)['"]$/, '$1');
     const project = await Project.findOne({ projectIntegrationID: trimmed_api_key });
@@ -171,7 +169,7 @@ module.exports.sendRequestInfo = asyncHandler(async (req, res) => {
         console.log('%%%%%%%%%%%%%%%%%%%%%%%:')
 
         // Check if a record with matching method and url exists
-        TrafficProjectEndpoint.findOne({ method, url, project:project._id }, (err, existingEndpoint) => {
+        TrafficProjectEndpoint.findOne({ method, url, project:project._id }, async(err, existingEndpoint) => {
 
             if (err) {
                 console.error('Error checking for existing TrafficProjectEndpoint:', err);
@@ -185,38 +183,43 @@ module.exports.sendRequestInfo = asyncHandler(async (req, res) => {
                     project: project._id,
                     method,
                     url,
-                    headers: headers && Object.entries(headers).map(([key, value]) => {
-                        // Check if the key is a number (TCP packet info) or a string (HTTP header)
-                        if (isNaN(key)) {
-                            return {
-                                key: key,
-                                value: value,
-                                type: 'HTTP'
-                            };
-                        } else {
-                            return {
-                                key: 'TCP Info',
-                                value: value,
-                                type: 'TCP'
-                            };
-                        }
-                    }).filter(header => header !== null),
+                    headers: headers && Object.entries(headers)
+                        .filter(([key]) => isNaN(key))  // Filter out numeric keys (TCP info)
+                        .map(([key, value]) => ({
+                            key: key,
+                            value: value,
+                            type: 'HTTP'
+                        })),
                     queryParams: Object.entries(queryParameters).map(([key, value]) => ({ key, value })),
                     requestBody,
                     // Add other fields as needed
                     firstDetected: new Date().toISOString(),
                     lastActive: new Date().toISOString(),
                 });
+                
+                
+                // Perform the shadow/zombie check
+                const endpointStatus = await shadowAndZombieCheck(newEndpoint);
 
-                newEndpoint.save((saveErr) => {
+                // Add the status to the newEndpoint object
+                newEndpoint.endpointStatus = endpointStatus;
+
+                // Save the new endpoint with the status included
+                await newEndpoint.save();
+
+
+              /*  newEndpoint.save(async(saveErr) => {
                     if (saveErr) {
                         console.error('Error saving new TrafficProjectEndpoint:', saveErr);
                         return res.status(500).json({ error: 'An error occurred while saving the new endpoint' });
                     }
                     console.log('New TrafficProjectEndpoint created');
+
+
                     // Continue with your logic here
-                });
+                });*/
             } else {
+
                 // If a matching record is found, update the lastActive field
                 existingEndpoint.lastActive = new Date().toISOString();
                 existingEndpoint.save((saveErr) => {

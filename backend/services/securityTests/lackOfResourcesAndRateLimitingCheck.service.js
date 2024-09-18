@@ -1,101 +1,100 @@
-/* Test for "Lack of Resoources and Rate Limiting" */
+const axios = require('axios');
+
 async function lackOfResourcesAndRateLimitingCheck(theEndpoint) {
-    
     let issueFound = false;
-    let description = '';
+    let description = [];
     let findings = [];
 
     try {
-
-        const { method, protocol, host, port, endpoint, headers, queryParams, authorization, requestBody, url } = theEndpoint;
-        const requestCount = 10; // Number of requests to make
-        const interval = 3000; // Interval between requests in milliseconds (2 seconds)
+        const { method, url, headers, queryParams, authorization, requestBody } = theEndpoint;
+        const requestCount = 5; 
+        const interval = 1000; 
 
         const requestOptions = {
             method,
             url: url,
-            headers: {},
+            headers: headers || {},
             params: queryParams,
             data: requestBody
         };
 
         // Set authorization headers based on the specified type
-        switch (authorization.type) {
-
-            case 'bearer':
-                requestOptions.headers['Authorization'] = `Bearer ${authorization.bearer[0].value}`;
-                break;
-            case 'apikey':
-                requestOptions.headers['X-API-Key'] = authorization.apikey[0].value;
-                break;
-            case 'digest':
-                requestOptions.auth = {
-                    username: authorization.digest[0].value,
-                    password: authorization.digest[1].value
-                };
-                break;
-            case 'basic':
-                requestOptions.auth = {
-                    username: authorization.basic[0].value,
-                    password: authorization.basic[1].value
-                };
-                break;
-        }
-
-        // Set additional headers if provided
-        if (headers && headers.length > 0) {
-            headers.forEach(header => {
-                requestOptions.headers[header.key] = header.value;
-            });
+        if (authorization) {
+            switch (authorization.type) {
+                case 'bearer':
+                    requestOptions.headers['Authorization'] = `Bearer ${authorization.bearer[0].value}`;
+                    break;
+                case 'apikey':
+                    requestOptions.headers['X-API-Key'] = authorization.apikey[0].value;
+                    break;
+                case 'digest':
+                case 'basic':
+                    requestOptions.auth = {
+                        username: authorization[authorization.type][0].value,
+                        password: authorization[authorization.type][1].value
+                    };
+                    break;
+            }
         }
 
         let rateLimitHeadersFound = false;
-
+        let rateLimitExceeded = false;
+        let responseTimes = [];
 
         for (let i = 0; i < requestCount; i++) {
-
             console.log(`Making request ${i + 1}/${requestCount}`);
+            const startTime = Date.now();
             const response = await axios(requestOptions).catch(error => error.response);
-
-            console.log("response.status", response.status);
+            const endTime = Date.now();
+            responseTimes.push(endTime - startTime);
 
             if (response) {
+                const rateLimitHeaders = ['x-rate-limit', 'x-ratelimit-limit', 'retry-after', 'x-ratelimit-remaining'];
+                rateLimitHeadersFound = rateLimitHeaders.some(header => response.headers[header.toLowerCase()]);
 
-                if (response.headers['x-rate-limit']) {
-                    rateLimitHeadersFound = true;
+                if (rateLimitHeadersFound) {
+                    description.push(`Rate limit headers found: ${rateLimitHeaders.filter(header => response.headers[header.toLowerCase()]).join(', ')}`);
                     break;
                 }
 
                 if (response.status === 429) {
-                    console.log('rate limiting is enabled');
-                    return false; // Return false if rate limit exceeded
+                    rateLimitExceeded = true;
+                    description.push('Rate limiting is enabled (received 429 status code)');
+                    break;
                 }
-
-                if (i === requestCount - 1 && response.status !== 429) {
-                    return true;
-                }
-            } else {
-                continue;
             }
 
             await new Promise(resolve => setTimeout(resolve, interval));
         }
 
-        console.log('Rate Limit Headers Found:', rateLimitHeadersFound);
-        //return !rateLimitHeadersFound; // Return true if rate limit headers are not found
-        issueFound = !rateLimitHeadersFound;
+        if (!rateLimitHeadersFound && !rateLimitExceeded) {
+            issueFound = true;
+            description.push('No rate limit headers or 429 responses detected. The API may lack proper rate limiting.');
+        }
+
+        // Check for potential resource exhaustion
+        const avgResponseTime = responseTimes.reduce((a, b) => a + b, 0) / responseTimes.length;
+        const lastResponseTime = responseTimes[responseTimes.length - 1];
+        if (lastResponseTime > avgResponseTime * 2) {
+            issueFound = true;
+            description.push('Response time increased significantly during testing, indicating potential resource exhaustion.');
+        }
+
+        findings = description;
 
     } catch (error) {
-        console.error('Error1:', error.message);
-        return false; // Return false in case of any error
-        issueFound = false;
+        console.error('Error:', error.message);
+        description.push(`Error occurred during testing: ${error.message}`);
+        issueFound = true; // Consider any error as a potential issue
     }
 
     return {
-        issueFound:issueFound,
+        issueFound,
+        description: description.join(' '),
+        findings
     };
 }
 
 module.exports = {
     lackOfResourcesAndRateLimitingCheck,
-};  
+};

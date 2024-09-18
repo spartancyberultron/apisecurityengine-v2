@@ -71,7 +71,7 @@ const ProjectInventory = () => {
         openApiContent += '\n';
       }
 
-      openApiContent += `shadow-zombie: ${endpoint.shadowOrZombie}\n`;
+      openApiContent += `shadow-zombie: ${endpoint.endpointStatus}\n`;
     });
     return openApiContent;
   };

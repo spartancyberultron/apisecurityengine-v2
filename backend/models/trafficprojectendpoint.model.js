@@ -64,7 +64,7 @@ const trafficProjectEndpointSchema = mongoose.Schema({
     type: Number ,
     default: 0, 
   },
-  shadowOrZombie: { 
+  endpointStatus: { 
     type: String ,
     default: '---', 
   }
