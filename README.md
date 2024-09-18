@@ -478,3 +478,36 @@ Under integartions, you can view/configure integartions for:
 
 
 ![Integrations](docs/docs-screenshots/integrations.png)
+
+
+### CLI Agent (Linux/Mac)
+
+
+### CLI Agent (Windows)
+
+
+### Postman
+
+
+### Burp Suite
+
+
+### Jenkins
+
+
+### Node JS
+
+
+### Python
+
+
+### PHP
+
+
+### Java
+
+
+### .NET
+
+
+### GoLang
