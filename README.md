@@ -17,6 +17,7 @@ mkdir postman-collections sbom-files soap-and-graphql-files ticket-attachments t
 cd sbom-file  
 mkdir sbom-scan-result-files  
 pm2 start server.js
+```
 
   
 This will start the backend service on port 5001. You can configure the port in .env file.  
@@ -24,7 +25,8 @@ This will start the backend service on port 5001. You can configure the port in 
 ```bash  
 cd ../frontend  
 npm install  
-npm run build    
+npm run build
+```
   
   
 This will generate a build folder. Set the docroot of your frontend domain to the build folder.  
