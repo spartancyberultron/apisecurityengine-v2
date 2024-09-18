@@ -10,18 +10,23 @@ npm install
   
 **Create the Required Helper Directories**  
   
+```bash
 mkdir security-header-scan-results security-headers-tool soap-graphql-scan-results sslyze-scan-results uploads  
 cd uploads  
 mkdir postman-collections sbom-files soap-and-graphql-files ticket-attachments ticket-update-attachments  
 cd sbom-file  
 mkdir sbom-scan-result-files  
-pm2 start server.js  
+pm2 start server.js
+```
+
   
 This will start the backend service on port 5001. You can configure the port in .env file.  
-  
+
+```bash  
 cd ../frontend  
 npm install  
-npm run build    
+npm run build
+```
   
   
 This will generate a build folder. Set the docroot of your frontend domain to the build folder.  
@@ -473,3 +478,36 @@ Under integartions, you can view/configure integartions for:
 
 
 ![Integrations](docs/docs-screenshots/integrations.png)
+
+
+### CLI Agent (Linux/Mac)
+
+
+### CLI Agent (Windows)
+
+
+### Postman
+
+
+### Burp Suite
+
+
+### Jenkins
+
+
+### Node JS
+
+
+### Python
+
+
+### PHP
+
+
+### Java
+
+
+### .NET
+
+
+### GoLang
