@@ -10,12 +10,14 @@ npm install
   
 **Create the Required Helper Directories**  
   
+`
 mkdir security-header-scan-results security-headers-tool soap-graphql-scan-results sslyze-scan-results uploads  
 cd uploads  
 mkdir postman-collections sbom-files soap-and-graphql-files ticket-attachments ticket-update-attachments  
 cd sbom-file  
 mkdir sbom-scan-result-files  
-pm2 start server.js  
+pm2 start server.js
+`
   
 This will start the backend service on port 5001. You can configure the port in .env file.  
   
