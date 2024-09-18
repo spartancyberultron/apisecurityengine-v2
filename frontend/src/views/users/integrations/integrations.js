@@ -572,9 +572,27 @@ public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
             </CButton>
 
 
+<ul>
+            <li>Download APISecurityEngine Postman Tool Collection from 
+              <a target="_blank" style={{color:'blue'}} href="https://github.com/spartancyberultron/apisecurityengine-postman-tool/blob/main/APISecurityEngine%20-%20Postman%20Integration.postman_collection.json"
+              > this link </a>
+              , which contains an API.</li>    
 
-            <p>Then follow the instructions in the below video to run security scans on your API collections from Postman application</p>
+              <li>Load the collection into your Postman app.</li>
 
+
+            <li>Get the collection ID of the collection you want to scan. You can get this by exporting your
+               collection and looking for it in the
+              exported JSON file. </li>  
+
+
+            <li>Call the runScanFromPostman available in the APISecurityEngine collection you downloaded in the previous step, and pass your collection ID 
+              in the body (raw JSON), along with APISecurityEngine client ID and client secret which you can get from Organization - Settings in the APISecurityEngine Portal. 
+            </li>
+
+            <li>This will return a response. Click on Visualize in the Postman response tab, to see the results</li>
+
+            </ul>
 
 </TabPanel>
 
@@ -617,21 +635,33 @@ public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
         <li>
           <strong>Configure the Extension:</strong>
           <p>
-            After installing the Extension, locate it in the list of installed extensions. Click on the Extension to open its configuration settings.
+            After installing the Extension, your Burp Suite main menu will get a new menu item with name "APISecurityEngine Settings".
+            Click on that to open settings.
           </p>
+
+          <img width="800"
+          src="https://raw.githubusercontent.com/spartancyberultron/apisecurityengine-burpsuite-plugin/refs/heads/main/apisec-burpsuite.png"/>
+          <br/>
           <p>
             Set the following variables in the Extension settings:
           </p>
           <ul>
-            <li><strong>API_KEY</strong>: Your unique API key for the analysis service. Replace with your actual key.</li>
+            <li><strong>API KEY</strong>: Your unique API key for APISecurityEngine. Replace with your actual key.</li>
             <li><strong>HOST</strong>: The hostname or IP address of the server where traffic is being captured from. Use <code>localhost</code> if the traffic is local.</li>
             <li><strong>PORT</strong>: The port number on the host where traffic is being captured. Enter the specific port number (e.g., <code>5002</code>).</li>
           </ul>
+
+          You can get the API Key from the below shown location:- <br/>
+
+          <img width="800"
+          src="https://raw.githubusercontent.com/spartancyberultron/apisecurityengine-burpsuite-plugin/refs/heads/main/apisec-integration-key.png"/>
+         <br/>
         </li>
         <li>
           <strong>Start Traffic Analysis:</strong>
           <p>
-            With the extension installed and configured, start capturing traffic in Burp Suite. The extension will send captured traffic to the analysis service using the provided API key and settings.
+            With the extension installed and configured, start capturing traffic in Burp Suite. 
+            The extension will send captured traffic to the analysis service using the provided API key and settings.
           </p>
         </li>
       </ol>
@@ -645,105 +675,112 @@ public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
 
 {/* Jenkins Job  */}
 <TabPanel style={{ padding: 30, backgroundColor: 'white', borderRadius: 5 }}>
-      <h4 style={{ color: '#333' }}>Creating a Jenkins Job to Send Postman Collection File to API for Scan</h4>
+  <h4 style={{ color: '#333' }}>Creating a Jenkins Job to Send Postman Collection File to API for Scan</h4>
 
-      <p style={{ fontSize: 16, color: '#555' }}>
-        Follow these steps to create a Jenkins job that sends a link to a raw JSON file (such as a Postman collection file) to an API and displays the response:
+  <p style={{ fontSize: 16, color: '#555' }}>
+    Follow these steps to create a Jenkins job that sends a Postman collection file to an API for scanning and displays the response:
+  </p>
+
+  <ol style={{ fontSize: 16, color: '#555' }}>
+    <li>
+      <strong>Create a New Jenkins Job:</strong>
+      <p>
+        In Jenkins, click on "New Item", choose "Freestyle project", and give it a name.
       </p>
+    </li>
 
-      <ol style={{ fontSize: 16, color: '#555' }}>
-        <li>
-          <strong>Create a New Jenkins Job:</strong>
-          <p>
-            In Jenkins, click on "New Item", choose "Freestyle project", and give it a name.
-          </p>
-        </li>
+    <li>
+      <strong>Configure Source Code Management:</strong>
+      <p>
+        Set up your source code repository in the "Source Code Management" section if needed.
+      </p>
+    </li>
 
-        <li>
-          <strong>Configure Source Code Management:</strong>
-          <p>
-            Set up your source code repository in the "Source Code Management" section.
-          </p>
-        </li>
-
-        <li>
-          <strong>Add Build Step:</strong>
-          <p>
-            In the "Build" section, add an "Execute shell" build step with the following script:
-          </p>
-          <pre style={{ backgroundColor: '#eaeaea', padding: 10, borderRadius: 5, overflowX: 'auto' }}>
+    <li>
+      <strong>Add Build Step:</strong>
+      <p>
+        In the "Build" section, add an "Execute shell" build step with the following script:
+      </p>
+      <pre style={{ backgroundColor: '#eaeaea', padding: 10, borderRadius: 5, overflowX: 'auto' }}>
 {`#!/bin/bash
+set -e
 
-# Define the URL to the raw JSON file (Postman collection file)
-json_url="https://example.com/path/to/your/postman-collection.json"
+# API endpoint and credentials
+api_url="https://backend-new.apisecurityengine.com/api/v1/activeScans/sendCollectionURLToScan"
+client_id="c88ebeea40c501a5b2b91601fb763d5f"
+client_secret="7a2855f626129183570d0f904136a86822a3d5d57857139150408b3443f8702b"
+json_url="https://raw.githubusercontent.com/SabreDevStudio/postman-collections/master/Automation%20Solutions/Sabre-Automation-Solutions.postman_collection.json"
 
-# Download the JSON file
-curl -o postman_collection.json $json_url
+echo "Initiating scan and waiting for response..."
 
-# Send the JSON file to the API and capture the response
-response=$(curl -X POST \\
-  https://appnew-backend.apisecurityengine.com/api/v1/mirroredScans/sendCollectionURLToScan \\
+# Make API request and capture the response
+RESPONSE=$(curl -s -X POST "$api_url" \\
   -H 'Content-Type: application/json' \\
   -d "{
-  \\"api_key\\": \\"YOUR_API_KEY\\",
-  \\"the_request\\": \\"$(base64 -w 0 postman_collection.json)\\"
+  \\"apisecurityengineClientId\\": \\"$client_id\\",
+  \\"apisecurityengineClientSecret\\": \\"$client_secret\\",
+  \\"collectionUrl\\": \\"$json_url\\"
 }")
 
-# Save response to file
-echo "$response" > api_response.json
+echo "API request completed. Displaying formatted results:"
+echo "===================================================="
 
-# Clean up JSON file
-rm postman_collection.json
+# Function to print a separator line
+print_separator() {
+    echo "################################################################"
+}
 
-# Create HTML file
-cat << EOT > api_response.html
-<!DOCTYPE html>
-<html>
-<head>
-    <title>API Response</title>
-    <style>
-        body { font-family: Arial, sans-serif; }
-        pre { background-color: #f4f4f4; padding: 10px; border-radius: 5px; }
-    </style>
-</head>
-<body>
-    <h1>API Response</h1>
-    <pre id="json"></pre>
-    <script>
-        var json = \$(cat api_response.json);
-        document.getElementById('json').textContent = JSON.stringify(JSON.parse(json), null, 2);
-    </script>
-</body>
-</html>
-EOT`}
-          </pre>
-        </li>
+# Display scan information
+echo "Scan Information:"
+print_separator
+jq -r '.scanResult | {
+    ID: ._id,
+    Status: .status,
+    "Started At": .createdAt,
+    "Completed At": .scanCompletedAt,
+    "Vulnerability Count": .vulnCount
+}' <<< "$RESPONSE" | jq -r 'to_entries | .[] | "\\(.key): \\(.value)"'
+print_separator
 
-        <li>
-          <strong>Install HTML Publisher Plugin:</strong>
-          <p>
-            If not already installed, go to "Manage Jenkins" &gt; "Manage Plugins" and install the HTML Publisher plugin.
-          </p>
-        </li>
+# Display vulnerabilities with dark background and white text
+echo "Vulnerabilities:"
+print_separator
+echo -e "\\033[0;37m\\033[40m"  # Set white text on dark background
+jq -r '.scanResult.vulns[] | "ID: \\(.activeScan)\\nDescription: \\(.description)\\nSeverity: \\(.severity)\\nPriority: \\(.priority)\\nFindings: \\(.findings | join(", "))\\nCreated At: \\(.createdAt)\\n"' <<< "$RESPONSE"
+echo -e "\\033[0m"  # Reset text color and background
+print_separator
 
-        <li>
-          <strong>Add Post-build Action:</strong>
-          <p>
-            In the "Post-build Actions" section, add "Publish HTML reports" and configure it:
-          </p>
-          <ul>
-            <li>HTML directory to archive: <code>.</code></li>
-            <li>Index page[s]: <code>api_response.html</code></li>
-            <li>Report title: "API Response"</li>
-          </ul>
-        </li>
-      </ol>
+# Extract vulnerability count and determine build status
+VULN_COUNT=$(jq -r '.scanResult.vulnCount' <<< "$RESPONSE")
+if [ -n "$VULN_COUNT" ] && [ "$VULN_COUNT" -gt 0 ]; then
+    echo "Vulnerabilities found: $VULN_COUNT. Build will fail."
+    exit 1
+else
+    echo "No vulnerabilities detected."
+    exit 0
+fi`}
+      </pre>
+    </li>
 
-      <p style={{ fontSize: 16, color: '#555' }}>
-        After configuring the job, run it to download the JSON file, send it to the API, and view the response in the published HTML report.
+    <li>
+      <strong>Configure Build Environment:</strong>
+      <p>
+        Ensure that the necessary tools (curl, jq) are available in your Jenkins environment. You may need to install them or configure the job to use a Docker container with these tools.
       </p>
-    </TabPanel>
+    </li>
 
+    <li>
+      <strong>Save and Run:</strong>
+      <p>
+        Save the job configuration and run it to test. The job will send the Postman collection to the API for scanning and display the results in the console output.
+      </p>
+    </li>
+  </ol>
+
+  <p style={{ fontSize: 16, color: '#555' }}>
+    After configuring the job, run it to send the Postman collection file to the API, perform the scan, and view the response in the Jenkins console output. The vulnerabilities will be displayed with a dark background and white text for better visibility.
+  </p>
+</TabPanel>
 
 
                         {/* Node JS Instructions  */}
@@ -840,7 +877,7 @@ load_dotenv()
 
                       <p style={{color:'black'}}> Install the composer package apisec-agent</p> 
 
-<pre style={{color:'black'}}>composer install apisec-agent</pre>
+<pre style={{color:'black'}}>composer require cyberultron/apisecurityengine-agent:dev-main</pre>
 
 
 
