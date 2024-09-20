@@ -4,9 +4,11 @@ git clone <git_url>
   
   
 *Ensure Node JS Version on your machine is higher than 16.*  
-  
+
+```bash  
 cd backend  
-npm install  
+npm install
+```
   
 **Create the Required Helper Directories**  
   
@@ -487,6 +489,10 @@ Under integartions, you can view/configure integartions for:
 
 
 ### Postman
+
+<video src="docs/postman-integration.mp4" controls>
+  Your browser does not support the video tag.
+</video>
 
 
 ### Burp Suite
