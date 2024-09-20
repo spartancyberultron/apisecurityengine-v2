@@ -15,6 +15,20 @@ cd <repo-folder>
 cd backend  
 npm install
 ```
+
+**Connect MongoDB**
+
+You must have a MongoDB database setup before this.
+
+Create a .env file in the backend folder with the below content:-
+
+```bash  
+NODE_ENV = development
+PORT = 5001
+MONGO_URI = <your-mongodb-connection-string>
+```
+
+
   
 **Create the Required Helper Directories**  
   
@@ -38,6 +52,7 @@ cd ../frontend
 npm install  
 npm run build
 ```
+
   
   
 This will generate a build folder. Set the docroot of your frontend domain to the build folder.  
