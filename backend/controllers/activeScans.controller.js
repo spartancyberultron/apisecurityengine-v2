@@ -2063,6 +2063,8 @@ module.exports.runScanFromPostman = asyncHandler(async (req, res) => {
 
             const endpoints = await parsePostmanJSON(collection.collection, user, null, null, null);
 
+	    console.log('endpoints:', endpoints);	
+
             const newScan = new ActiveScan({
                 status: 'in progress',
                 user:user
@@ -2196,7 +2198,7 @@ module.exports.sendCollectionURLToScan = asyncHandler(async (req, res) => {
 
     scan.vulns = vulns;
 
-    res.status(200).json({ scanResult: convertScanResultToHTML(scan) });       
+    res.status(200).json({ scanResult:scan });       
 
 
 });
@@ -2257,6 +2259,9 @@ const parsePostmanJSON = async (collectiondata, user, collectionFilePath, theCol
 
         // Function to recursively process items
         const processItems = async (items) => {
+
+
+		console.log('items:', items);
 
             const endpoints = [];
 
@@ -2407,6 +2412,9 @@ const parsePostmanJSON = async (collectiondata, user, collectionFilePath, theCol
                             // Handle the case where neither "raw" nor "host" and "path" are present
                             //throw new Error('Invalid format for item.request.url');
                         }
+
+			console.log('endp:', endpoints);
+			//return endpoints;
                     } else {
 
                         console.log("item.request:", item.request)
@@ -2422,6 +2430,7 @@ const parsePostmanJSON = async (collectiondata, user, collectionFilePath, theCol
         };
 
         const endpoints1 = await processItems(collectiondata.item);
+	    console.log('endpoints1:', endpoints1);
 
         
         return endpoints1;
