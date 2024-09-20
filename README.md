@@ -495,6 +495,9 @@ Under integartions, you can view/configure integartions for:
 [Watch the demo video](docs/postman-integration.mp4)
 
 
+<video src="docs/postman-integration.mp4" controls>
+  Your browser does not support the video tag.
+</video>
 
 ### Burp Suite
 
