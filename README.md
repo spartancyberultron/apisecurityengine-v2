@@ -1,9 +1,15 @@
 # Installation  
-  
-git clone <git_url>  
-  
+
+**Clone the git repository provided by APISecurityEngine team.**
+
+```bash 
+git clone <git_url>
+cd <repo-folder>
+```  
   
 *Ensure Node JS Version on your machine is higher than 16.*  
+
+**Change directory to backend and run install the backend packages.**
 
 ```bash  
 cd backend  
@@ -24,6 +30,9 @@ pm2 start server.js
   
 This will start the backend service on port 5001. You can configure the port in .env file.  
 
+**Change directory to frontend folder and install dependencies**  
+
+
 ```bash  
 cd ../frontend  
 npm install  
@@ -33,7 +42,9 @@ npm run build
   
 This will generate a build folder. Set the docroot of your frontend domain to the build folder.  
   
-Install the required helper tools. You can find instructions on the below links:-  
+**Install the required helper tools.**
+
+You can find instructions on the below links:-  
   
   
 [https://github.com/projectdiscovery/katana](https://github.com/projectdiscovery/katana)  
