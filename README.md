@@ -1,6 +1,6 @@
 # Installation  
 
-**Clone the git repository provided by APISecurityEngine team.**
+**1. Clone the git repository provided by APISecurityEngine team.**
 
 ```bash 
 git clone <git_url>
@@ -9,14 +9,14 @@ cd <repo-folder>
   
 *Ensure Node JS Version on your machine is higher than 16.*  
 
-**Change directory to backend and run install the backend packages.**
+**2. Change directory to backend and run install the backend packages.**
 
 ```bash  
 cd backend  
 npm install
 ```
 
-**Connect MongoDB**
+**3. Connect MongoDB**
 
 You must have a MongoDB database setup before this.
 
@@ -30,7 +30,7 @@ MONGO_URI = <your-mongodb-connection-string>
 
 
   
-**Create the Required Helper Directories**  
+**4. Create the Required Helper Directories**  
   
 ```bash
 mkdir security-header-scan-results security-headers-tool soap-graphql-scan-results sslyze-scan-results uploads  
@@ -44,7 +44,7 @@ pm2 start server.js
   
 This will start the backend service on port 5001. You can configure the port in .env file.  
 
-**Change directory to frontend folder and install dependencies**  
+**5. Change directory to frontend folder and install dependencies**  
 
 
 ```bash  
@@ -57,7 +57,7 @@ npm run build
   
 This will generate a build folder. Set the docroot of your frontend domain to the build folder.  
   
-**Install the required helper tools.**
+**6. Install the required helper tools.**
 
 You can find instructions on the below links:-  
   
