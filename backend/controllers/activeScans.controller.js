@@ -2063,7 +2063,7 @@ module.exports.runScanFromPostman = asyncHandler(async (req, res) => {
 
             const endpoints = await parsePostmanJSON(collection.collection, user, null, null, null);
 
-	    console.log('endpoints:', endpoints);	
+	    console.log('endpoints-here:', endpoints);	
 
             const newScan = new ActiveScan({
                 status: 'in progress',
@@ -2075,7 +2075,13 @@ module.exports.runScanFromPostman = asyncHandler(async (req, res) => {
 
             // Run the scan immediately
             const theScan = await runActiveScan(user, null, endpoints, newScan._id);
-            res.status(200).json({ scanResult: theScan });
+            const thisScan = await ActiveScan.findById(theScan._id).lean();		
+	    const allVulns = await ActiveScanVulnerability.find({activeScan:theScan._id});
+	    thisScan.vulnerabilities = allVulns;
+	
+
+		console.log('thisScan:', thisScan);
+            res.status(200).json({ scanResult: thisScan });
         })
         .catch(error => {
             console.error('Failed to retrieve collection:', error);
@@ -2256,14 +2262,14 @@ const parsePostmanJSON = async (collectiondata, user, collectionFilePath, theCol
     //if (collectiondata.info._postman_id && collectiondata.item && Array.isArray(collectiondata.item)) {
     if (collectiondata.info && collectiondata.item && Array.isArray(collectiondata.item)) {
 
-
+const endpoints = [];
         // Function to recursively process items
         const processItems = async (items) => {
 
 
-		console.log('items:', items);
+		//console.log('items:', items);
 
-            const endpoints = [];
+//            const endpoints = [];
 
             for (const item of items) {
                 let authorizationObject = { type: 'None' };
@@ -2413,7 +2419,7 @@ const parsePostmanJSON = async (collectiondata, user, collectionFilePath, theCol
                             //throw new Error('Invalid format for item.request.url');
                         }
 
-			console.log('endp:', endpoints);
+		//	console.log('endp:', endpoints);
 			//return endpoints;
                     } else {
 
@@ -2430,7 +2436,7 @@ const parsePostmanJSON = async (collectiondata, user, collectionFilePath, theCol
         };
 
         const endpoints1 = await processItems(collectiondata.item);
-	    console.log('endpoints1:', endpoints1);
+	    //console.log('endpoints1:', endpoints1);
 
         
         return endpoints1;
@@ -3170,6 +3176,8 @@ async function runActiveScan(user, theCollectionVersion, endpoints, scanId) {
             console.log('error:', error)
             console.log('execption occured in check for SECURITY HEADERS NOT ENABLED ON HOST')
         }
+
+//	console.log('theVulns:', theVulns);    
 
         // Scan completion
         theActiveScan.scanCompletedAt = new Date();
