@@ -132,211 +132,536 @@ const Integrations = () => {
     }, []);
   
 
-    const javaCode = `    import java.util.UUID;
-    import java.util.Date;
-    import java.util.Enumeration;
-    import java.io.IOException;
-    import javax.servlet.*;
-    import javax.servlet.http.HttpServletRequest;
-    import javax.servlet.http.HttpServletResponse;
-    import org.apache.commons.io.IOUtils;
-    import org.apache.http.HttpEntity;
-    import org.apache.http.HttpHeaders;
-    import org.apache.http.HttpResponse;
-    import org.apache.http.client.HttpClient;
-    import org.apache.http.client.methods.HttpPost;
-    import org.apache.http.entity.ContentType;
-    import org.apache.http.entity.StringEntity;
-    import org.apache.http.impl.client.HttpClientBuilder;
-    
-    public class APITrafficFilter implements Filter {
-    
-        private final String apiEndpointUrl = "https://backend.apisecurityengine.com/api/v1/mirroredScans/sendRequestInfo";
-        private final String apiKey = System.getenv("APISEC_API_KEY");
-    
-        @Override
-        public void init(FilterConfig filterConfig) throws ServletException {
-            // Initialization code, if needed
-        }
-    
-        @Override
-        public void doFilter(ServletRequest servletRequest, ServletResponse servletResponse, FilterChain filterChain) throws IOException, ServletException {
-            HttpServletRequest request = (HttpServletRequest) servletRequest;
-            HttpServletResponse response = (HttpServletResponse) servletResponse;
-    
-            // Generate a unique ID for the request
-            String requestId = UUID.randomUUID().toString();
-    
-            // Capture request information
-            RequestInfo requestInfo = new RequestInfo();
-            requestInfo.setRequestId(requestId);
-            requestInfo.setProtocol(request.getProtocol());
-            requestInfo.setHost(request.getHeader(HttpHeaders.HOST));
+    const javaCode1 = `package com.example.demo.interceptor;
+
+import com.fasterxml.jackson.databind.ObjectMapper;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
+import org.springframework.web.client.RestTemplate;
+import org.springframework.web.servlet.HandlerInterceptor;
+import org.springframework.web.util.ContentCachingRequestWrapper;
+import org.springframework.web.util.ContentCachingResponseWrapper;
+
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.UUID;
+
+public class ApiLoggingInterceptor implements HandlerInterceptor {
+
+    private static final String API_KEY = "G8N974XM45STJ6AIGC0A";
+    private static final String API_ENDPOINT = "https://backend-new.apisecurityengine.com/api/v1/mirroredScans/sendRequestInfo";
+
+    private final RestTemplate restTemplate;
+    private final ObjectMapper objectMapper;
+
+    public ApiLoggingInterceptor(RestTemplate restTemplate) {
+        this.restTemplate = restTemplate;
+        this.objectMapper = new ObjectMapper();
+    }
+
+    @Override
+    public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) throws Exception {
+        String requestId = UUID.randomUUID().toString();
+        request.setAttribute("requestId", requestId);
+        response.setHeader("X-Request-ID", requestId);
+
+        ContentCachingRequestWrapper wrappedRequest = new ContentCachingRequestWrapper(request);
+        ContentCachingResponseWrapper wrappedResponse = new ContentCachingResponseWrapper(response);
+
+        request.setAttribute("wrappedRequest", wrappedRequest);
+        request.setAttribute("wrappedResponse", wrappedResponse);
+
+        return true;
+    }
+
+    @Override
+    public void afterCompletion(HttpServletRequest request, HttpServletResponse response, Object handler, Exception ex) throws Exception {
+        ContentCachingRequestWrapper wrappedRequest = (ContentCachingRequestWrapper) request.getAttribute("wrappedRequest");
+        ContentCachingResponseWrapper wrappedResponse = (ContentCachingResponseWrapper) request.getAttribute("wrappedResponse");
+
+        if (wrappedRequest != null && wrappedResponse != null) {
+            String requestBody = new String(wrappedRequest.getContentAsByteArray());
+            String responseBody = new String(wrappedResponse.getContentAsByteArray());
+
+            ApiRequestInfo requestInfo = new ApiRequestInfo();
+            requestInfo.setRequestId((String) request.getAttribute("requestId"));
             requestInfo.setMethod(request.getMethod());
-            requestInfo.setUrl(request.getRequestURI());
-            requestInfo.setHeaders(getRequestHeaders(request));
-            requestInfo.setBody(getRequestBody(request));
-            requestInfo.setQuery(request.getQueryString());
-            requestInfo.setTimestamp(new Date());
-            requestInfo.setProjectType("Java");
-    
-            // Log the incoming request
-            System.out.println("API Request: " + requestInfo);
-    
-            // Attach the requestId to the response headers
-            response.setHeader("X-Request-ID", requestId);
-    
-            // Capture response information
-            ResponseInfo responseInfo = new ResponseInfo();
-            responseInfo.setRequestId(requestId);
+            requestInfo.setUrl(request.getRequestURL().toString());
+            requestInfo.setQueryString(request.getQueryString());
+            requestInfo.setHeaders(getHeadersInfo(request));
+            requestInfo.setBody(requestBody);
+
+            ApiResponseInfo responseInfo = new ApiResponseInfo();
+            responseInfo.setRequestId((String) request.getAttribute("requestId"));
             responseInfo.setStatusCode(response.getStatus());
-            responseInfo.setHeaders(getResponseHeaders(response));
-            responseInfo.setBody(""); // Response body not available in HttpServletResponse
-            responseInfo.setTimestamp(new Date());
-    
-            // Pass control to the next filter or servlet
-            filterChain.doFilter(request, response);
-    
-            // Log the outgoing response
-            System.out.println("API Response: " + responseInfo);
-    
-            if (!request.getRequestURI().equals("/")) {
-                // Send request information to the API endpoint
-                try {
-                    RequestPayload requestPayload = new RequestPayload();
-                    requestPayload.setApiKey(apiKey);
-                    requestPayload.setTheRequest(requestInfo);
-    
-                    String jsonPayload = requestPayload.toJsonString();
-    
-                    HttpClient httpClient = HttpClientBuilder.create().build();
-                    HttpPost httpPost = new HttpPost(apiEndpointUrl);
-                    httpPost.setEntity(new StringEntity(jsonPayload, ContentType.APPLICATION_JSON));
-    
-                    HttpResponse apiResponse = httpClient.execute(httpPost);
-    
-                    if (apiResponse.getStatusLine().getStatusCode() == HttpServletResponse.SC_OK) {
-                        System.out.println("Request information sent successfully.");
-                    } else {
-                        System.err.println("Error sending request information. Status code: " + apiResponse.getStatusLine().getStatusCode());
-                    }
-                } catch (Exception e) {
-                    System.err.println("Error sending request information: " + e.getMessage());
-                }
-            }
+            responseInfo.setHeaders(getHeadersInfo(response));
+            responseInfo.setBody(responseBody);
+
+            sendApiInfo(requestInfo, responseInfo);
+
+            wrappedResponse.copyBodyToResponse();
         }
-    
-        @Override
-        public void destroy() {
-            // Cleanup code, if needed
+    }
+
+    private void sendApiInfo(ApiRequestInfo requestInfo, ApiResponseInfo responseInfo) {
+        try {
+            Map<String, Object> payload = new HashMap<>();
+            payload.put("api_key", API_KEY);
+            payload.put("the_request", requestInfo);
+            payload.put("the_response", responseInfo);
+
+            HttpHeaders headers = new HttpHeaders();
+            headers.setContentType(MediaType.APPLICATION_JSON);
+            HttpEntity<Map<String, Object>> entity = new HttpEntity<>(payload, headers);
+
+            restTemplate.postForObject(API_ENDPOINT, entity, String.class);
+            System.out.println("API information sent successfully.");
+        } catch (Exception e) {
+            System.err.println("Error sending API information: " + e.getMessage());
         }
-    
-        private String getRequestHeaders(HttpServletRequest request) {
-            StringBuilder headers = new StringBuilder();
-            Enumeration<String> headerNames = request.getHeaderNames();
-            while (headerNames.hasMoreElements()) {
-                String headerName = headerNames.nextElement();
-                headers.append(headerName).append(": ").append(request.getHeader(headerName)).append("\n");
-            }
-            return headers.toString();
-        }
-    
-        private String getRequestBody(HttpServletRequest request) throws IOException {
-            return IOUtils.toString(request.getInputStream(), "UTF-8");
-        }
-    
-        private String getResponseHeaders(HttpServletResponse response) {
-            StringBuilder headers = new StringBuilder();
-            for (String headerName : response.getHeaderNames()) {
-                headers.append(headerName).append(": ").append(response.getHeader(headerName)).append("\n");
-            }
-            return headers.toString();
-        }    
-    }`;
+    }
+
+    private Map<String, String> getHeadersInfo(HttpServletRequest request) {
+        Map<String, String> map = new HashMap<>();
+        Collections.list(request.getHeaderNames()).forEach(headerName ->
+            map.put(headerName, request.getHeader(headerName))
+        );
+        return map;
+    }
+
+    private Map<String, String> getHeadersInfo(HttpServletResponse response) {
+        Map<String, String> map = new HashMap<>();
+        response.getHeaderNames().forEach(headerName ->
+            map.put(headerName, response.getHeader(headerName))
+        );
+        return map;
+    }
+
+    private static class ApiRequestInfo {
+        private String requestId;
+        private String method;
+        private String url;
+        private String queryString;
+        private Map<String, String> headers;
+        private String body;
+
+        // Getters and setters
+        public String getRequestId() { return requestId; }
+        public void setRequestId(String requestId) { this.requestId = requestId; }
+        public String getMethod() { return method; }
+        public void setMethod(String method) { this.method = method; }
+        public String getUrl() { return url; }
+        public void setUrl(String url) { this.url = url; }
+        public String getQueryString() { return queryString; }
+        public void setQueryString(String queryString) { this.queryString = queryString; }
+        public Map<String, String> getHeaders() { return headers; }
+        public void setHeaders(Map<String, String> headers) { this.headers = headers; }
+        public String getBody() { return body; }
+        public void setBody(String body) { this.body = body; }
+    }
+
+    private static class ApiResponseInfo {
+        private String requestId;
+        private int statusCode;
+        private Map<String, String> headers;
+        private String body;
+
+        // Getters and setters
+        public String getRequestId() { return requestId; }
+        public void setRequestId(String requestId) { this.requestId = requestId; }
+        public int getStatusCode() { return statusCode; }
+        public void setStatusCode(int statusCode) { this.statusCode = statusCode; }
+        public Map<String, String> getHeaders() { return headers; }
+        public void setHeaders(Map<String, String> headers) { this.headers = headers; }
+        public String getBody() { return body; }
+        public void setBody(String body) { this.body = body; }
+    }
+}`;
+
+
+    const javaCode2 = `package com.example.demo.config;
+
+import com.example.demo.interceptor.ApiLoggingInterceptor;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.web.client.RestTemplate;
+import org.springframework.web.servlet.config.annotation.InterceptorRegistry;
+import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
+
+@Configuration
+public class WebMvcConfig implements WebMvcConfigurer {
+
+    @Bean
+    public RestTemplate restTemplate() {
+        return new RestTemplate();
+    }
+
+    @Override
+    public void addInterceptors(InterceptorRegistry registry) {
+        registry.addInterceptor(new ApiLoggingInterceptor(restTemplate()));
+    }
+}`;
 
 
 
-    const goCode = `   package main
+    const goCode1 = `module api-logger-demo
 
-    import (
-        "github.com/yourusername/mymiddleware/middleware"
-        "github.com/gin-gonic/gin"
-    )
+go 1.15
+
+require github.com/gin-gonic/gin v1.6.3
     
-    func main() {
-        r := gin.Default()
-        r.Use(middleware.CaptureAPIInfo())
-        // Define your routes and handlers
-        // ...
-        r.Run(":8080")
-    }    
     `
 
-    const goCode1 = `   package main
+    const goCode2 = `package main
 
-    import (
-        "github.com/yourusername/mymiddleware/middleware"
-        "github.com/gin-gonic/gin"
-        "github.com/joho/godotenv"
-        "os"
-    )
+import (
+	"github.com/gin-gonic/gin"
+	"log"
+)
 
-    func main() {
-        // Load environment variables from the .env file
-        err := godotenv.Load()
-        if err != nil {
-            // Handle error
-            panic("Error loading .env file")
+func main() {
+	r := gin.Default()
+
+	// Initialize our custom middleware - Replace YNVHS32H0997O4FSMLFC with your project integration key
+	logger := NewAPILogger("YNVHS32H0997O4FSMLFC", "https://backend-new.apisecurityengine.com/api/v1/mirroredScans/sendRequestInfo")
+	r.Use(logger.LogAPI())
+
+	// Define routes
+	r.POST("/api/auth/signup", signup)
+	r.POST("/api/auth/login", login)
+
+	// Run the server
+	if err := r.Run(":8080"); err != nil {
+		log.Fatal("Failed to run server: ", err)
+	}
+}
+
+func signup(c *gin.Context) {
+	c.JSON(200, gin.H{
+		"message": "User registered successfully",
+	})
+}
+
+func login(c *gin.Context) {
+	c.JSON(200, gin.H{
+		"message": "Login successful",
+	})
+}`
+
+    const goCode3 = `package main
+
+import (
+	"bytes"
+	"encoding/json"
+	"fmt"
+	"github.com/gin-gonic/gin"
+	"io/ioutil"
+	"log"
+	"net/http"
+	"time"
+)
+
+type APILogger struct {
+	APIKey      string
+	APIEndpoint string
+}
+
+type RequestInfo struct {
+	RequestID   string            \`json:"requestId"\`
+	Method      string            \`json:"method"\`
+	URL         string            \`json:"url"\`
+	Headers     map[string]string \`json:"headers"\`
+	Body        string            \`json:"body"\`
+	QueryString string            \`json:"queryString"\`
+}
+
+type ResponseInfo struct {
+	RequestID  string            \`json:"requestId"\`
+	StatusCode int               \`json:"statusCode"\`
+	Headers    map[string]string \`json:"headers"\`
+	Body       string            \`json:"body"\`
+}
+
+func NewAPILogger(apiKey, apiEndpoint string) *APILogger {
+	return &APILogger{
+		APIKey:      apiKey,
+		APIEndpoint: apiEndpoint,
+	}
+}
+
+func (l *APILogger) LogAPI() gin.HandlerFunc {
+	return func(c *gin.Context) {
+		// Generate request ID
+		requestID := c.GetString("X-Request-ID")
+		if requestID == "" {
+			requestID = c.Request.Header.Get("X-Request-ID")
+		}
+		if requestID == "" {
+			requestID = generateRequestID()
+		}
+		c.Set("X-Request-ID", requestID)
+		c.Header("X-Request-ID", requestID)
+
+		// Read the request body
+		var bodyBytes []byte
+		if c.Request.Body != nil {
+			bodyBytes, _ = ioutil.ReadAll(c.Request.Body)
+		}
+		// Restore the request body
+		c.Request.Body = ioutil.NopCloser(bytes.NewBuffer(bodyBytes))
+
+		// Construct full URL
+		scheme := "http"
+		if c.Request.TLS != nil {
+			scheme = "https"
+		}
+		host := c.Request.Host
+		if host == "" {
+			host = "localhost:8080" // Default host:port if not provided
+		}
+		fullURL := fmt.Sprintf("%s://%s%s", scheme, host, c.Request.URL.String())
+
+		// Capture request info
+		requestInfo := RequestInfo{
+			RequestID:   requestID,
+			Method:      c.Request.Method,
+			URL:         fullURL,
+			Headers:     getHeaders(c.Request.Header),
+			Body:        string(bodyBytes),
+			QueryString: c.Request.URL.RawQuery,
+		}
+
+		// Create a response writer wrapper
+		wrappedWriter := &responseWriterWrapper{body: bytes.NewBufferString(""), ResponseWriter: c.Writer}
+		c.Writer = wrappedWriter
+
+		// Process request
+		c.Next()
+
+		// Capture response info
+		responseInfo := ResponseInfo{
+			RequestID:  requestID,
+			StatusCode: wrappedWriter.Status(),
+			Headers:    getHeaders(wrappedWriter.Header()),
+			Body:       wrappedWriter.body.String(),
+		}
+
+		// Send API info
+		go l.sendAPIInfo(requestInfo, responseInfo)
+	}
+}
+
+func (l *APILogger) sendAPIInfo(requestInfo RequestInfo, responseInfo ResponseInfo) {
+	payload := map[string]interface{}{
+		"api_key":      l.APIKey,
+		"the_request":  requestInfo,
+		"the_response": responseInfo,
+	}
+
+	jsonPayload, err := json.Marshal(payload)
+	if err != nil {
+		log.Printf("Error marshaling payload: %v", err)
+		return
+	}
+
+	resp, err := http.Post(l.APIEndpoint, "application/json", bytes.NewBuffer(jsonPayload))
+	if err != nil {
+		log.Printf("Error sending API information: %v", err)
+		return
+	}
+	defer resp.Body.Close()
+
+	log.Println("API information sent successfully")
+}
+
+func getHeaders(header http.Header) map[string]string {
+	headers := make(map[string]string)
+	for name, values := range header {
+		for _, value := range values {
+			headers[name] = value
+		}
+	}
+	return headers
+}
+
+func generateRequestID() string {
+	return time.Now().Format("20060102150405.000000")
+}
+
+type responseWriterWrapper struct {
+	gin.ResponseWriter
+	body *bytes.Buffer
+}
+
+func (w *responseWriterWrapper) Write(b []byte) (int, error) {
+	w.body.Write(b)
+	return w.ResponseWriter.Write(b)
+}
+
+func (w *responseWriterWrapper) WriteString(s string) (int, error) {
+	w.body.WriteString(s)
+	return w.ResponseWriter.WriteString(s)
+}`
+
+
+
+    const dotNetCode1 = `{
+  "Logging": {
+    "LogLevel": {
+      "Default": "Information",
+      "Microsoft.AspNetCore": "Warning"
+    }
+  },
+  "AllowedHosts": "*",
+  "ApiLogger": {
+    "ApiKey": "B0J3TATSK5MS7NJET03L",
+    "ApiEndpoint": "https://backend-new.apisecurityengine.com/api/v1/mirroredScans/sendRequestInfo"
+  }
+}
+`
+
+
+     const dotNetCode2 = `using System.Text;
+using Newtonsoft.Json;
+
+namespace ApiLoggerDemo.Middleware
+{
+    public class ApiLoggingMiddleware
+    {
+        private readonly RequestDelegate _next;
+        private readonly IHttpClientFactory _clientFactory;
+        private readonly string _apiKey;
+        private readonly string _apiEndpoint;
+
+        public ApiLoggingMiddleware(RequestDelegate next, IHttpClientFactory clientFactory, IConfiguration configuration)
+        {
+            _next = next;
+            _clientFactory = clientFactory;
+            _apiKey = configuration["ApiLogger:ApiKey"];
+            _apiEndpoint = configuration["ApiLogger:ApiEndpoint"];
         }
 
-        apiKey := os.Getenv("APISEC_API_KEY")
+        public async Task InvokeAsync(HttpContext context)
+        {
+            var requestId = Guid.NewGuid().ToString();
+            context.Response.Headers["X-Request-ID"] = requestId;
 
-        r := gin.Default()
-        r.Use(middleware.CaptureAPIInfo(apiKey))
-        // Define your routes and handlers
-        // ...
-        r.Run(":8080")
-    }`
+            var requestInfo = await GetRequestInfo(context.Request, requestId);
+            var originalBodyStream = context.Response.Body;
 
+            using (var responseBody = new MemoryStream())
+            {
+                context.Response.Body = responseBody;
 
+                await _next(context);
 
-    const dotNetCode1 = ` using APISecAgent; // Namespace of your middleware
+                var responseInfo = await GetResponseInfo(context.Response, requestId);
+                await SendApiInfo(requestInfo, responseInfo);
 
-// ...
+                await responseBody.CopyToAsync(originalBodyStream);
+            }
+        }
 
-// Use the middleware in the application's pipeline
-app.UseMiddleware<CaptureAPIInfoMiddleware>();
+        private async Task<RequestInfo> GetRequestInfo(HttpRequest request, string requestId)
+        {
+            request.EnableBuffering();
 
+            var requestBody = await new StreamReader(request.Body).ReadToEndAsync();
+            request.Body.Position = 0;
 
+            return new RequestInfo
+            {
+                requestId = requestId,
+                method = request.Method,
+                url = $"{request.Scheme}://{request.Host}{request.Path}{request.QueryString}",
+                headers = request.Headers.ToDictionary(h => h.Key, h => h.Value.ToString()),
+                body = requestBody,
+                QueryString = request.QueryString.ToString()
+            };
+        }
 
-using YourNamespace; // Namespace of your middleware
+        private async Task<ResponseInfo> GetResponseInfo(HttpResponse response, string requestId)
+        {
+            response.Body.Seek(0, SeekOrigin.Begin);
+            var responseBody = await new StreamReader(response.Body).ReadToEndAsync();
+            response.Body.Seek(0, SeekOrigin.Begin);
 
-// ...
+            return new ResponseInfo
+            {
+                RequestId = requestId,
+                StatusCode = response.StatusCode,
+                Headers = response.Headers.ToDictionary(h => h.Key, h => h.Value.ToString()),
+                Body = responseBody
+            };
+        }
 
-public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
-{
-    // ...
+        private async Task SendApiInfo(RequestInfo requestInfo, ResponseInfo responseInfo)
+        {
+            var payload = new
+            {
+                api_key = _apiKey,
+                the_request = requestInfo,
+                the_response = responseInfo
+            };
 
-    // Use the middleware in the application's pipeline
-    app.UseMiddleware<CaptureAPIInfoMiddleware>();
+            var json = JsonConvert.SerializeObject(payload);
+            var content = new StringContent(json, Encoding.UTF8, "application/json");
 
-    // ...
+            var client = _clientFactory.CreateClient();
+            await client.PostAsync(_apiEndpoint, content);
+        }
+    }
+
+    public class RequestInfo
+    {
+        public string requestId { get; set; }
+        public string method { get; set; }
+        public string url { get; set; }
+        public Dictionary<string, string> headers { get; set; }
+        public string body { get; set; }
+        public string QueryString { get; set; }
+    }
+
+    public class ResponseInfo
+    {
+        public string RequestId { get; set; }
+        public int StatusCode { get; set; }
+        public Dictionary<string, string> Headers { get; set; }
+        public string Body { get; set; }
+    }
 }`
 
 
-const dotNetCode2 = ` using APISecAgent;
+     const dotNetCode3 = `using ApiLoggerDemo.Middleware;
 
-// ...
+var builder = WebApplication.CreateBuilder(args);
 
-public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
+// Add services to the container.
+builder.Services.AddControllers();
+builder.Services.AddHttpClient();
+
+var app = builder.Build();
+
+// Configure the HTTP request pipeline.
+if (app.Environment.IsDevelopment())
 {
-    // ...
+    app.UseDeveloperExceptionPage();
+}
 
-    // Use the middleware in the application's pipeline
-    app.UseMiddleware<CaptureAPIInfoMiddleware>();
+app.UseHttpsRedirection();
+app.UseAuthorization();
 
-    // ...
-}`
+// Use our custom API logging middleware
+app.UseMiddleware<ApiLoggingMiddleware>();
+
+app.MapControllers();
+
+app.Run();
+`
 
 
 
@@ -948,71 +1273,47 @@ $config['api_key'] = $_SERVER['API_KEY'];
                         <TabPanel style={{ padding: 30, backgroundColor: 'white', borderRadius: 5 }}>
 
 
-<p style={{color:'black'}}>Create a Java file with the below code:-</p>
+<p style={{color:'black'}}>This example uses Java SpringBoot</p>
+
+<p style={{color:'black'}}>Parellel to your controllers folder, create a folder named interceptors and add a file ApiLoggingInterceptor.java, with below content.
+  Ensure you are using your own API Key.
+</p>
+
 
 <CodeBlock
-      text={javaCode}
+      text={javaCode1}
       language="java"
       showLineNumbers={true}
       theme="dracula"
       wrapLines={true}
     />
 
+<br/>
+<p style={{color:'black'}}>Parellel to your controllers folder, create a config folder. </p>
 
-<p style={{marginTop:20, color:'black'}}>The placement of the code will depend on the specific Java framework you are using for your web project. Here are some common locations where you can put the code: </p>
-
-<h5 style={{color:'black'}}>Servlet-based frameworks (e.g., Java Servlet, Apache Tomcat):</h5>
-
-<ul>
-<li style={{color:'black'}}>Create a new Java class with the provided code (e.g., APITrafficFilter.java).</li>
-
-<li style={{color:'black'}}>Place the Java class in the appropriate package within your project's source folder (e.g., src/main/java/com/example/filters).</li>
-
-<li style={{color:'black'}}>Register the filter in the web project's deployment descriptor (web.xml) by adding the filter definition and filter-mapping sections.</li>
-
-</ul>
-
-<p style={{color:'black'}}>Alternatively, you can use annotations to register the filter directly on the servlet or controller class that handles API requests.
-Spring Framework (e.g., Spring MVC):</p>
+<p style={{color:'black'}}>Create a WebMvcConfig.java file inside the config folder and add the interceptor there. See below example.. </p>
 
 
-<ul>
-<li style={{color:'black'}}>Create a new Java class with the provided code (e.g., APITrafficFilter.java).</li>
+<CodeBlock
+      text={javaCode2}
+      language="java"
+      showLineNumbers={true}
+      theme="dracula"
+      wrapLines={true}
+    />
 
-<li style={{color:'black'}}>Place the Java class in the appropriate package within your project's source folder (e.g., src/main/java/com/example/filters).</li>
+    <br/>
 
-<li style={{color:'black'}}>Annotate the filter class with @Component to make it a Spring bean.</li>
+    <p style={{color:'black'}}>Build and run your project. </p>
 
-<li style={{color:'black'}}>Use the @WebFilter annotation (provided by Servlet API) or @Order annotation (provided by Spring) 
-to register the filter with the desired URL patterns or specific endpoints.</li>
-
-<li style={{color:'black'}}>Make sure you have the necessary dependencies and configuration for Spring MVC in your project.</li>
-</ul>
-
-<hr/>
-
-<h5 style={{color:'black'}}>JAX-RS (Java API for RESTful Web Services):</h5>
+    <p style={{color:'black'}}>When you call APIs, they will be sent to APISecurityEngine for scans and the results can be seen in the APISecurityEngine web portal. </p>
 
 
-<ul>
-
-<li style={{color:'black'}}>Create a new Java class with the provided code (e.g., APITrafficFilter.java).</li>
-
-<li style={{color:'black'}}>Place the Java class in the appropriate package within your project's source folder (e.g., src/main/java/com/example/filters).</li>
-
-<li style={{color:'black'}}>Annotate the filter class with @Provider to make it a provider class for JAX-RS.</li>
-
-<li style={{color:'black'}}>Register the filter class in your JAX-RS application or configuration class using register(APITrafficFilter.class).</li>
 
 
-</ul>
 
-<hr/>
 
-<p style={{fontWeight:'bold', color:'black'}}>Build and run your project.</p>
 
-<p style={{fontWeight:'bold', color:'black'}}>All the API traffic to your application will be sent to APISec for security analysis.
-   The results can be seen in the APISec dashboard.</p>
 
                             
 
@@ -1024,48 +1325,54 @@ to register the filter with the desired URL patterns or specific endpoints.</li>
                         {/* .NET Instructions  */}
                         <TabPanel style={{ padding: 30, backgroundColor: 'white', borderRadius: 5 }}>  
 
-                        <p style={{fontWeight:'bold', color:'black'}}>Our agents are available as a NuGet package for C# and ASP based .NET projects</p>
+                        <p style={{fontWeight:'normal', color:'black'}}>This example uses a C# based .NET project</p>
+
+                        <p style={{fontWeight:'normal', color:'black'}}>In your appsettings.json, add the APISecurityEngine API Key and API URL, as shown in 
+                          the example below.
+                        </p>
 
 
-                        <p style={{fontWeight:'bold', color:'black'}}>How to use the NuGet Package in a C# Project:</p>
-
-                        <p style={{fontWeight:'bold', color:'black'}}></p>Install the NuGet Package:
-
-                        <p style={{fontWeight:'normal', color:'black'}}></p>In the project directory, you can use the dotnet add package command to install your NuGet package:
+                     
 
 
-                        <pre style={{color:'black'}}>
-                             dotnet add package APISecAgent
-                        </pre>
-
-
-                        <p style={{fontWeight:'bold', color:'black'}}>Use the Middleware:</p>
-
-                        <p style={{fontWeight:'normal', color:'black'}}>In your code, you can import and use your middleware as needed:</p>
-
-                       
-
-                        <SyntaxHighlighter language="csharp" style={dark}>
+<SyntaxHighlighter language="json" style={dracula}>
                                 {dotNetCode1}
                         </SyntaxHighlighter>
 
-                        <p style={{fontWeight:'bold', color:'black'}}>Install the NuGet Package:</p>
-                        <p style={{fontWeight:'normal', color:'black'}}>In the project directory, you can use the dotnet add package 
-                        command to install your NuGet package:</p>
 
-                        <pre style={{color:'black'}}>
-                                dotnet add package APISecAgent
-                        </pre>
+                        
 
-
-                        <p style={{fontWeight:'bold', color:'black'}}>Configure and Use the Middleware:</p>
-                        <p style={{fontWeight:'normal', color:'black'}}>In the Startup.cs file of their project,
-                         you can configure and use your middleware:</p>                       
-                            
-
-                        <SyntaxHighlighter language="csharp" style={dark}>
-                            {dotNetCode2}
+                        <p style={{fontWeight:'normal', color:'black'}}></p>Add a middleware file in your Middlewares folder. Name it ApiLoggingMiddleware.cs.
+                        
+                        <SyntaxHighlighter language="csharp" style={dracula}>
+                                {dotNetCode2}
                         </SyntaxHighlighter>
+
+
+
+
+
+                        <p style={{fontWeight:'normal', color:'black'}}></p>
+                        In your Program.cs, register the middleware as shown in the below example.
+                      
+
+                       
+                        
+                       
+
+                        <SyntaxHighlighter language="csharp" style={dracula}>
+                                {dotNetCode3}
+                        </SyntaxHighlighter>
+
+                        
+
+                        <br/>
+
+                        <p style={{color:'black'}}>Build and run your project. </p>
+
+                        <p style={{color:'black'}}>When you call APIs, they will be sent to APISecurityEngine for scans and the results can be seen in the APISecurityEngine web portal. </p>
+
+
 
                         </TabPanel>   
                         {/* END - .NET Instructions  */}  
@@ -1074,49 +1381,8 @@ to register the filter with the desired URL patterns or specific endpoints.</li>
                         {/* GoLang Instructions  */}
                         <TabPanel style={{ padding: 30, backgroundColor: 'white', borderRadius: 5 }}>  
 
-                        <p style={{fontWeight:'bold', color:'black'}}>Install the middleware on your project</p>
+                        <p style={{fontWeight:'bold', color:'black'}}>In your go.mod, ensure you have included Gin, like in the example below.</p>
             
-                        <pre style={{color:'black'}}>
-                                 go get github.com/yourusername/mymiddleware/middleware
-                        </pre>    
-
-                        <p style={{fontWeight:'bold', color:'black'}}>Import and use your middleware by specifying its module path in your code</p>
-
-
-                        <CodeBlock
-                            text={goCode}
-                            language="go"
-                            showLineNumbers={true}
-                            theme="dracula"
-                            wrapLines={true}
-                        />
-
-
-
-                        <p style={{fontWeight:'bold', color:'black'}}>Setup the environmental variable</p>
-                        <p style={{fontWeight:'normal', color:'black'}}>Install the godotenv Library</p>
-
-
-                        <pre style={{color:'black'}}>
-                                go get github.com/joho/godotenv
-                        </pre>  
-                            
-
-                        <p style={{fontWeight:'bold', color:'black'}}>Create a .env File:</p>
-
-                        <p style={{fontWeight:'normal', color:'black'}}>Create a file named .env in the root of your project.
-                         This is where you'll store your environment variables. For example:</p>
-
-
-                         <pre style={{color:'black'}}>
-                            APISEC_API_KEY=your_actual_api_key_here
-                         </pre>   
-
-
-                        <p style={{fontWeight:'bold', color:'black'}}>Load the .env File:</p>
-
-                        <p style={{fontWeight:'normal', color:'black'}}>In your application code, use the godotenv library to load the environment variables from the .env file. 
-                         You typically do this early in your application, before accessing any environment variables.</p>
 
                          <CodeBlock
                             text={goCode1}
@@ -1124,7 +1390,41 @@ to register the filter with the desired URL patterns or specific endpoints.</li>
                             showLineNumbers={true}
                             theme="dracula"
                             wrapLines={true}
+                        /> 
+
+                        <p style={{fontWeight:'bold', color:'black'}}>Initialize the middleware in your main.go, as shown in the below example. Notice the lines
+                          12 and 13. Ensure you use your own project integration key.
+                        </p>
+
+
+                        <CodeBlock
+                            text={goCode2}
+                            language="go"
+                            showLineNumbers={true}
+                            theme="dracula"
+                            wrapLines={true}
                         />
+
+
+
+                        <p style={{fontWeight:'bold', color:'black'}}>In your project root, create a file api_logger.go with the below content</p>
+
+                        <CodeBlock
+                            text={goCode3}
+                            language="go"
+                            showLineNumbers={true}
+                            theme="dracula"
+                            wrapLines={true}
+                        />
+
+               <br/>         
+<p style={{color:'black'}}>Build and run your project. </p>
+
+<p style={{color:'black'}}>When you call APIs, they will be sent to APISecurityEngine for scans and the results can be seen in the APISecurityEngine web portal. </p>
+
+
+                         
+
 
 
                         </TabPanel>   
