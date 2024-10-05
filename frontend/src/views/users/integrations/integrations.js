@@ -664,6 +664,243 @@ app.Run();
 `
 
 
+const nodeCode1 = `const axios = require('axios');
+const { v4: uuidv4 } = require('uuid');
+
+const apiLoggingMiddleware = (config) => {
+  const { apiKey, apiEndpoint } = config;
+
+  return async (req, res, next) => {
+    const requestId = uuidv4();
+    res.setHeader('X-Request-ID', requestId);
+
+    const requestInfo = getRequestInfo(req, requestId);
+
+    // Capture the original response methods
+    const originalJson = res.json;
+    const originalEnd = res.end;
+    const originalWrite = res.write;
+
+    let responseBody = '';
+
+    // Override response methods to capture the response body
+    res.json = function (body) {
+      responseBody = JSON.stringify(body);
+      originalJson.apply(this, arguments);
+    };
+
+    res.write = function (chunk) {
+      responseBody += chunk;
+      originalWrite.apply(this, arguments);
+    };
+
+    res.end = function (chunk) {
+      if (chunk) responseBody += chunk;
+      
+      const responseInfo = getResponseInfo(res, requestId, responseBody);
+      
+      sendApiInfo(requestInfo, responseInfo, apiKey, apiEndpoint)
+        .catch(error => console.error('Error sending API info:', error));
+
+      originalEnd.apply(this, arguments);
+    };
+
+    next();
+  };
+};
+
+const getRequestInfo = (req, requestId) => ({
+  request_id: requestId,
+  method: req.method,
+  url: \`\${req.protocol}://\${req.get('host')}\${req.originalUrl}\`,
+  headers: req.headers,
+  body: req.body,
+  query_string: req.url.split('?')[1] || ''
+});
+
+const getResponseInfo = (res, requestId, body) => ({
+  request_id: requestId,
+  status_code: res.statusCode,
+  headers: res.getHeaders(),
+  body: body
+});
+
+const sendApiInfo = async (requestInfo, responseInfo, apiKey, apiEndpoint) => {
+  const payload = {
+    api_key: apiKey,
+    the_request: requestInfo,
+    the_response: responseInfo
+  };
+
+  try {
+    await axios.post(apiEndpoint, payload, {
+      headers: { 'Content-Type': 'application/json' }
+    });
+  } catch (error) {
+    console.error('Error sending API info:', error.message);
+  }
+};
+
+module.exports = apiLoggingMiddleware;
+`;
+
+
+
+
+const nodeCode2 = `const express = require('express');
+const dotenv = require('dotenv');
+const colors = require('colors');
+const cors = require('cors');
+const { connectDB } = require('./config/db');
+const adminRoutesV1 = require("./routes/v1/admin.route")
+const userRoutesV1 = require("./routes/v1/user.route")
+const rateLimit = require('express-rate-limit');
+const fs = require("fs")
+const path = require("path")
+const { exec } = require("child_process")
+const limiter = rateLimit({
+	windowMs: 30 * 1000, // 30 seconds
+	max: 10000, // Limit each IP to 100 requests per \`window\` (here, per 30 seconds)
+	standardHeaders: true, // Return rate limit info in the \`RateLimit-*\` headers
+	legacyHeaders: false, // Disable the \`X-RateLimit-*\` headers
+})
+const folderPath = path.join(__dirname, "uploads")
+fs.chmod(folderPath, 0o700, (err) => {
+	if (err) {
+		console.error(err);
+		return;
+	}
+})
+
+const { notFoundError, errorHandler } = require('./middlewares/errorHandlerMiddleware');
+const app = express();
+
+
+const apiSecMiddleware = require('./apiSecMiddleware');
+
+
+
+// Serve static files from the public directory
+app.use(express.static(path.join(__dirname, 'public')));
+
+dotenv.config();
+
+connectDB();
+
+app.use(express.json());
+
+app.use(apiSecMiddleware({
+	apiKey: 'QCPUTU4AKBLJC2GVPU2C',
+	apiEndpoint: 'https://backend-new.apisecurityengine.com/api/v1/mirroredScans/sendRequestInfo'
+  }));
+
+app.use(limiter)
+
+app.use(cors());
+app.options('*', cors());
+
+app.get('/', (req, res) => {
+	res.send('CareerLink API server is running....');
+});
+
+app.use('/api/v1/admin/', adminRoutesV1);
+app.use('/api/v1/users/', userRoutesV1);
+
+
+app.use(notFoundError);
+app.use(errorHandler);
+
+const PORT = process.env.PORT || 5000;
+
+app.listen(PORT, console.log(\`Server running in \${process.env.NODE_ENV} mode on Port \${PORT}\`.green.bold));
+`;
+
+
+const pythonCode1 = `import uuid
+import requests
+from werkzeug.wrappers import Request, Response
+
+class ApiLoggingMiddleware:
+    def __init__(self, app, api_key, api_endpoint):
+        self.app = app
+        self.api_key = api_key
+        self.api_endpoint = api_endpoint
+
+    def __call__(self, environ, start_response):
+        request_id = str(uuid.uuid4())
+        request = Request(environ)
+        request_info = self.get_request_info(request, request_id)
+
+        response_info = {}
+
+        def new_start_response(status, headers, exc_info=None):
+            response_info['status'] = status
+            response_info['headers'] = headers
+            return start_response(status, headers, exc_info)
+
+        response = self.app(environ, new_start_response)
+
+        if isinstance(response, Response):
+            response_body = response.get_data()
+            response_info['body'] = response_body.decode('utf-8')
+        else:
+            response_body = b''.join(response)
+            response_info['body'] = response_body.decode('utf-8')
+
+        self.send_api_info(request_info, response_info)
+
+        if isinstance(response, Response):
+            return response(environ, start_response)
+        else:
+            return [response_body]
+
+    def get_request_info(self, request, request_id):
+        return {
+            'request_id': request_id,
+            'method': request.method,
+            'url': request.url,
+            'headers': dict(request.headers),
+            'body': request.get_data(as_text=True),
+            'query_string': request.query_string.decode('utf-8')
+        }
+
+    def send_api_info(self, request_info, response_info):
+        payload = {
+            'api_key': self.api_key,
+            'the_request': request_info,
+            'the_response': response_info
+        }
+        try:
+            requests.post(self.api_endpoint, json=payload)
+        except requests.RequestException as e:
+            print(f"Error sending API info: {e}")`;
+
+const pythonCode2 = `from flask import Flask
+from path.to.middleware.api_logging_middleware import ApiLoggingMiddleware
+
+app = Flask(__name__)
+
+# Apply middleware
+app.wsgi_app = ApiLoggingMiddleware(app.wsgi_app, 
+                                    api_key='your-api-key', 
+                                    api_endpoint='https://backend-new.apisecurityengine.com/api/v1/mirroredScans/sendRequestInfo')
+
+# Your existing routes and other configurations...
+
+if __name__ == '__main__':
+    app.run(debug=True)`;
+
+
+const pythonCode3 = `import os
+
+app.wsgi_app = ApiLoggingMiddleware(app.wsgi_app, 
+                                    api_key=os.environ.get('APISEC_API_KEY'),
+                                    api_endpoint=os.environ.get('APISEC_ENDPOINT'))`;
+
+
+
+const pythonCode4 = `export APISEC_API_KEY='your-api-key'
+export APISEC_ENDPOINT='https://backend-new.apisecurityengine.com/api/v1/mirroredScans/sendRequestInfo'`;
 
 
     const goToAddAgent = (e) => {
@@ -1111,24 +1348,50 @@ fi`}
                         {/* Node JS Instructions  */}
                         <TabPanel style={{ padding: 30, backgroundColor: 'white', borderRadius: 5 }}>  
 
+                        <p style={{color:'black'}}>Make sure the packages axios and uuid are installed in your project.
+                        </p>
 
 
-                        <p style={{color:'black'}}>Install the APISec agent into your Node JS based project:-</p>
+                        <p style={{color:'black'}}>Add a middleware to capture API traffic and send to APISecurityEngine service. Create a file 
+                          named apiSecMiddleware.js in your project root folder where your app.js or server.js file exists.
+                        </p>
 
 
-    <pre style={{color:'black'}}>npm i apisecurityengine-agent</pre>
-
-<p style={{color:'black'}}>Add an environmental variable called APISEC_API_KEY with the value as the Integration API Key
-   of your project created in the APISec Dashboard.</p>
-
-   <p style={{color:'black'}}>You can use dotenv package, with a .env file in your Node project.</p>
-
-<hr/>
-<p style={{fontWeight:'bold', color:'black'}}>Build and run your project.</p>
+                        <CodeBlock
+      text={nodeCode1}
+      language="javascript"
+      showLineNumbers={true}
+      theme="dracula"
+      wrapLines={true}
+    />
 
 
-<p style={{fontWeight:'bold', color:'black'}}>All the API traffic to your application will be sent to APISec for security analysis. 
-  The results can be seen in the APISec dashboard.</p>
+                        
+                        <p style={{color:'black'}}>Register this middleware in your app.js or server.js, as shown below. Notice lines 30 and 43-46.
+                          Make sure your are using your own API key.
+                        </p>
+                      
+
+                        <CodeBlock
+      text={nodeCode2}
+      language="javascript"
+      showLineNumbers={true}
+      theme="dracula"
+      wrapLines={true}
+    />
+                        
+
+                        <p style={{color:'black'}}>Build and run your project. </p>
+
+                        <p style={{color:'black'}}>When you call APIs, they will be sent to APISecurityEngine for scans 
+                          and the results can be seen in the APISecurityEngine web portal. </p>
+
+
+
+
+   
+
+
                             
 
                         </TabPanel>   
@@ -1139,56 +1402,70 @@ fi`}
                         <TabPanel style={{ padding: 30, backgroundColor: 'white', borderRadius: 5 }}>  
 
 
-                       <p style={{color:'black'}}> Install the APISec agent into your Python based project:-</p>
+                       <p style={{color:'black'}}> Ensure you have the necessary projects installed</p>
 
-
-<pre style={{color:'black'}}>pip install apisecurityengine-agent==1.0.0</pre>
-
-
-<p style={{color:'black'}}>Add an environmental variable called APISec with the value as the Integration API 
-  Key of your project created in the APISec Dashboard.</p>
-
-<hr/>
-
-<h6 style={{color:'black'}}>Accessing Environment Variables in Django:</h6>
-
-
-<p style={{color:'black'}}>Install python-dotenv by running: </p>
-
-<pre style={{color:'black'}}>pip install python-dotenv.</pre>
-
-<p style={{color:'black'}}>Create a file named .env in your project directory and add your environment variables in the format: APISEC_API_KEY=value.</p>
-
-
-<p style={{color:'black'}}>In your Django settings file (e.g., settings.py), add the following code at the top to load environment variables from the .env file:</p>
 
 <pre>
-from dotenv import load_dotenv<br/>
-load_dotenv()
+pip install requests
 </pre>
 
-<p style={{color:'black'}}>You can then access the environment variables in your Django settings file or other Python files using os.environ.get('APISEC_API_KEY').</p>
+
+<p style={{color:'black'}}>Create a new file named api_logging_middleware.py in your project's middleware directory (create one if it doesn't exist). Add the following code:
+</p>
 
 
-<hr/>
 
-<h6 style={{color:'black'}}>Accessing Environment Variables in Flask:</h6>
+<CodeBlock
+      text={pythonCode1}
+      language="python"
+      showLineNumbers={true}
+      theme="dracula"
+      wrapLines={true}
+    />
 
-<p style={{color:'black'}}>Flask has built-in support for environment variables using the os module.</p>
+    <br/>
 
-<p style={{color:'black'}}>In your Flask application, you can access environment variables using os.environ.get('APISEC_API_KEY').</p>
+<p style={{color:'black'}}>Modify your main Flask application file (often app.py or similar) to include the middleware:
+</p>
 
-<p style={{color:'black'}}>You can also use the python-dotenv package in Flask to load environment variables from a .env file similar to Django.</p>
+<CodeBlock
+      text={pythonCode2}
+      language="python"
+      showLineNumbers={true}
+      theme="dracula"
+      wrapLines={true}
+    />
+<br/>
 
-<hr/>
+
+<p style={{color:'black'}}>For better security, it's recommended to use environment variables for the API key and endpoint. Update your application to use environment variables:
+</p>
 
 
-<p style={{fontWeight:'bold', color:'black'}}>Build and run your project.</p>
+<CodeBlock
+      text={pythonCode3}
+      language="python"
+      showLineNumbers={true}
+      theme="dracula"
+      wrapLines={true}
+    />
 
+<br/>
 
-<p style={{fontWeight:'bold', color:'black'}}>All the API traffic to your application will be sent to APISec for security analysis. 
-  The results can be seen in the APISec dashboard.</p>
-                            
+<p style={{color:'black'}}>Then, set these environment variables before running your application:</p>
+
+<CodeBlock
+      text={pythonCode4}
+      language="python"
+      showLineNumbers={true}
+      theme="dracula"
+      wrapLines={true}
+    />
+
+<p style={{color:'black'}}>Build and run your project. </p>
+
+<p style={{color:'black'}}>When you call APIs, they will be sent to APISecurityEngine for scans and the results can be seen in the APISecurityEngine web portal. </p>
+
 
                         </TabPanel>   
                         {/* END - Python Instructions  */}     
