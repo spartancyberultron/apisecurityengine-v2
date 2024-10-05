@@ -903,6 +903,84 @@ const pythonCode4 = `export APISEC_API_KEY='your-api-key'
 export APISEC_ENDPOINT='https://backend-new.apisecurityengine.com/api/v1/mirroredScans/sendRequestInfo'`;
 
 
+
+const phpCode1 = `<?php
+
+namespace App\Http\Middleware;
+
+use Closure;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Http;
+use Symfony\Component\HttpFoundation\Response;
+
+class ApiSecLoggingMiddleware
+{
+    // Hardcoded APISec endpoint and key
+    private const APISEC_ENDPOINT = 'https://backend-new.apisecurityengine.com/api/v1/mirroredScans/sendRequestInfo';
+    private const APISEC_KEY = '<your_api_key>';
+
+    public function handle(Request $request, Closure $next)
+    {
+        $requestId = (string) \Illuminate\Support\Str::uuid();
+
+        $requestInfo = $this->captureRequestInfo($request, $requestId);
+
+        $response = $next($request);
+
+        $responseInfo = $this->captureResponseInfo($response, $requestId);
+
+        $this->sendToApiSec($requestInfo, $responseInfo);
+
+        return $response;
+    }
+
+    private function captureRequestInfo(Request $request, string $requestId): array
+    {
+        return [
+            'request_id' => $requestId,
+            'method' => $request->method(),
+            'url' => $request->fullUrl(),
+            'headers' => $request->headers->all(),
+            'body' => $request->getContent(),
+            'query_string' => $request->getQueryString()
+        ];
+    }
+
+    private function captureResponseInfo(Response $response, string $requestId): array
+    {
+        return [
+            'request_id' => $requestId,
+            'status_code' => $response->getStatusCode(),
+            'headers' => $response->headers->all(),
+            'body' => $response->getContent()
+        ];
+    }
+
+    private function sendToApiSec(array $requestInfo, array $responseInfo): void
+    {
+        $payload = [
+            'api_key' => self::APISEC_KEY,
+            'the_request' => $requestInfo,
+            'the_response' => $responseInfo
+        ];
+
+        try {
+            Http::post(self::APISEC_ENDPOINT, $payload);
+        } catch (\Exception $e) {
+            \Illuminate\Support\Facades\Log::error("Failed to send data to APISec: " . $e->getMessage());
+        }
+    }
+}`;
+
+const phpCode2 = `protected $middleware = [
+    // ... other middleware entries
+    \App\Http\Middleware\ApiSecLoggingMiddleware::class,
+];`;
+
+
+
+
+
     const goToAddAgent = (e) => {
 
         e.preventDefault();
@@ -1477,70 +1555,58 @@ pip install requests
 
 
 
-                      <p style={{color:'black'}}> Install the composer package apisec-agent</p> 
-
-<pre style={{color:'black'}}>composer require cyberultron/apisecurityengine-agent:dev-main</pre>
+                      <p style={{color:'black'}}>Laravel framework of PHP is used for this example:-</p> 
 
 
+                      <h4>Step 1: Create a new middleware file:</h4> 
 
-<p style={{color:'black'}}>Add an environmental variable called APISEC_API_KEY with the value as 
-  the Integration API Key of your project created in the APISec Dashboard.</p>
-
-
-
-<h6 style={{color:'black'}}>Accessing Environment Variables in Laravel:</h6>
-
-<p style={{color:'black'}}>Laravel uses the Dotenv library to load environment variables from a .env file in the project root directory.
-By default, Laravel comes with a .env.example file that you can rename to .env and populate with your environment variables.
-You can access environment variables in Laravel using the env() helper function or the $_ENV superglobal variable. For example:
-</p>
-
-<pre style={{color:'black'}}>
-$apiKey = env('API_KEY');<br/>
-// or<br/>
-$apiKey = $_ENV['API_KEY'];
-</pre>
-
-
-<h6 style={{color:'black'}}>Accessing Environment Variables in Symfony:</h6>
-
-<p style={{color:'black'}}>In Symfony, you can use the Dotenv component to load environment variables from a .env file in the project root directory.
-Symfony also provides the getenv() function and the $_ENV and $_SERVER superglobal variables to access environment variables. For example:</p>
-
-<pre style={{color:'black'}}>
-$apiKey = getenv('API_KEY');<br/>
-// or<br/>
-$apiKey = $_ENV['API_KEY'];
-</pre>
-
-
-
-<h6 style={{color:'black'}}>Accessing Environment Variables in CodeIgniter:</h6>
-
-<p style={{color:'black'}}>CodeIgniter provides a global $_SERVER array that contains environment variables.</p>
-
-<p style={{color:'black'}}>You can access environment variables in CodeIgniter using $_SERVER['VARIABLE_NAME'].
-It's recommended to define a constant or configuration variable in CodeIgniter's configuration file 
-(config.php) that corresponds to your environment variable. For example:</p>
+                      <p style={{color:'black'}}>Open your terminal and navigate to your Laravel project directory.</p> 
+                      <p style={{color:'black'}}>Run the following Artisan command:</p> 
 
 
 <pre style={{color:'black'}}>
-// In config.php<br/>
-$config['api_key'] = $_SERVER['API_KEY'];
+php artisan make:middleware ApiSecLoggingMiddleware
 </pre>
 
 
-<p style={{color:'black'}}>You can then use the $config['api_key'] variable throughout your CodeIgniter application.</p>
-
-<hr/>
-
-
-<p style={{fontWeight:'bold', color:'black'}}>Build and run your project.</p>
+<h4>Step 2: Implement the Middleware</h4>
+<p style={{color:'black'}}>Replace the contents of the newly created file app/Http/Middleware/ApiSecLoggingMiddleware.php with the following code:</p>
 
 
-<p style={{fontWeight:'bold', color:'black'}}>All the API traffic to your application will be sent to APISec for security analysis. 
-  The results can be seen in the APISec dashboard.</p>
-                            
+<CodeBlock
+      text={phpCode1}
+      language="php"
+      showLineNumbers={true}
+      theme="dracula"
+      wrapLines={true}
+    />
+
+    <br/>
+
+
+<h4>Step 3: Register the Middleware</h4>
+<p style={{color:'black'}}>Open app/Http/Kernel.php and add the middleware to the $middleware array for global use:</p>
+
+
+
+<CodeBlock
+      text={phpCode2}
+      language="php"
+      showLineNumbers={true}
+      theme="dracula"
+      wrapLines={true}
+    />
+
+<br/>
+
+<p style={{color:'black'}}>Build and run your project. </p>
+
+<p style={{color:'black'}}>When you call APIs, they will be sent to APISecurityEngine for scans and the results can be seen in the APISecurityEngine web portal. </p>
+
+
+
+
+
 
                         </TabPanel>   
                         {/* END -PHP Instructions  */}    
