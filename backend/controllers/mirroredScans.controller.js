@@ -948,7 +948,7 @@ module.exports.getInventoryOfProject = asyncHandler(async (req, res) => {
 function getQueryParameters(urlString) {
 
     let queryParameters = {};
-
+if(urlString){
     // Find the index of the query string in the URL
     const queryIndex = urlString.indexOf('?');
     if (queryIndex !== -1) {
@@ -964,7 +964,7 @@ function getQueryParameters(urlString) {
             }
         });
     }
-
+}
     console.log('queryParameters:', queryParameters);
     return queryParameters;
 }
