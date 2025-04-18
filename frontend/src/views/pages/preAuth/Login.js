@@ -258,7 +258,7 @@ const VendorLogin = () => {
                     
                     <span className="login-page-card-heading" style={{ marginTop: '1rem', textAlign: 'left', color:'rgb(93, 89, 108)', 
                      fontSize:26, fontWeight:500, }}>
-                        Welcome to APISecurityEngine
+                        Welcome to Optimas AI
                     </span>
 
                     <span  style={{  textAlign: 'left', color:'rgb(111, 107, 125)', 
