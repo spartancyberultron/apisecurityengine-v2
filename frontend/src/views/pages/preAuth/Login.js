@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
 import { useParams, useNavigate } from 'react-router-dom'
-import lightLogo from '../../../assets/images/apisec-light-logo.png'
+import lightLogo from '../../../assets/images/apisec-light-logo.svg'
 import image from '../../../assets/images/apisec-banner.jpg'
 import bgImage from '../../../assets/images/apisec-banner.jpg'
 import { useDispatch, useSelector } from 'react-redux'

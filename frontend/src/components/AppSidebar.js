@@ -5,7 +5,7 @@ import { sideBarHandler } from 'src/store/sideBar/actions'
 import { CSidebar, CSidebarBrand, CSidebarNav, CSidebarToggler } from '@coreui/react'
 
 import { AppSidebarNav } from './AppSidebarNav'
-import logo from '../assets/images/apisec_engine_logo.png'
+import logo from '../assets/images/apisec_engine_logo.svg'
 
 import SimpleBar from 'simplebar-react'
 import 'simplebar/dist/simplebar.min.css'

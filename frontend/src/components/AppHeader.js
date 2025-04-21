@@ -20,9 +20,9 @@ import Modal from 'react-modal';
 import { AppBreadcrumb } from './index'
 import { AppHeaderDropdown } from './header/index'
 import { sideBarHandler } from 'src/store/sideBar/actions'
-import lightLogo from '../assets/images/apisec-light-logo.png'
+import lightLogo from '../assets/images/apisec-light-logo.svg'
 import axios from 'axios'
-import logo from '../assets/images/apisec_engine_logo.png'
+import logo from '../assets/images/apisec_engine_logo.svg'
 
 
 import { AiFillDashboard } from "react-icons/ai";
@@ -143,7 +143,7 @@ const AppHeader = () => {
 
 
 {user && user.organization && user.organization.logoURL ?
-          <img src={user.organization.logoURL} style={{ width: 100, alignSelf: 'center' }} alt="Organization Logo" />
+          <img src={logo} style={{ width: 100, alignSelf: 'center' }} alt="Organization Logo" />
 :
 <img src={logo} style={{ width: 100, alignSelf: 'center' }} alt="Organization Logo" />
 }
