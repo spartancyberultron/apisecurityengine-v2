@@ -148,8 +148,6 @@ const AppHeader = () => {
 <img src={logo} style={{ width: 100, alignSelf: 'center' }} alt="Organization Logo" />
 }
     
-
-
         <div class="search-container" style={{ display: 'none' }}>
           <input type="text" class="search-input" placeholder="Search APISecurityEngine" />
           <AiOutlineSearch class="search-icon" size={22} color="#00BDC1" />
